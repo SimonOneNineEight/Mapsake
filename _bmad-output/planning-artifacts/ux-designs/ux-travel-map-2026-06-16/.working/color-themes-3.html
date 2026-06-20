@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapsake — Color Themes (v3)</title>
+<style>
+  /* =====================================================================
+     MAPSAKE — Color theme refinement v3 (3 tweaks over v2)
+     Warm, muted, milky-canvas atlas. "Milk, not white." Terracotta brand
+     hue carried across BOTH light and dark modes (region-visited-fill).
+
+     ---------------------------------------------------------------------
+     VARIATION A — SEPIA PARCHMENT  (LIGHT)
+       Two tweaks vs v2:
+         - border softened (#9C8761 -> #C7B79A): quieter, recedes
+         - unvisited de-yellowed (#E4D6B5 -> #E5DECF): neutral greige-cream
+       Final tokens:
+         canvas-bg          #F2E8D5
+         surface            #FBF4E4
+         region-visited     #B5663E   <- HERO terracotta clay (brand hue, kept)
+         region-unvisited   #E5DECF   <- neutral greige-cream (de-yellowed)
+         region-border      #C7B79A   <- soft warm-neutral line (softened)
+         text-primary       #3A2E22
+         text-muted         #8A7456
+         accent             #C8893B   (glowing re-live region / links)
+
+     VARIATION B — LAMPLIGHT  (DARK)
+       One tweak vs v2:
+         - base de-cooled (#21242B -> #27262B): balanced near-neutral
+           charcoal, faint warmth, neither blue-cold nor brown-warm.
+           Surface follows (#2A2E36 -> #302F36). Unvisited + border
+           re-tuned to neutral so they sit on the new base.
+       Final tokens:
+         canvas-bg          #27262B   <- near-neutral charcoal, faint warmth
+         surface            #302F36   <- raised neutral charcoal
+         region-visited     #C4703F   <- HERO terracotta glow (brand hue, kept)
+         region-unvisited   #34333B   <- recessive neutral-dark land
+         region-border      #48464F   <- neutral slate border
+         text-primary       #E8E2D8   <- warm-neutral off-white (kept)
+         text-muted         #94929C   <- neutral muted grey
+         accent             #E08A4E   (warm terracotta-glow for re-live/links)
+     ===================================================================== */
+
+  :root{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background:#E7E0D2;
+    color:#3A2E22;
+    -webkit-font-smoothing:antialiased;
+    padding:48px 36px 72px;
+  }
+  .page-head{ max-width:1080px; margin:0 auto 40px; }
+  .page-head h1{ font-size:24px; font-weight:600; letter-spacing:.2px; margin:0 0 6px; }
+  .page-head p{ margin:0; font-size:14px; color:#6E6354; max-width:680px; line-height:1.55; }
+
+  .grid{
+    max-width:1080px; margin:0 auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(420px, 1fr));
+    gap:34px;
+  }
+
+  .card{
+    border-radius:16px;
+    padding:26px 24px 28px;
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:0 1px 3px rgba(0,0,0,.05);
+  }
+
+  .v-head h2{ font-size:18px; font-weight:600; margin:0 0 3px; letter-spacing:.2px; }
+  .v-head .register{ font-size:12.5px; font-style:italic; margin:0 0 3px; opacity:.85; }
+  .v-head .mode{ font-size:11px; text-transform:uppercase; letter-spacing:1.2px; opacity:.6; }
+
+  /* token chips */
+  .tokens{ display:flex; flex-wrap:wrap; gap:7px; margin:18px 0 20px; }
+  .chip{
+    display:flex; align-items:center; gap:7px;
+    font-size:10.5px; line-height:1;
+    padding:5px 9px 5px 5px; border-radius:7px;
+    border:1px solid rgba(0,0,0,.07);
+  }
+  .swatch{ width:18px; height:18px; border-radius:5px; border:1px solid rgba(0,0,0,.12); flex:none; }
+  .chip .role{ font-weight:600; }
+  .chip .hex{ opacity:.65; font-variant-numeric:tabular-nums; }
+  .chip.hero{ font-weight:700; }
+  .chip.hero .swatch{ width:22px; height:22px; }
+
+  /* mini map + panel snippet */
+  .snippet{ display:flex; flex-direction:column; gap:16px; }
+  .map{
+    position:relative; height:168px; border-radius:12px; overflow:hidden;
+    border:1px solid rgba(0,0,0,.07);
+  }
+  .map svg{ display:block; width:100%; height:100%; }
+  .region{ stroke-width:1.4; }
+
+  .panel{
+    border-radius:12px; padding:16px 18px 18px;
+    border:1px solid rgba(0,0,0,.06);
+  }
+  .panel h3{ font-size:17px; font-weight:600; margin:0 0 2px; }
+  .panel .date{ font-size:12px; margin:0 0 10px; }
+  .panel .note{ font-size:13px; line-height:1.55; margin:0; }
+  .notif{
+    display:inline-flex; align-items:center; gap:7px;
+    margin-top:14px; padding:7px 12px; border-radius:20px;
+    font-size:11.5px; font-weight:500;
+  }
+  .notif .dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+</style>
+</head>
+<body>
+
+  <div class="page-head">
+    <h1>Mapsake — refined palette v3</h1>
+    <p>One light, one dark. Three tweaks over v2: Variation A softens the region border and de-yellows the empty-land fill toward a neutral greige; Variation B warms the over-cooled dark base into a balanced near-neutral charcoal. The terracotta visited-region fill stays the brand hue across both modes.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ============ VARIATION A — SEPIA PARCHMENT — LIGHT ============ -->
+    <!-- canvas #F2E8D5 / surface #FBF4E4 / visited #B5663E / unvisited #E5DECF
+         / border #C7B79A / text #3A2E22 / muted #8A7456 / accent #C8893B -->
+    <div class="card" style="background:#F2E8D5; color:#3A2E22;">
+      <div class="v-head">
+        <h2>Sepia Parchment</h2>
+        <p class="register">the aged atlas in a drawer — softer lines, calmer land</p>
+        <p class="mode">Light</p>
+      </div>
+      <div class="tokens">
+        <span class="chip"><span class="swatch" style="background:#F2E8D5"></span><span class="role">canvas-bg</span> <span class="hex">#F2E8D5</span></span>
+        <span class="chip"><span class="swatch" style="background:#FBF4E4"></span><span class="role">surface</span> <span class="hex">#FBF4E4</span></span>
+        <span class="chip hero"><span class="swatch" style="background:#B5663E"></span><span class="role">visited-fill</span> <span class="hex">#B5663E</span></span>
+        <span class="chip"><span class="swatch" style="background:#E5DECF"></span><span class="role">unvisited</span> <span class="hex">#E5DECF</span></span>
+        <span class="chip"><span class="swatch" style="background:#C7B79A"></span><span class="role">border</span> <span class="hex">#C7B79A</span></span>
+        <span class="chip"><span class="swatch" style="background:#3A2E22"></span><span class="role">text</span> <span class="hex">#3A2E22</span></span>
+        <span class="chip"><span class="swatch" style="background:#8A7456"></span><span class="role">text-muted</span> <span class="hex">#8A7456</span></span>
+        <span class="chip"><span class="swatch" style="background:#C8893B"></span><span class="role">accent</span> <span class="hex">#C8893B</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#F2E8D5;">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#B5663E" stroke="#C7B79A"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#E5DECF" stroke="#C7B79A"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#B5663E" stroke="#C7B79A"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#E5DECF" stroke="#C7B79A"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#B5663E" stroke="#C8893B" stroke-width="3" style="filter:drop-shadow(0 0 5px rgba(200,137,59,.55));"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#FBF4E4;">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#8A7456;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#F2E2C7; color:#7A5A33;"><span class="dot" style="background:#C8893B;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VARIATION B — LAMPLIGHT — DARK ============ -->
+    <!-- canvas #27262B / surface #302F36 / visited #C4703F / unvisited #34333B
+         / border #48464F / text #E8E2D8 / muted #94929C / accent #E08A4E -->
+    <div class="card" style="background:#27262B; color:#E8E2D8; border-color:rgba(255,255,255,.07); box-shadow:0 1px 4px rgba(0,0,0,.4);">
+      <div class="v-head">
+        <h2>Lamplight</h2>
+        <p class="register">kids asleep, re-living on the couch</p>
+        <p class="mode">Dark</p>
+      </div>
+      <div class="tokens">
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#27262B"></span><span class="role">canvas-bg</span> <span class="hex">#27262B</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#302F36"></span><span class="role">surface</span> <span class="hex">#302F36</span></span>
+        <span class="chip hero" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#C4703F"></span><span class="role">visited-fill</span> <span class="hex">#C4703F</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#34333B"></span><span class="role">unvisited</span> <span class="hex">#34333B</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#48464F"></span><span class="role">border</span> <span class="hex">#48464F</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#E8E2D8"></span><span class="role">text</span> <span class="hex">#E8E2D8</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#94929C"></span><span class="role">text-muted</span> <span class="hex">#94929C</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#E08A4E"></span><span class="role">accent</span> <span class="hex">#E08A4E</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#27262B; border-color:rgba(255,255,255,.07);">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#C4703F" stroke="#48464F"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#34333B" stroke="#48464F"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#C4703F" stroke="#48464F"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#34333B" stroke="#48464F"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#C4703F" stroke="#E08A4E" stroke-width="3" style="filter:drop-shadow(0 0 7px rgba(224,138,78,.6));"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#302F36; border-color:rgba(255,255,255,.07);">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#94929C;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#3A3942; color:#E08A4E;"><span class="dot" style="background:#E08A4E;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

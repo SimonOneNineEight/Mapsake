@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapsake — Key Screens · Pin Model · zh-TW · Light · v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Nunito+Sans:wght@400;600;700&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --canvas-bg:#F2E8D5;
+    --surface:#FBF4E4;
+    --region-fill:#B5663E;
+    --region-border:#96835E;
+    --text-primary:#3A2E22;
+    --text-muted:#6F5C40;
+    --terracotta-text:#9E4F2B;
+    --accent:#C8893B;
+
+    --serif: "Newsreader", "Noto Serif TC", serif;
+    --ui: "Nunito Sans", "Noto Sans TC", system-ui, sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(120% 80% at 50% 0%, #efe2c8 0%, var(--canvas-bg) 60%);
+    color:var(--text-primary);
+    font-family:var(--ui);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    padding:40px 28px 64px;
+  }
+
+  /* ---------- Page header ---------- */
+  .page-head{ max-width:1180px; margin:0 auto 38px; }
+  .wordmark-lg{
+    font-family:var(--serif); font-weight:500; font-size:40px;
+    letter-spacing:.3px; color:var(--text-primary); line-height:1;
+  }
+  .wordmark-lg .dot{ color:var(--terracotta-text); }
+  .page-sub{
+    margin-top:8px; color:var(--text-muted); font-size:14px; max-width:760px;
+  }
+
+  /* ---------- Frame scaffolding ---------- */
+  .frames{ max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:54px; }
+  .frame-block{ }
+  .frame-head{ margin-bottom:14px; }
+  .frame-title{
+    font-family:var(--serif); font-weight:500; font-size:22px; color:var(--text-primary);
+  }
+  .frame-num{
+    display:inline-block; font-family:var(--ui); font-weight:700; font-size:12px;
+    color:var(--terracotta-text); letter-spacing:.12em; margin-right:8px;
+    vertical-align:2px;
+  }
+  .frame-cap{
+    margin-top:5px; color:var(--text-muted); font-size:13.5px; max-width:680px; line-height:1.5;
+  }
+
+  /* device frames */
+  .device-phone{
+    width:360px; height:780px; border-radius:38px;
+    background:var(--canvas-bg);
+    box-shadow:0 22px 50px -20px rgba(58,46,34,.45), 0 0 0 9px #2c241b, 0 0 0 10px #45382a;
+    position:relative; overflow:hidden;
+  }
+  .device-desktop{
+    width:1100px; max-width:100%; height:660px; border-radius:16px;
+    background:var(--canvas-bg);
+    box-shadow:0 22px 50px -20px rgba(58,46,34,.4), 0 0 0 1px #c8b896;
+    position:relative; overflow:hidden;
+  }
+  .scale-90{ transform:scale(.9); transform-origin:top left; }
+  /* keep layout height correct after scaling phones in a row */
+  .phone-scaled-wrap{ width:324px; height:702px; }
+  .phone-scaled-wrap .device-phone{ transform:scale(.9); transform-origin:top left; }
+
+  .row{ display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
+
+  /* status bar */
+  .statusbar{
+    height:30px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 20px; font-size:12px; font-weight:700; color:var(--text-primary);
+    position:relative; z-index:5;
+  }
+  .statusbar .dots{ letter-spacing:2px; opacity:.8; }
+
+  /* map svg fills its container */
+  .map-svg{ display:block; width:100%; height:100%; }
+
+  /* generic absolute layer */
+  .layer{ position:absolute; inset:0; }
+
+  /* ---------- bottom sheet ---------- */
+  .sheet{
+    position:absolute; left:0; right:0; bottom:0;
+    background:var(--surface);
+    border-top-left-radius:22px; border-top-right-radius:22px;
+    box-shadow:0 -10px 30px -12px rgba(58,46,34,.35);
+    padding:10px 20px 22px;
+  }
+  .drag-handle{
+    width:42px; height:5px; border-radius:3px; background:#d9c9a6;
+    margin:2px auto 14px;
+  }
+  .sheet-title{
+    font-family:var(--serif); font-weight:500; font-size:24px; color:var(--text-primary);
+    line-height:1.15;
+  }
+  .sheet-date{ color:var(--text-muted); font-size:13.5px; margin-top:4px; font-weight:600; }
+
+  .thumb-row{ display:flex; gap:10px; margin:16px 0 14px; }
+  .thumb{
+    flex:1; aspect-ratio:1/1; border-radius:10px;
+    background:linear-gradient(135deg,#e7d8b9,#dcc9a4);
+    border:1px solid #cdb992;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-muted); font-size:12px; font-weight:600;
+  }
+  .note{
+    color:var(--text-primary); font-size:14px; line-height:1.7;
+    font-weight:400; margin:2px 0 16px;
+  }
+  .quiet-link{
+    color:var(--terracotta-text); font-size:14px; font-weight:600; text-decoration:none;
+  }
+  .quiet-link:hover{ text-decoration:underline; }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-block; background:var(--terracotta-text); color:var(--surface);
+    font-family:var(--ui); font-weight:600; font-size:15px;
+    padding:11px 20px; border-radius:8px; border:0; text-decoration:none; cursor:default;
+    box-shadow:0 6px 14px -7px rgba(158,79,43,.7);
+  }
+  .btn-block{ display:block; text-align:center; }
+
+  /* ---------- onboarding cards ---------- */
+  .ob-q{
+    font-family:var(--serif); font-weight:500; font-size:23px; color:var(--text-primary);
+    line-height:1.35; margin:6px 4px 18px;
+  }
+  .ob-cards{ display:flex; gap:14px; padding:0 4px; }
+  .ob-card{
+    flex:1; background:var(--surface); border:1px solid #d8c8a4; border-radius:14px;
+    padding:18px 14px; text-align:center;
+    box-shadow:0 8px 18px -14px rgba(58,46,34,.5);
+  }
+  .ob-card.sel{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(200,137,59,.5), 0 8px 18px -14px rgba(58,46,34,.5); }
+  .ob-card .ic{ font-size:26px; }
+  .ob-card .lbl{ font-family:var(--serif); font-weight:500; font-size:17px; margin-top:8px; }
+  .ob-foot{
+    position:absolute; left:0; right:0; bottom:0; padding:18px 22px 26px;
+    color:var(--text-muted); font-size:13.5px; text-align:center; line-height:1.6;
+    background:linear-gradient(180deg, transparent, rgba(242,232,213,.85) 40%);
+  }
+
+  /* ---------- search box ---------- */
+  .searchbox{
+    background:var(--surface); border:1px solid #d8c8a4; border-radius:10px;
+    height:42px; display:flex; align-items:center; gap:8px; padding:0 12px;
+    color:var(--text-muted); font-size:14px; font-weight:600;
+    box-shadow:0 5px 14px -10px rgba(58,46,34,.6);
+  }
+  .searchbox .mag{ font-size:15px; }
+  .searchbox.typed{ color:var(--text-primary); border-color:var(--accent); box-shadow:0 0 0 2px rgba(200,137,59,.4); }
+  .caret{ width:1px; height:18px; background:var(--terracotta-text); margin-left:1px; }
+
+  /* autocomplete dropdown */
+  .ac{
+    background:var(--surface); border:1px solid #d8c8a4; border-radius:10px;
+    margin-top:8px; overflow:hidden;
+    box-shadow:0 14px 30px -16px rgba(58,46,34,.5);
+  }
+  .ac-item{
+    display:flex; align-items:center; gap:11px; padding:11px 14px;
+    border-bottom:1px solid #ece0c6; font-size:14px;
+  }
+  .ac-item:last-child{ border-bottom:0; }
+  .ac-item.first{ background:rgba(200,137,59,.12); }
+  .ac-pin{ font-size:15px; color:var(--terracotta-text); }
+  .ac-main{ font-weight:600; color:var(--text-primary); }
+  .ac-sub{ color:var(--text-muted); font-size:12.5px; }
+
+  /* ---------- desktop panel ---------- */
+  .dt-split{ display:flex; height:100%; }
+  .dt-map{ width:62%; position:relative; border-right:1px solid #cdb992; }
+  .dt-panel{ width:38%; background:var(--surface); padding:24px 24px; overflow:hidden; }
+  .dt-topbar{
+    position:absolute; top:16px; left:16px; right:16px; display:flex; gap:14px; align-items:center; z-index:6;
+  }
+  .dt-wordmark{
+    font-family:var(--serif); font-weight:500; font-size:22px; color:var(--text-primary);
+    background:rgba(251,244,228,.82); padding:5px 12px; border-radius:9px;
+    box-shadow:0 4px 12px -8px rgba(58,46,34,.5); white-space:nowrap;
+  }
+  .dt-wordmark .dot{ color:var(--terracotta-text); }
+  .dt-topbar .searchbox{ flex:1; }
+  .photo-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0;
+  }
+  .photo-grid .thumb{ aspect-ratio:4/3; }
+
+  /* ---------- popover (drop & name) ---------- */
+  .popover{
+    position:absolute; background:var(--surface); border:1px solid #d8c8a4; border-radius:12px;
+    padding:12px; width:208px; box-shadow:0 16px 32px -16px rgba(58,46,34,.6);
+  }
+  .popover:after{
+    content:""; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%) rotate(45deg);
+    width:16px; height:16px; background:var(--surface); border-right:1px solid #d8c8a4; border-bottom:1px solid #d8c8a4;
+  }
+  .pop-label{ font-size:11.5px; color:var(--text-muted); font-weight:700; letter-spacing:.04em; margin-bottom:6px; }
+  .pop-input{
+    display:flex; align-items:center; justify-content:space-between;
+    background:#fff; border:1px solid var(--accent); border-radius:8px; padding:9px 11px;
+    box-shadow:0 0 0 2px rgba(200,137,59,.3);
+  }
+  .pop-input .val{ font-size:16px; font-weight:600; color:var(--text-primary); }
+  .pop-row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
+  .pop-row .btn{ padding:8px 16px; font-size:14px; }
+
+  /* floating add-memory FAB / pill */
+  .add-pill{
+    position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--terracotta-text); color:var(--surface);
+    font-weight:600; font-size:15px; padding:13px 22px; border-radius:24px;
+    box-shadow:0 10px 22px -10px rgba(158,79,43,.8);
+    display:flex; align-items:center; gap:8px;
+  }
+  .add-pill.active{ box-shadow:0 0 0 3px rgba(200,137,59,.55), 0 10px 22px -10px rgba(158,79,43,.8); }
+  .drop-hint{
+    position:absolute; top:46px; left:50%; transform:translateX(-50%);
+    background:rgba(58,46,34,.86); color:#fbf4e4; font-size:12.5px; font-weight:600;
+    padding:7px 14px; border-radius:8px; white-space:nowrap;
+  }
+
+  /* map pin label chips */
+  .pin-label{
+    font-family:"Noto Sans TC","Nunito Sans",sans-serif;
+    font-size:12px; font-weight:600;
+  }
+
+  /* inset card (frame 6) */
+  .inset{
+    position:absolute; right:16px; bottom:16px; width:180px;
+    background:var(--surface); border:1px solid #d8c8a4; border-radius:12px;
+    padding:12px; box-shadow:0 14px 28px -16px rgba(58,46,34,.55);
+  }
+  .inset .ttl{ font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:8px; letter-spacing:.03em; }
+  .inset .row6{ display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--text-primary); }
+
+  /* footer */
+  .pg-foot{
+    max-width:1180px; margin:56px auto 0; padding-top:18px; border-top:1px solid #d8c8a4;
+    color:var(--text-muted); font-size:12.5px; letter-spacing:.02em;
+  }
+
+  .latin-cap{ text-transform:uppercase; letter-spacing:.14em; }
+</style>
+</head>
+<body>
+
+  <!-- shared SVG defs (hatch pattern + pin/cluster symbols) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="0" x2="0" y2="7" stroke="#8a4a28" stroke-width="1" opacity="0.35"/>
+      </pattern>
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+
+      <!-- memory pin: terracotta teardrop + cream outline -->
+      <g id="pin">
+        <path d="M0,-26 C9,-26 14,-19 14,-12 C14,-3 0,0 0,0 C0,0 -14,-3 -14,-12 C-14,-19 -9,-26 0,-26 Z"
+              fill="#B5663E" stroke="#FBF4E4" stroke-width="2"/>
+        <circle cx="0" cy="-13" r="4.4" fill="#FBF4E4"/>
+      </g>
+      <!-- selected pin: glow halo + larger -->
+      <g id="pinSel">
+        <circle cx="0" cy="-12" r="20" fill="#C8893B" opacity="0.28" filter="url(#glow)"/>
+        <g transform="scale(1.15)">
+          <path d="M0,-26 C9,-26 14,-19 14,-12 C14,-3 0,0 0,0 C0,0 -14,-3 -14,-12 C-14,-19 -9,-26 0,-26 Z"
+                fill="#B5663E" stroke="#FBF4E4" stroke-width="2"/>
+          <circle cx="0" cy="-13" r="4.4" fill="#C8893B"/>
+        </g>
+      </g>
+    </defs>
+  </svg>
+
+  <header class="page-head">
+    <div class="wordmark-lg">Mapsake<span class="dot">.</span></div>
+    <p class="page-sub">關鍵畫面 — 圖釘模型（每個回憶都是一個命名圖釘，落在 admin-1 行政區內；多釘、聚合、地點搜尋）。繁體中文 · 淺色 · v1。Refreshed key screens reflecting the named-pin memory model.</p>
+  </header>
+
+  <div class="frames">
+
+    <!-- ===================== FRAME 1 ===================== -->
+    <section class="frame-block">
+      <div class="frame-head">
+        <div class="frame-title"><span class="frame-num latin-cap">Frame 1</span>重溫 · Re-live landing（手機）</div>
+        <div class="frame-cap">通知 → 地圖飛向那個圖釘，圖釘亮起，回憶一起展開。Notification → map flies to the pin, it glows, the memory opens together.</div>
+      </div>
+      <div class="phone-scaled-wrap">
+      <div class="device-phone">
+        <div class="statusbar"><span>9:41</span><span class="dots">●●● ▮</span></div>
+
+        <!-- full-screen map -->
+        <div class="layer" style="top:30px;">
+          <svg class="map-svg" viewBox="0 0 360 750" preserveAspectRatio="xMidYMid slice">
+            <rect width="360" height="750" fill="#F2E8D5"/>
+            <!-- bare regions -->
+            <path d="M-10,90 L130,60 L170,170 L60,230 L-10,210 Z" fill="#F2E8D5" stroke="#96835E" stroke-width="1.5"/>
+            <path d="M180,40 L340,70 L370,200 L210,210 L170,120 Z" fill="#F2E8D5" stroke="#96835E" stroke-width="1.5"/>
+            <path d="M-10,520 L120,470 L180,600 L40,700 L-10,660 Z" fill="#F2E8D5" stroke="#96835E" stroke-width="1.5"/>
+            <!-- glowing visited region (the one with the pin) -->
+            <g>
+              <path d="M70,250 L230,230 L300,360 L250,500 L100,520 L40,400 Z" fill="#B5663E" stroke="#96835E" stroke-width="1.8"/>
+              <path d="M70,250 L230,230 L300,360 L250,500 L100,520 L40,400 Z" fill="url(#hatch)" stroke="none"/>
+              <!-- soft glow ring around region -->
+              <path d="M70,250 L230,230 L300,360 L250,500 L100,520 L40,400 Z" fill="none" stroke="#C8893B" stroke-width="3" opacity="0.55" filter="url(#glow)"/>
+            </g>
+            <!-- another visited region -->
+            <g>
+              <path d="M250,420 L360,400 L370,560 L260,560 Z" fill="#B5663E" stroke="#96835E" stroke-width="1.5"/>
+              <path d="M250,420 L360,400 L370,560 L260,560 Z" fill="url(#hatch)"/>
+            </g>
+            <!-- selected pin (京都) -->
+            <use href="#pinSel" x="172" y="370"/>
+            <g class="pin-label" transform="translate(172,400)">
+              <rect x="-26" y="-2" width="52" height="22" rx="6" fill="#FBF4E4" stroke="#d8c8a4"/>
+              <text x="0" y="13" text-anchor="middle" fill="#3A2E22">京都</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- bottom sheet (half height) -->
+        <div class="sheet" style="height:46%;">
+          <div class="drag-handle"></div>
+          <div class="sheet-title">京都</div>
+          <div class="sheet-date">2022 年 4 月</div>
+          <div class="thumb-row">
+            <div class="thumb">照片</div>
+            <div class="thumb">照片</div>
+            <div class="thumb">照片</div>
+          </div>
+          <div class="note">第一天整天都在下雨，但我們一點也不介意——在車站附近找到了整趟旅程最好吃的拉麵。</div>
+          <a class="quiet-link" href="#">＋ 新增照片</a>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== FRAME 2 ===================== -->
+    <section class="frame-block">
+      <div class="frame-head">
+        <div class="frame-title"><span class="frame-num latin-cap">Frame 2</span>首次填地圖 · Onboarding（手機）</div>
+        <div class="frame-cap">入門＝快速標記去過的行政區；圖釘與回憶之後再補。Onboarding is fast region-marking; pins and memories come later.</div>
+      </div>
+      <div class="phone-scaled-wrap">
+      <div class="device-phone">
+        <div class="statusbar"><span>9:41</span><span class="dots">●●● ▮</span></div>
+
+        <!-- world map mid-backfill behind -->
+        <div class="layer" style="top:30px;">
+          <svg class="map-svg" viewBox="0 0 360 750" preserveAspectRatio="xMidYMid slice">
+            <rect width="360" height="750" fill="#F2E8D5"/>
+            <!-- abstract continents as admin-1 patchwork -->
+            <g stroke="#96835E" stroke-width="1.4">
+              <path d="M10,150 L120,120 L150,230 L60,280 L0,230 Z" fill="#B5663E"/>
+              <path d="M10,150 L120,120 L150,230 L60,280 L0,230 Z" fill="url(#hatch)"/>
+              <path d="M150,110 L290,140 L260,250 L150,230 Z" fill="#F2E8D5"/>
+              <path d="M290,140 L360,160 L360,300 L260,250 Z" fill="#B5663E"/>
+              <path d="M290,140 L360,160 L360,300 L260,250 Z" fill="url(#hatch)"/>
+              <path d="M40,320 L150,300 L170,460 L70,500 L20,420 Z" fill="#F2E8D5"/>
+              <path d="M170,300 L300,320 L320,470 L190,500 L170,420 Z" fill="#B5663E"/>
+              <path d="M170,300 L300,320 L320,470 L190,500 L170,420 Z" fill="url(#hatch)"/>
+              <path d="M40,540 L160,520 L180,650 L60,690 Z" fill="#F2E8D5"/>
+              <path d="M200,540 L340,560 L330,690 L210,680 Z" fill="#F2E8D5"/>
+            </g>
+          </svg>
+        </div>
+        <!-- dim scrim to lift the question -->
+        <div class="layer" style="top:30px; background:linear-gradient(180deg, rgba(242,232,213,.62) 0%, rgba(242,232,213,.18) 38%, rgba(242,232,213,.12) 100%);"></div>
+
+        <!-- question + cards -->
+        <div class="layer" style="top:64px; bottom:auto; padding:0 16px;">
+          <div class="ob-q">你想怎麼看你的地圖？</div>
+          <div class="ob-cards">
+            <div class="ob-card sel">
+              <div class="ic">🌍</div>
+              <div class="lbl">整個世界</div>
+            </div>
+            <div class="ob-card">
+              <div class="ic">📍</div>
+              <div class="lbl">聚焦一個國家</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-foot">點一下你去過的地方，開始填滿你的地圖。</div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== FRAME 3 (DESKTOP) ===================== -->
+    <section class="frame-block">
+      <div class="frame-head">
+        <div class="frame-title"><span class="frame-num latin-cap">Frame 3</span>桌面版 · Desktop（分割 ＋ 搜尋）</div>
+        <div class="frame-cap">桌面：圖釘落在地圖上，回憶面板停靠右側，搜尋用來放置圖釘。Pins on the map, memory docked right, search to place a pin.</div>
+      </div>
+      <div class="scale-90">
+      <div class="device-desktop">
+        <div class="dt-split">
+          <!-- MAP -->
+          <div class="dt-map">
+            <svg class="map-svg" viewBox="0 0 680 660" preserveAspectRatio="xMidYMid slice">
+              <rect width="680" height="660" fill="#F2E8D5"/>
+              <!-- bare + visited regions -->
+              <g stroke="#96835E" stroke-width="1.6">
+                <path d="M40,60 L240,40 L300,180 L120,230 L20,140 Z" fill="#F2E8D5"/>
+                <path d="M260,40 L520,70 L560,230 L300,210 Z" fill="#B5663E"/>
+                <path d="M260,40 L520,70 L560,230 L300,210 Z" fill="url(#hatch)"/>
+                <path d="M40,260 L300,250 L340,470 L120,540 L30,400 Z" fill="#B5663E"/>
+                <path d="M40,260 L300,250 L340,470 L120,540 L30,400 Z" fill="url(#hatch)"/>
+                <path d="M360,250 L600,240 L660,440 L420,500 L350,400 Z" fill="#F2E8D5"/>
+                <path d="M120,560 L380,520 L420,640 L160,660 Z" fill="#B5663E"/>
+                <path d="M120,560 L380,520 L420,640 L160,660 Z" fill="url(#hatch)"/>
+              </g>
+
+              <!-- MULTIPLE pins inside one (lower-left) visited region -->
+              <use href="#pin" x="120" y="360"/>
+              <g class="pin-label" transform="translate(120,388)"><rect x="-30" y="-2" width="60" height="20" rx="6" fill="#FBF4E4" stroke="#d8c8a4"/><text x="0" y="12" text-anchor="middle" fill="#3A2E22">大阪</text></g>
+
+              <use href="#pin" x="210" y="430"/>
+              <g class="pin-label" transform="translate(210,458)"><rect x="-30" y="-2" width="60" height="20" rx="6" fill="#FBF4E4" stroke="#d8c8a4"/><text x="0" y="12" text-anchor="middle" fill="#3A2E22">奈良</text></g>
+
+              <!-- SELECTED pin 京都 (glowing) -->
+              <use href="#pinSel" x="170" y="330"/>
+              <g class="pin-label" transform="translate(170,360)"><rect x="-26" y="-2" width="52" height="22" rx="6" fill="#FBF4E4" stroke="#C8893B"/><text x="0" y="13" text-anchor="middle" fill="#3A2E22">京都</text></g>
+
+              <!-- CLUSTER bubble at coarser area (upper-right region) -->
+              <g transform="translate(420,140)">
+                <circle r="18" fill="#B5663E" stroke="#FBF4E4" stroke-width="2.5"/>
+                <text x="0" y="5" text-anchor="middle" fill="#FBF4E4" font-family="Nunito Sans, Noto Sans TC, sans-serif" font-weight="700" font-size="15">5</text>
+              </g>
+            </svg>
+
+            <!-- topbar: wordmark + search -->
+            <div class="dt-topbar">
+              <div class="dt-wordmark">Mapsake<span class="dot">.</span></div>
+              <div class="searchbox"><span class="mag">🔍</span><span>搜尋地點…</span></div>
+            </div>
+          </div>
+
+          <!-- DOCKED PANEL -->
+          <div class="dt-panel">
+            <div class="sheet-title">京都</div>
+            <div class="sheet-date">2022 年 4 月</div>
+            <div class="photo-grid">
+              <div class="thumb">照片</div>
+              <div class="thumb">照片</div>
+              <div class="thumb">照片</div>
+              <div class="thumb">照片</div>
+            </div>
+            <div class="note">第一天整天都在下雨，但我們一點也不介意——在車站附近找到了整趟旅程最好吃的拉麵。</div>
+            <a class="btn btn-block" href="#" style="margin:18px 0 12px;">新增照片</a>
+            <div style="text-align:center;"><a class="quiet-link" href="#">稍後再補充</a></div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== FRAME 4 ===================== -->
+    <section class="frame-block">
+      <div class="frame-head">
+        <div class="frame-title"><span class="frame-num latin-cap">Frame 4</span>新增圖釘 · Drop &amp; name a pin（手機）</div>
+        <div class="frame-cap">點「＋ 新增回憶」→ 點地圖上的位置 → 為圖釘命名。Tap "+ add memory" → tap the spot → name the pin.</div>
+      </div>
+      <div class="phone-scaled-wrap">
+      <div class="device-phone">
+        <div class="statusbar"><span>9:41</span><span class="dots">●●● ▮</span></div>
+
+        <div class="layer" style="top:30px;">
+          <svg class="map-svg" viewBox="0 0 360 750" preserveAspectRatio="xMidYMid slice">
+            <rect width="360" height="750" fill="#F2E8D5"/>
+            <!-- zoomed-into-a-region view: one big region fills most of view -->
+            <path d="M-40,-20 L420,-30 L440,820 L-60,800 Z" fill="#F2E8D5"/>
+            <!-- inner detail of region (rivers / district lines) -->
+            <g stroke="#96835E" stroke-width="1.3" fill="none" opacity="0.65">
+              <path d="M0,200 C120,260 200,180 360,260"/>
+              <path d="M40,460 C160,420 240,520 360,470"/>
+              <path d="M180,-10 L210,820"/>
+            </g>
+            <!-- a couple of existing pins (context) -->
+            <use href="#pin" x="90" y="250"/>
+            <use href="#pin" x="280" y="560"/>
+            <!-- freshly dropped pin (selected) at tapped spot -->
+            <use href="#pinSel" x="180" y="430"/>
+          </svg>
+        </div>
+
+        <!-- name-input popover above dropped pin -->
+        <div class="popover" style="left:50%; top:300px; transform:translateX(-50%);">
+          <div class="pop-label">圖釘名稱</div>
+          <div class="pop-input"><span class="val">京都</span><span class="caret"></span></div>
+          <div class="pop-row">
+            <a class="btn" href="#">完成</a>
+            <a class="quiet-link" href="#" style="font-size:13px;">取消</a>
+          </div>
+        </div>
+
+        <!-- active drop-mode affordance -->
+        <div class="drop-hint" style="top:48px;">點一下地圖，放下你的圖釘</div>
+        <div class="add-pill active">＋ 新增回憶</div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== FRAME 5 ===================== -->
+    <section class="frame-block">
+      <div class="frame-head">
+        <div class="frame-title"><span class="frame-num latin-cap">Frame 5</span>搜尋地點 · Search-to-place（手機）</div>
+        <div class="frame-cap">輸入地點 → 選一個結果 → 圖釘對齊它的真實座標（FR24）。Type a place → pick a result → pin snaps to its true coordinates.</div>
+      </div>
+      <div class="phone-scaled-wrap">
+      <div class="device-phone">
+        <div class="statusbar"><span>9:41</span><span class="dots">●●● ▮</span></div>
+
+        <!-- search field + autocomplete -->
+        <div class="layer" style="top:42px; bottom:auto; padding:0 16px; z-index:8;">
+          <div class="searchbox typed"><span class="mag">🔍</span><span>京都</span><span class="caret"></span></div>
+          <div class="ac">
+            <div class="ac-item first">
+              <span class="ac-pin">📍</span>
+              <div><div class="ac-main">京都市，日本</div><div class="ac-sub">城市 · 京都府</div></div>
+            </div>
+            <div class="ac-item">
+              <span class="ac-pin">📍</span>
+              <div><div class="ac-main">京都府，日本</div><div class="ac-sub">行政區 · 關西</div></div>
+            </div>
+            <div class="ac-item">
+              <span class="ac-pin">📍</span>
+              <div><div class="ac-main">京都站</div><div class="ac-sub">車站 · 京都市下京區</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- map below: pin about to snap to first result -->
+        <div class="layer" style="top:30px;">
+          <svg class="map-svg" viewBox="0 0 360 750" preserveAspectRatio="xMidYMid slice">
+            <rect width="360" height="750" fill="#F2E8D5"/>
+            <g stroke="#96835E" stroke-width="1.5">
+              <path d="M-10,360 L160,330 L210,470 L80,560 L-10,470 Z" fill="#F2E8D5"/>
+              <path d="M180,330 L360,360 L370,540 L220,560 L190,440 Z" fill="#B5663E"/>
+              <path d="M180,330 L360,360 L370,540 L220,560 L190,440 Z" fill="url(#hatch)"/>
+              <path d="M40,580 L210,560 L240,690 L60,710 Z" fill="#F2E8D5"/>
+            </g>
+            <!-- ghost target + snapping pin -->
+            <circle cx="250" cy="470" r="9" fill="none" stroke="#C8893B" stroke-width="2" stroke-dasharray="3 3"/>
+            <g opacity="0.9">
+              <line x1="250" y1="380" x2="250" y2="446" stroke="#C8893B" stroke-width="2" stroke-dasharray="4 4"/>
+            </g>
+            <use href="#pinSel" x="250" y="440"/>
+          </svg>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===================== FRAME 6 (DESKTOP/WIDE region) ===================== -->
+    <section class="frame-block">
+      <div class="frame-head">
+        <div class="frame-title"><span class="frame-num latin-cap">Frame 6</span>一區多釘 ＋ 聚合 · Multiple pins + clustering</div>
+        <div class="frame-cap">同一行政區可有多個命名圖釘；密集圖釘在較粗的縮放下聚合成計數泡泡「3」。Multiple named pins per region; dense pins collapse into a count bubble.</div>
+      </div>
+      <div class="scale-90">
+      <div class="device-desktop" style="height:560px;">
+        <svg class="map-svg" viewBox="0 0 1100 560" preserveAspectRatio="xMidYMid slice">
+          <rect width="1100" height="560" fill="#F2E8D5"/>
+          <!-- one large California-like region, lightly filled -->
+          <path d="M260,40 L520,30 L540,120 L640,300 L600,470 L420,520 L300,420 L320,260 L250,160 Z"
+                fill="#B5663E" stroke="#96835E" stroke-width="2"/>
+          <path d="M260,40 L520,30 L540,120 L640,300 L600,470 L420,520 L300,420 L320,260 L250,160 Z"
+                fill="url(#hatch)" opacity="0.6"/>
+          <!-- neighbouring bare regions for context -->
+          <path d="M520,30 L760,60 L740,230 L640,300 L540,120 Z" fill="#F2E8D5" stroke="#96835E" stroke-width="1.6"/>
+          <path d="M40,120 L250,160 L300,420 L120,480 L20,300 Z" fill="#F2E8D5" stroke="#96835E" stroke-width="1.6"/>
+
+          <!-- THREE distinct named pins -->
+          <use href="#pin" x="420" y="150"/>
+          <g class="pin-label" transform="translate(420,178)"><rect x="-36" y="-2" width="72" height="20" rx="6" fill="#FBF4E4" stroke="#d8c8a4"/><text x="0" y="12" text-anchor="middle" fill="#3A2E22">舊金山</text></g>
+
+          <use href="#pin" x="500" y="330"/>
+          <g class="pin-label" transform="translate(500,358)"><rect x="-36" y="-2" width="72" height="20" rx="6" fill="#FBF4E4" stroke="#d8c8a4"/><text x="0" y="12" text-anchor="middle" fill="#3A2E22">洛杉磯</text></g>
+
+          <use href="#pin" x="470" y="450"/>
+          <g class="pin-label" transform="translate(470,478)"><rect x="-42" y="-2" width="84" height="20" rx="6" fill="#FBF4E4" stroke="#d8c8a4"/><text x="0" y="12" text-anchor="middle" fill="#3A2E22">聖地牙哥</text></g>
+        </svg>
+
+        <!-- inset: coarser zoom → cluster -->
+        <div class="inset" style="bottom:24px; right:24px; width:210px;">
+          <div class="ttl">較粗縮放時 · zoomed out</div>
+          <div class="row6">
+            <svg width="56" height="40" viewBox="0 0 56 40">
+              <rect width="56" height="40" rx="6" fill="#F2E8D5" stroke="#d8c8a4"/>
+              <path d="M14,6 L40,6 L46,30 L22,36 L10,20 Z" fill="#B5663E" opacity="0.85"/>
+              <g transform="translate(28,20)">
+                <circle r="12" fill="#B5663E" stroke="#FBF4E4" stroke-width="2"/>
+                <text x="0" y="4" text-anchor="middle" fill="#FBF4E4" font-family="Nunito Sans, Noto Sans TC, sans-serif" font-weight="700" font-size="12">3</text>
+              </g>
+            </svg>
+            <span>三個圖釘聚合成<br/>一個計數泡泡</span>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="pg-foot">
+    Mapsake — key screens · pin model · zh-TW · light · v1 (2026-06-20)
+  </footer>
+
+</body>
+</html>

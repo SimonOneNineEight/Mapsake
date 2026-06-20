@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mapsake — Map + Memory Layout Wireframes</title>
+<style>
+  :root{
+    --parchment:#F2E8D5;
+    --terracotta:#B5663E;
+    --softborder:#C7B79A;
+    --panel:#FBF4E4;
+    --muted:#8A7456;
+    --wire:#9a9a9a;
+    --wirebg:#ececec;
+    --ink:#444;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:#dcdcdc;
+    color:var(--ink);
+    padding:32px 24px 80px;
+  }
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:.5px;}
+  .sub{color:#666;font-size:13px;margin:0 0 22px;}
+
+  /* legend */
+  .legend{
+    display:flex;flex-wrap:wrap;gap:18px;
+    background:#fff;border:1px solid #bbb;border-radius:6px;
+    padding:14px 18px;margin-bottom:34px;font-size:12px;
+  }
+  .legend b{display:block;font-size:11px;letter-spacing:.5px;color:#555;margin-bottom:6px;text-transform:uppercase;}
+  .legend ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:18px;}
+  .legend li{display:flex;align-items:center;gap:8px;}
+  .sw{width:18px;height:18px;border-radius:3px;border:1px solid #999;display:inline-block;}
+  .sw.parch{background:var(--parchment);border-color:var(--softborder);}
+  .sw.terra{background:var(--terracotta);border-color:#8c4d2e;}
+  .sw.cream{background:var(--panel);border-color:var(--softborder);}
+  .sw.grey{background:var(--wirebg);border:1px dashed var(--wire);}
+
+  /* frame scaffolding */
+  .frames{display:flex;flex-direction:column;gap:54px;align-items:flex-start;}
+  .frame-block{width:100%;}
+  .frame-title{font-size:15px;font-weight:700;margin:0 0 4px;}
+  .frame-title .rec{background:var(--terracotta);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:8px;letter-spacing:.5px;vertical-align:middle;}
+  .frame-title .alt{background:#8a8a8a;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:8px;letter-spacing:.5px;vertical-align:middle;}
+  .caption{font-size:12px;color:#666;margin:0 0 14px;max-width:640px;}
+
+  .phones-row{display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;}
+
+  /* device shells */
+  .device{background:#222;border-radius:18px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .device.desktop{width:1100px;max-width:100%;border-radius:12px;padding:8px;}
+  .device.phone{width:360px;border-radius:34px;padding:12px;}
+  .screen{position:relative;background:#fff;overflow:hidden;}
+  .device.desktop .screen{height:560px;border-radius:6px;display:flex;}
+  .device.phone .screen{height:740px;border-radius:24px;}
+
+  /* MAP */
+  .map{position:relative;background:var(--parchment);overflow:hidden;}
+  .region{position:absolute;background:var(--parchment);border:1.5px solid var(--softborder);border-radius:40% 55% 50% 45%;}
+  .region.r2{border-radius:55% 40% 45% 60%;}
+  .region.r3{border-radius:48% 52% 60% 40%;}
+  .region.r4{border-radius:60% 45% 50% 55%;}
+  .region.glow{
+    background:var(--terracotta);border-color:#8c4d2e;
+    box-shadow:0 0 0 6px rgba(181,102,62,.25),0 0 26px 6px rgba(181,102,62,.45);
+  }
+  .glow-label{position:absolute;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+  .wordmark{position:absolute;top:12px;left:14px;font-weight:800;font-size:15px;color:var(--muted);letter-spacing:.5px;}
+  .maphint{position:absolute;top:12px;left:14px;background:rgba(251,244,228,.92);border:1px solid var(--softborder);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--muted);}
+  .pin{position:absolute;width:12px;height:12px;background:#fff;border:2px solid var(--terracotta);border-radius:50%;}
+
+  /* memory panel pieces */
+  .panel-header{display:flex;align-items:flex-start;justify-content:space-between;}
+  .ptitle{font-size:18px;font-weight:700;color:#3c3228;margin:0;}
+  .pdate{font-size:12px;color:var(--muted);margin:2px 0 0;}
+  .closex{font-size:18px;color:var(--muted);cursor:default;line-height:1;}
+
+  .photo{background:var(--wirebg);border:1px dashed var(--wire);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;letter-spacing:1px;}
+  .pgrid{display:grid;gap:8px;}
+  .pgrid.g2x2{grid-template-columns:1fr 1fr;}
+  .pgrid.g2x3{grid-template-columns:1fr 1fr;}
+  .prow{display:flex;gap:8px;overflow:hidden;}
+  .prow .photo{flex:0 0 38%;}
+
+  .noteline{height:7px;background:#e0e0e0;border-radius:3px;margin:7px 0;}
+  .noteline.s{width:60%;}
+  .addbtn{display:inline-block;margin-top:10px;border:1px dashed var(--terracotta);color:var(--terracotta);background:transparent;border-radius:18px;padding:6px 12px;font-size:12px;}
+
+  .tag{position:absolute;background:#fff;border:1px solid #bbb;font-size:10px;color:#777;padding:2px 6px;border-radius:4px;}
+</style>
+</head>
+<body>
+
+  <h1>Mapsake — Map + Memory Layout / Responsive Wireframes</h1>
+  <p class="sub">Low-fidelity structure study. How the map and the memory panel coexist and reflow across screen sizes. The "re-live" moment = map + memory together, region glowing.</p>
+
+  <div class="legend">
+    <div>
+      <b>Legend</b>
+      <ul>
+        <li><span class="sw parch"></span> parchment = map</li>
+        <li><span class="sw terra"></span> terracotta = the place you're re-living</li>
+        <li><span class="sw cream"></span> cream = memory panel</li>
+        <li><span class="sw grey"></span> grey box = photo / placeholder</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="frames">
+
+    <!-- ================= FRAME 1 ================= -->
+    <div class="frame-block">
+      <p class="frame-title">FRAME 1 — Desktop / wide (&ge;1024px): side-by-side split</p>
+      <p class="caption">Map and memory side by side. Map stays interactive; tap another region to swap the panel.</p>
+
+      <div class="device desktop">
+        <div class="screen">
+
+          <!-- MAP ~62% -->
+          <div class="map" style="width:62%;height:100%;">
+            <div class="wordmark">Mapsake</div>
+            <div class="maphint" style="top:42px;left:14px;">🔍 search · ＋／－ zoom &nbsp;(REGION: map, zoomed to Kyoto)</div>
+
+            <div class="region r2" style="width:150px;height:120px;top:60px;left:360px;"></div>
+            <div class="region r3" style="width:130px;height:140px;top:300px;left:90px;"></div>
+            <div class="region r4" style="width:160px;height:130px;top:330px;left:380px;"></div>
+
+            <!-- glowing -->
+            <div class="region glow" style="width:170px;height:140px;top:170px;left:170px;"></div>
+            <div class="pin" style="top:233px;left:248px;"></div>
+            <div class="glow-label" style="top:300px;left:185px;">Kyoto — glowing</div>
+          </div>
+
+          <!-- MEMORY PANEL ~38% -->
+          <div style="width:38%;height:100%;background:var(--panel);border-left:1.5px solid var(--softborder);padding:18px 16px;">
+            <div class="panel-header">
+              <div>
+                <p class="ptitle">Kyoto</p>
+                <p class="pdate">April 2022</p>
+              </div>
+              <div class="closex">&times;</div>
+            </div>
+
+            <div class="pgrid g2x2" style="margin-top:16px;">
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <div class="noteline"></div>
+              <div class="noteline"></div>
+              <div class="noteline s"></div>
+            </div>
+
+            <div class="addbtn">+ Add a photo</div>
+            <div class="tag" style="position:static;display:inline-block;margin-top:14px;">REGION: docked memory panel</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- phones row 2 & 3 -->
+    <div class="phones-row">
+
+      <!-- ================= FRAME 2 ================= -->
+      <div class="frame-block" style="width:auto;">
+        <p class="frame-title">FRAME 2 — Phone (portrait): bottom sheet — collapsed/default <span class="rec">RECOMMENDED</span></p>
+        <p class="caption">RECOMMENDED. Map + memory together. Drag the sheet up to immerse in photos, drag down to return to the map.</p>
+
+        <div class="device phone">
+          <div class="screen">
+
+            <!-- full map -->
+            <div class="map" style="position:absolute;inset:0;">
+              <div class="wordmark">Mapsake</div>
+              <div class="maphint" style="top:44px;left:14px;">🔍 search · ＋／－ zoom</div>
+
+              <div class="region r2" style="width:90px;height:80px;top:120px;left:40px;"></div>
+              <div class="region r3" style="width:80px;height:90px;top:130px;left:230px;"></div>
+              <div class="region glow" style="width:120px;height:100px;top:210px;left:120px;"></div>
+              <div class="pin" style="top:255px;left:175px;"></div>
+              <div class="glow-label" style="top:175px;left:128px;color:var(--muted);text-shadow:none;">Kyoto — glowing</div>
+              <div class="tag" style="top:118px;left:160px;">REGION: map (full screen)</div>
+            </div>
+
+            <!-- bottom sheet ~50% -->
+            <div style="position:absolute;left:0;right:0;bottom:0;height:50%;background:var(--panel);border-top:1.5px solid var(--softborder);border-radius:18px 18px 0 0;padding:6px 16px 16px;box-shadow:0 -6px 16px rgba(0,0,0,.12);">
+              <div style="width:46px;height:5px;background:var(--softborder);border-radius:3px;margin:6px auto 2px;"></div>
+              <div style="text-align:center;font-size:14px;color:var(--muted);margin-bottom:8px;">↑ drag up for more</div>
+
+              <div class="panel-header">
+                <div>
+                  <p class="ptitle" style="font-size:16px;">Kyoto</p>
+                  <p class="pdate">April 2022</p>
+                </div>
+              </div>
+
+              <div class="prow" style="margin-top:12px;">
+                <div class="photo" style="height:80px;">PHOTO</div>
+                <div class="photo" style="height:80px;">PHOTO</div>
+                <div class="photo" style="height:80px;">PHOTO</div>
+              </div>
+
+              <div style="margin-top:12px;">
+                <div class="noteline"></div>
+                <div class="noteline s"></div>
+              </div>
+
+              <div class="addbtn">+ Add a photo</div>
+              <div class="tag" style="position:static;display:inline-block;margin-top:10px;">REGION: memory bottom sheet (collapsed)</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= FRAME 3 ================= -->
+      <div class="frame-block" style="width:auto;">
+        <p class="frame-title">FRAME 3 — Phone (portrait): bottom sheet — expanded</p>
+        <p class="caption">Expanded for photo immersion — a sliver of the glowing map remains, so you never fully leave the place.</p>
+
+        <div class="device phone">
+          <div class="screen">
+
+            <!-- sliver of map at top -->
+            <div class="map" style="position:absolute;top:0;left:0;right:0;height:15%;">
+              <div class="region glow" style="width:120px;height:70px;top:18px;left:120px;border-radius:50%;"></div>
+              <div class="region r2" style="width:70px;height:50px;top:30px;left:30px;"></div>
+              <div class="tag" style="top:10px;left:14px;">REGION: glowing map sliver</div>
+              <div style="position:absolute;top:12px;right:14px;font-size:12px;color:var(--muted);background:rgba(251,244,228,.9);border:1px solid var(--softborder);border-radius:6px;padding:3px 8px;">▾ back to map</div>
+            </div>
+
+            <!-- sheet ~85% -->
+            <div style="position:absolute;left:0;right:0;bottom:0;height:85%;background:var(--panel);border-top:1.5px solid var(--softborder);border-radius:18px 18px 0 0;padding:6px 16px 16px;box-shadow:0 -6px 16px rgba(0,0,0,.12);overflow:hidden;">
+              <div style="width:46px;height:5px;background:var(--softborder);border-radius:3px;margin:6px auto 8px;"></div>
+
+              <div class="panel-header">
+                <div>
+                  <p class="ptitle" style="font-size:16px;">Kyoto</p>
+                  <p class="pdate">April 2022</p>
+                </div>
+              </div>
+
+              <div class="pgrid g2x3" style="margin-top:12px;">
+                <div class="photo" style="height:78px;">PHOTO</div>
+                <div class="photo" style="height:78px;">PHOTO</div>
+                <div class="photo" style="height:78px;">PHOTO</div>
+                <div class="photo" style="height:78px;">PHOTO</div>
+                <div class="photo" style="height:78px;">PHOTO</div>
+                <div class="photo" style="height:78px;">PHOTO</div>
+              </div>
+
+              <div style="margin-top:14px;">
+                <div class="noteline"></div>
+                <div class="noteline"></div>
+                <div class="noteline"></div>
+                <div class="noteline s"></div>
+              </div>
+
+              <div class="addbtn">+ Add a photo</div>
+              <div class="tag" style="position:static;display:inline-block;margin-top:10px;">REGION: memory bottom sheet (expanded ~85%)</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /phones-row -->
+
+    <!-- ================= FRAME 4 ================= -->
+    <div class="frame-block">
+      <p class="frame-title">FRAME 4 — Phone (portrait): ALTERNATE — full memory takeover <span class="alt">NOT RECOMMENDED</span></p>
+      <p class="caption">ALTERNATE (not recommended): more photo room, but breaks the "map + memory together" feeling the product is built on.</p>
+
+      <div class="device phone">
+        <div class="screen">
+          <div style="position:absolute;inset:0;background:var(--panel);padding:16px;">
+
+            <div class="panel-header">
+              <div style="font-size:13px;color:var(--muted);">‹ Map</div>
+              <div style="width:46px;height:30px;border:1px dashed var(--wire);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#888;">map</div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <p class="ptitle">Kyoto</p>
+              <p class="pdate">April 2022</p>
+            </div>
+
+            <div class="pgrid g2x3" style="margin-top:14px;">
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+              <div class="photo" style="height:90px;">PHOTO</div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <div class="noteline"></div>
+              <div class="noteline"></div>
+              <div class="noteline"></div>
+              <div class="noteline s"></div>
+            </div>
+
+            <div class="addbtn">+ Add a photo</div>
+            <div class="tag" style="position:static;display:inline-block;margin-top:12px;">REGION: full memory takeover · NO map (tiny chip only)</div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /frames -->
+
+</body>
+</html>

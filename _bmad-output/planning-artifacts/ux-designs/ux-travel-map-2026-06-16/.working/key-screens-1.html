@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapsake — Key Screens (zh-TW · light · v1)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Nunito+Sans:wght@400;600;700&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --canvas-bg: #F2E8D5;
+    --surface: #FBF4E4;
+    --terracotta: #B5663E;
+    --border-soft: #C7B79A;
+    --text-primary: #3A2E22;
+    --text-muted: #8A7456;
+    --accent-glow: #C8893B;
+    --photo-a: #C7B79A;
+    --photo-b: #E6D9C0;
+
+    --serif: "Newsreader", "Noto Serif TC", Georgia, serif;
+    --sans: "Nunito Sans", "Noto Sans TC", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #EAE0CC;
+    background-image:
+      radial-gradient(circle at 20% 10%, #F2E8D5 0%, #E6DAC2 60%, #DED1B6 100%);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 48px 32px 64px;
+  }
+
+  .page-head {
+    text-align: center;
+    margin-bottom: 44px;
+  }
+  .page-head .wm {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 34px;
+    letter-spacing: 0.01em;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+  }
+  .page-head .sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .frames {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .frame-block { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+  .caption {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-style: italic;
+    max-width: 360px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .frame-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--text-primary);
+    text-align: center;
+  }
+
+  /* ---------- Phone frame ---------- */
+  .phone {
+    width: 360px;
+    height: 740px;
+    border-radius: 42px;
+    background: #2a2118;
+    padding: 10px;
+    box-shadow: 0 24px 50px -18px rgba(58,46,34,0.45), 0 4px 12px rgba(58,46,34,0.18);
+    position: relative;
+  }
+  .phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 33px;
+    overflow: hidden;
+    background: var(--canvas-bg);
+  }
+  .notch {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 26px;
+    background: #2a2118;
+    border-radius: 0 0 16px 16px;
+    z-index: 40;
+  }
+  .statusbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    z-index: 30;
+  }
+  .statusbar .right { letter-spacing: 0.08em; }
+
+  /* ---------- Map canvas ---------- */
+  .map-wrap { position: absolute; inset: 0; }
+  .map-wrap svg { width: 100%; height: 100%; display: block; }
+
+  .maplabel {
+    font-family: "Noto Sans TC", var(--sans);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    fill: var(--text-muted);
+    font-weight: 500;
+  }
+  .maplabel-tc {
+    font-family: "Noto Sans TC", var(--sans);
+    letter-spacing: 0.06em;
+    font-size: 12px;
+    fill: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .zoomhint {
+    position: absolute;
+    bottom: 18px; left: 16px;
+    z-index: 20;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .zoom-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    color: var(--text-primary);
+    font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(58,46,34,0.12);
+  }
+
+  /* ---------- Bottom sheet ---------- */
+  .sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 52%;
+    background: var(--surface);
+    border-radius: 22px 22px 33px 33px;
+    box-shadow: 0 -10px 30px -8px rgba(58,46,34,0.22);
+    z-index: 25;
+    padding: 12px 22px 26px;
+    display: flex; flex-direction: column;
+  }
+  .drag-handle {
+    width: 44px; height: 5px;
+    border-radius: 3px;
+    background: var(--border-soft);
+    margin: 2px auto 16px;
+  }
+  .mem-title {
+    font-family: "Noto Serif TC", var(--serif);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.1;
+  }
+  .mem-sub {
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 5px 0 0;
+    letter-spacing: 0.02em;
+  }
+  .mem-meta-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--canvas-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 3px 9px;
+    letter-spacing: 0.04em;
+  }
+  .thumb-row {
+    display: flex; gap: 10px;
+    margin: 18px 0 16px;
+  }
+  .thumb {
+    flex: 1;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+  .thumb.a { background: var(--photo-a); }
+  .thumb.b { background: var(--photo-b); }
+  .note {
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-primary);
+    margin: 0 0 18px;
+  }
+  .quiet-link {
+    font-family: "Noto Sans TC", var(--sans);
+    color: var(--terracotta);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .quiet-link.small { font-size: 13px; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--terracotta);
+    color: var(--surface);
+    border: none;
+    border-radius: 8px;
+    font-family: "Nunito Sans", "Noto Sans TC", sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px 22px;
+    letter-spacing: 0.03em;
+    cursor: default;
+    box-shadow: 0 3px 8px -2px rgba(181,102,62,0.5);
+  }
+
+  /* ---------- Onboarding ---------- */
+  .ob-top {
+    position: absolute;
+    top: 46px; left: 0; right: 0;
+    padding: 18px 24px 22px;
+    z-index: 26;
+    background: linear-gradient(to bottom, var(--canvas-bg) 72%, rgba(242,232,213,0));
+  }
+  .ob-q {
+    font-family: "Noto Serif TC", var(--serif);
+    font-weight: 500;
+    font-size: 21px;
+    line-height: 1.45;
+    color: var(--text-primary);
+    margin: 0 0 18px;
+  }
+  .ob-choices { display: flex; gap: 12px; }
+  .ob-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    box-shadow: 0 4px 12px -6px rgba(58,46,34,0.2);
+  }
+  .ob-card.active { border-color: var(--terracotta); box-shadow: 0 0 0 2px rgba(181,102,62,0.18), 0 4px 12px -6px rgba(58,46,34,0.2); }
+  .ob-card .ic { font-size: 26px; line-height: 1; margin-bottom: 10px; }
+  .ob-card .lab {
+    font-family: "Noto Sans TC", var(--sans);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+  .ob-footer {
+    position: absolute;
+    bottom: 26px; left: 0; right: 0;
+    text-align: center;
+    z-index: 26;
+    padding: 0 28px;
+  }
+  .ob-footer p {
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* ---------- Desktop frame ---------- */
+  .desktop {
+    width: 1100px;
+    max-width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 28px 60px -22px rgba(58,46,34,0.5), 0 6px 16px rgba(58,46,34,0.16);
+    background: var(--canvas-bg);
+    border: 1px solid rgba(58,46,34,0.12);
+  }
+  .desktop-bar {
+    height: 36px;
+    background: #E2D5BD;
+    display: flex; align-items: center;
+    padding: 0 14px; gap: 8px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #cf8b6e; } .dot.y { background: #d8b66a; } .dot.g { background: #a7b07a; }
+  .desktop-body { display: flex; height: 620px; }
+  .desktop-map {
+    flex: 0 0 62%;
+    position: relative;
+    background: var(--canvas-bg);
+  }
+  .desktop-map .wm {
+    position: absolute; top: 22px; left: 26px; z-index: 10;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 26px;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+  }
+  .desktop-map .wm .dotmark { color: var(--terracotta); }
+  .desktop-map svg { width: 100%; height: 100%; display: block; }
+  .desktop-zoomhint {
+    position: absolute; bottom: 22px; left: 26px; z-index: 10;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .desktop-zoomhint .hint-txt {
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em;
+  }
+
+  .desktop-panel {
+    flex: 0 0 38%;
+    background: var(--surface);
+    border-left: 1px solid var(--border-soft);
+    padding: 30px 32px;
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .panel-close {
+    position: absolute; top: 22px; right: 26px;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    background: var(--canvas-bg);
+    color: var(--text-muted);
+    font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 22px 0 22px;
+  }
+  .panel-grid .thumb { aspect-ratio: 4 / 3; }
+  .panel-note {
+    font-family: "Noto Sans TC", var(--sans);
+    font-size: 14.5px;
+    line-height: 1.8;
+    color: var(--text-primary);
+    margin: 0 0 26px;
+  }
+  .panel-actions { margin-top: auto; display: flex; align-items: center; gap: 18px; }
+
+  /* ---------- page footer ---------- */
+  .page-foot {
+    text-align: center;
+    margin-top: 56px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-head">
+    <h1 class="wm">Mapsake</h1>
+    <div class="sub">Key screens · 重溫你的旅程 · zh-TW · light · v1</div>
+  </div>
+
+  <!-- SVG defs shared: hatch pattern + glow filter -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="7" height="7" fill="none"/>
+        <line x1="0" y1="0" x2="0" y2="7" stroke="#8a4527" stroke-width="1.1" opacity="0.30"/>
+      </pattern>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="#C8893B" flood-opacity="0.9"/>
+        <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#C8893B" flood-opacity="0.45"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="frames">
+
+    <!-- ================= FRAME 1 ================= -->
+    <div class="frame-block">
+      <div class="frame-title">重溫 · Re-live landing — phone, bottom sheet default</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="right">●●● ▮</span>
+          </div>
+
+          <!-- MAP (Japan-ish abstract) -->
+          <div class="map-wrap">
+            <svg viewBox="0 0 360 360" preserveAspectRatio="xMidYMid slice">
+              <rect width="360" height="360" fill="#F2E8D5"/>
+              <!-- sea hint -->
+              <rect width="360" height="360" fill="#EFE3CB" opacity="0.4"/>
+
+              <!-- abstract region shapes -->
+              <!-- northern visited region -->
+              <path d="M70 40 C110 30 150 38 168 60 C175 80 150 96 120 92 C90 90 62 78 60 58 Z"
+                    fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+              <path d="M70 40 C110 30 150 38 168 60 C175 80 150 96 120 92 C90 90 62 78 60 58 Z"
+                    fill="url(#hatch)" stroke="none"/>
+              <text class="maplabel" x="100" y="68">HOKKAIDO</text>
+
+              <!-- bare region west -->
+              <path d="M40 120 C70 108 96 120 104 144 C108 168 86 184 58 178 C34 172 26 142 40 120 Z"
+                    fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+
+              <!-- visited region central -->
+              <path d="M150 130 C188 120 218 134 224 160 C228 184 206 200 176 196 C146 192 132 158 150 130 Z"
+                    fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+              <path d="M150 130 C188 120 218 134 224 160 C228 184 206 200 176 196 C146 192 132 158 150 130 Z"
+                    fill="url(#hatch)" stroke="none"/>
+              <text class="maplabel" x="158" y="166">OSAKA</text>
+
+              <!-- KYOTO glowing hero region -->
+              <g filter="url(#glow)">
+                <path d="M196 86 C236 76 268 92 272 120 C276 146 252 164 220 160 C186 156 174 110 196 86 Z"
+                      fill="#B5663E" stroke="#C8893B" stroke-width="2.4"/>
+                <path d="M196 86 C236 76 268 92 272 120 C276 146 252 164 220 160 C186 156 174 110 196 86 Z"
+                      fill="url(#hatch)" stroke="none"/>
+              </g>
+              <text class="maplabel-tc" x="208" y="116" style="font-size:15px;fill:#FBF4E4;font-weight:700;letter-spacing:0.1em;">京都</text>
+              <text class="maplabel" x="206" y="134" style="fill:#FBF4E4;opacity:0.85;">KYOTO PREF.</text>
+
+              <!-- bare region south -->
+              <path d="M120 240 C160 228 196 240 200 266 C204 290 178 306 144 300 C108 294 100 256 120 240 Z"
+                    fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+              <text class="maplabel" x="132" y="276">SHIKOKU</text>
+
+              <!-- bare region east -->
+              <path d="M250 180 C284 172 312 186 314 210 C316 232 292 246 264 240 C234 234 230 196 250 180 Z"
+                    fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <div class="zoomhint">
+            <div class="zoom-btn">+</div>
+            <div class="zoom-btn">−</div>
+          </div>
+
+          <!-- BOTTOM SHEET -->
+          <div class="sheet">
+            <div class="drag-handle"></div>
+            <div class="mem-meta-row">
+              <h2 class="mem-title">京都</h2>
+              <span class="chip">來自 1 則回憶</span>
+            </div>
+            <p class="mem-sub">2022 年 4 月</p>
+
+            <div class="thumb-row">
+              <div class="thumb a">照片</div>
+              <div class="thumb b">照片</div>
+              <div class="thumb a">照片</div>
+            </div>
+
+            <p class="note">第一天整天都在下雨，但我們一點也不介意——在車站附近找到了整趟旅程最好吃的拉麵。</p>
+
+            <a class="quiet-link" href="#">＋ 新增照片</a>
+          </div>
+        </div>
+      </div>
+      <div class="caption">Re-live landing — map + memory together. Drag up for photos, down for map.</div>
+    </div>
+
+    <!-- ================= FRAME 2 ================= -->
+    <div class="frame-block">
+      <div class="frame-title">首次填地圖 · Onboarding backfill — phone</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="right">●●● ▮</span>
+          </div>
+
+          <!-- world map mid-backfill -->
+          <div class="map-wrap">
+            <svg viewBox="0 0 360 740" preserveAspectRatio="xMidYMid slice">
+              <rect width="360" height="740" fill="#F2E8D5"/>
+
+              <!-- continents as abstract blobs spread across lower 2/3 -->
+              <!-- visited (terracotta + hatch) -->
+              <g>
+                <path d="M30 360 C70 340 120 350 132 388 C140 420 108 446 64 442 C26 438 8 392 30 360 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+                <path d="M30 360 C70 340 120 350 132 388 C140 420 108 446 64 442 C26 438 8 392 30 360 Z" fill="url(#hatch)" stroke="none"/>
+              </g>
+              <g>
+                <path d="M210 330 C252 318 296 332 300 364 C304 392 278 410 240 404 C204 398 192 350 210 330 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+                <path d="M210 330 C252 318 296 332 300 364 C304 392 278 410 240 404 C204 398 192 350 210 330 Z" fill="url(#hatch)" stroke="none"/>
+              </g>
+              <g>
+                <path d="M150 480 C190 468 224 482 228 510 C232 534 208 552 174 546 C140 540 132 498 150 480 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+                <path d="M150 480 C190 468 224 482 228 510 C232 534 208 552 174 546 C140 540 132 498 150 480 Z" fill="url(#hatch)" stroke="none"/>
+              </g>
+
+              <!-- bare regions -->
+              <path d="M250 470 C288 460 318 474 320 500 C322 522 300 536 270 530 C240 524 234 486 250 470 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+              <path d="M50 540 C84 532 110 546 112 568 C114 588 94 600 68 594 C40 588 36 556 50 540 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+              <path d="M180 620 C214 612 242 624 244 648 C246 668 224 680 196 674 C168 668 164 636 180 620 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+              <path d="M60 650 C92 642 116 654 118 676 C120 694 102 706 78 700 C52 694 48 664 60 650 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+              <path d="M260 600 C292 592 316 604 318 626 C320 644 302 656 278 650 C252 644 248 614 260 600 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <!-- top calm question -->
+          <div class="ob-top">
+            <p class="ob-q">你想怎麼看你的地圖？</p>
+            <div class="ob-choices">
+              <div class="ob-card active">
+                <div class="ic">🌍</div>
+                <div class="lab">整個世界</div>
+              </div>
+              <div class="ob-card">
+                <div class="ic">📍</div>
+                <div class="lab">聚焦一個國家</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ob-footer">
+            <p>點一下你去過的地方，開始填滿你的地圖。</p>
+          </div>
+        </div>
+      </div>
+      <div class="caption">Onboarding = fast marking only. Memories come later.</div>
+    </div>
+
+  </div>
+
+  <!-- ================= FRAME 3 (desktop) ================= -->
+  <div class="frame-block" style="margin-top:48px;">
+    <div class="frame-title">桌面版 · Desktop — side-by-side split</div>
+    <div class="desktop">
+      <div class="desktop-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      </div>
+      <div class="desktop-body">
+        <!-- MAP -->
+        <div class="desktop-map">
+          <div class="wm">Mapsake<span class="dotmark">.</span></div>
+          <svg viewBox="0 0 680 620" preserveAspectRatio="xMidYMid slice">
+            <rect width="680" height="620" fill="#F2E8D5"/>
+            <rect width="680" height="620" fill="#EFE3CB" opacity="0.35"/>
+
+            <!-- visited region -->
+            <g>
+              <path d="M90 120 C160 96 240 116 258 168 C270 210 220 250 150 244 C84 238 50 160 90 120 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="2"/>
+              <path d="M90 120 C160 96 240 116 258 168 C270 210 220 250 150 244 C84 238 50 160 90 120 Z" fill="url(#hatch)" stroke="none"/>
+            </g>
+            <text class="maplabel" x="120" y="180">HOKKAIDO</text>
+
+            <g>
+              <path d="M140 340 C210 318 286 338 300 388 C310 426 262 462 196 456 C132 450 102 380 140 340 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="2"/>
+              <path d="M140 340 C210 318 286 338 300 388 C310 426 262 462 196 456 C132 450 102 380 140 340 Z" fill="url(#hatch)" stroke="none"/>
+            </g>
+            <text class="maplabel" x="172" y="400">OSAKA</text>
+
+            <!-- bare regions -->
+            <path d="M420 200 C480 182 540 200 552 242 C560 276 520 306 462 300 C406 294 384 230 420 200 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="2"/>
+            <text class="maplabel" x="446" y="252">CHUBU</text>
+            <path d="M440 400 C496 384 552 402 562 440 C570 470 532 498 478 492 C426 486 408 426 440 400 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="2"/>
+            <text class="maplabel" x="468" y="448">KANTO</text>
+
+            <!-- KYOTO glowing hero -->
+            <g filter="url(#glow)">
+              <path d="M300 200 C360 182 424 200 436 244 C446 282 402 314 342 308 C282 302 264 228 300 200 Z" fill="#B5663E" stroke="#C8893B" stroke-width="3"/>
+              <path d="M300 200 C360 182 424 200 436 244 C446 282 402 314 342 308 C282 302 264 228 300 200 Z" fill="url(#hatch)" stroke="none"/>
+            </g>
+            <text x="332" y="248" style="font-family:'Noto Sans TC',sans-serif;font-size:22px;font-weight:700;fill:#FBF4E4;letter-spacing:0.1em;">京都</text>
+            <text class="maplabel" x="328" y="272" style="fill:#FBF4E4;opacity:0.85;">KYOTO PREF.</text>
+          </svg>
+
+          <div class="desktop-zoomhint">
+            <div class="zoom-btn">+</div>
+            <div class="zoom-btn">−</div>
+            <span class="hint-txt">滾動縮放 · 拖曳平移</span>
+          </div>
+        </div>
+
+        <!-- PANEL -->
+        <div class="desktop-panel">
+          <div class="panel-close">×</div>
+          <h2 class="mem-title">京都</h2>
+          <p class="mem-sub">2022 年 4 月</p>
+
+          <div class="panel-grid">
+            <div class="thumb a">照片</div>
+            <div class="thumb b">照片</div>
+            <div class="thumb b">照片</div>
+            <div class="thumb a">照片</div>
+          </div>
+
+          <p class="panel-note">第一天整天都在下雨，但我們一點也不介意——在車站附近找到了整趟旅程最好吃的拉麵。</p>
+
+          <div class="panel-actions">
+            <button class="btn">新增照片</button>
+            <a class="quiet-link small" href="#">稍後再補充</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Desktop — memory docked right; tap another region to swap. Map stays interactive.</div>
+  </div>
+
+  <div class="page-foot">Mapsake — key screens · zh-TW · light · v1</div>
+</div>
+</body>
+</html>

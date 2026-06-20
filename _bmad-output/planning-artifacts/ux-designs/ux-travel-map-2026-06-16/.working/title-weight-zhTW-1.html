@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>標題字重比較 — 京都</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas-bg: #F2E8D5;
+    --surface: #FBF4E4;
+    --terracotta: #B5663E;
+    --border: #C7B79A;
+    --text-primary: #3A2E22;
+    --text-muted: #8A7456;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--canvas-bg);
+    color: var(--text-primary);
+    font-family: "Noto Sans TC", sans-serif;
+    padding: 48px 32px 56px;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header h1 {
+    font-family: "Noto Serif TC", serif;
+    font-weight: 500;
+    font-size: 26px;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    margin-bottom: 36px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 22px 24px;
+  }
+
+  .label {
+    font-family: "Noto Sans TC", sans-serif;
+    font-weight: 500;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .recommended .label { color: var(--terracotta); }
+
+  .badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-family: "Noto Sans TC", sans-serif;
+    font-weight: 500;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--surface);
+    background: var(--terracotta);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .recommended { border-color: var(--terracotta); }
+
+  .title {
+    font-family: "Noto Serif TC", serif;
+    font-size: 30px;
+    line-height: 1.15;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+  }
+
+  .t-400 { font-weight: 400; }
+  .t-500 { font-weight: 500; }
+  .t-700 { font-weight: 700; }
+  .t-terracotta { font-weight: 500; color: var(--terracotta); }
+  .t-spacing { font-weight: 500; letter-spacing: 0.15em; }
+
+  .date {
+    font-family: "Noto Sans TC", sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .note {
+    font-family: "Noto Sans TC", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .caption {
+    margin-top: 28px;
+    font-family: "Noto Sans TC", sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>標題字重比較 — 京都</h1>
+    </header>
+
+    <div class="grid">
+
+      <div class="card">
+        <div class="label">Regular (400)</div>
+        <div class="title t-400">京都</div>
+        <div class="date">2022 年 4 月</div>
+        <div class="note">在車站附近找到了最好吃的拉麵。</div>
+      </div>
+
+      <div class="card recommended">
+        <span class="badge">建議</span>
+        <div class="label">Medium (500) — recommended</div>
+        <div class="title t-500">京都</div>
+        <div class="date">2022 年 4 月</div>
+        <div class="note">在車站附近找到了最好吃的拉麵。</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Bold (700)</div>
+        <div class="title t-700">京都</div>
+        <div class="date">2022 年 4 月</div>
+        <div class="note">在車站附近找到了最好吃的拉麵。</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Medium + terracotta</div>
+        <div class="title t-terracotta">京都</div>
+        <div class="date">2022 年 4 月</div>
+        <div class="note">在車站附近找到了最好吃的拉麵。</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Medium + letter-spacing</div>
+        <div class="title t-spacing">京都</div>
+        <div class="date">2022 年 4 月</div>
+        <div class="note">在車站附近找到了最好吃的拉麵。</div>
+      </div>
+
+    </div>
+
+    <p class="caption">明體字在 700 會明顯變重；建議用 500 搭配字級、顏色或字距來強調。</p>
+  </div>
+</body>
+</html>

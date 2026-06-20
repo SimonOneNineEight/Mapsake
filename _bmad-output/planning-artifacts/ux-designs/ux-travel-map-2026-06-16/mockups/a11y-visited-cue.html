@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapsake — Visited Cue Accessibility Test</title>
+<style>
+  :root{
+    --parchment:#F2E8D5;
+    --terracotta:#B5663E;
+    --border-soft:#C7B79A;
+    --border-dark:#7A4A2C;
+    --text:#3A2E22;
+    --muted:#8A7456;
+    --surface:#FBF4E4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    padding:32px 24px 48px;
+    background:var(--parchment);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  header h1{
+    font-size:20px;
+    font-weight:600;
+    margin:0 0 6px;
+    letter-spacing:.2px;
+  }
+  header p{
+    margin:0 0 28px;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .row{
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:14px;
+    padding:18px 20px 20px;
+    margin-bottom:20px;
+  }
+  .row-title{
+    font-size:15px;
+    font-weight:600;
+    margin:0 0 2px;
+  }
+  .row-caption{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 14px;
+  }
+  .maps{
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px;
+  }
+  .map-cell{flex:1 1 280px;min-width:260px;}
+  .map-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    margin:0 0 6px;
+    font-weight:600;
+  }
+  .map-frame{
+    border:1px solid var(--border-soft);
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--parchment);
+  }
+  .map-frame svg{display:block;width:100%;height:auto;}
+  .sim{filter:url(#deuteranopia);}
+  footer{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hidden defs: deuteranopia filter + patterns reused by all maps -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="deuteranopia" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.70 0.30 0 0 0  0 0.30 0.70 0 0  0 0 0 1 0"/>
+    </filter>
+
+    <!-- subtle diagonal hatch in a darker terracotta for Option A -->
+    <pattern id="hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+      <rect width="7" height="7" fill="#B5663E"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#8F4E2E" stroke-width="2"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <h1>Mapsake — does "visited" survive color blindness?</h1>
+    <p>The map marks visited regions with terracotta and unvisited with parchment. Each row shows the same map in normal vision (left) and a deuteranopia simulation (right), so we can see whether the cue holds without hue.</p>
+  </header>
+
+  <!-- ============ ROW 0 — BASELINE ============ -->
+  <section class="row">
+    <h2 class="row-title">Baseline: color only (the problem)</h2>
+    <p class="row-caption">Visited is solid terracotta, nothing else. Notice how visited and unvisited drift toward the same muddy tone in the simulated view — the distinction can collapse.</p>
+    <div class="maps">
+      <div class="map-cell">
+        <p class="map-label">Normal vision</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" role="img" aria-label="Map, color-only, normal vision">
+            <!-- visited: r1, r4, r6 -->
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="map-cell">
+        <p class="map-label">Deuteranopia (simulated)</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" class="sim" role="img" aria-label="Map, color-only, deuteranopia simulation">
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROW 1 — OPTION A : TEXTURE ============ -->
+  <section class="row">
+    <h2 class="row-title">Option A: terracotta + subtle texture</h2>
+    <p class="row-caption">Texture distinguishes visited even when hue is lost.</p>
+    <div class="maps">
+      <div class="map-cell">
+        <p class="map-label">Normal vision</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" role="img" aria-label="Map, texture cue, normal vision">
+            <!-- base fills -->
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <!-- hatch overlays on visited -->
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="url(#hatch)" opacity="0.55"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="url(#hatch)" opacity="0.55"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="url(#hatch)" opacity="0.55"/>
+          </svg>
+        </div>
+      </div>
+      <div class="map-cell">
+        <p class="map-label">Deuteranopia (simulated)</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" class="sim" role="img" aria-label="Map, texture cue, deuteranopia simulation">
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="url(#hatch)" opacity="0.55"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="url(#hatch)" opacity="0.55"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="url(#hatch)" opacity="0.55"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROW 2 — OPTION B : MARKER DOT ============ -->
+  <section class="row">
+    <h2 class="row-title">Option B: terracotta + small marker</h2>
+    <p class="row-caption">A quiet dot marks visited. (Avoids the to-do-list feel of a checkmark.)</p>
+    <div class="maps">
+      <div class="map-cell">
+        <p class="map-label">Normal vision</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" role="img" aria-label="Map, dot marker cue, normal vision">
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <!-- centered dots on visited -->
+            <circle cx="62" cy="48" r="6.5" fill="#7A4A2C"/>
+            <circle cx="60" cy="158" r="6.5" fill="#7A4A2C"/>
+            <circle cx="118" cy="64" r="6" fill="#7A4A2C"/>
+          </svg>
+        </div>
+      </div>
+      <div class="map-cell">
+        <p class="map-label">Deuteranopia (simulated)</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" class="sim" role="img" aria-label="Map, dot marker cue, deuteranopia simulation">
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#C7B79A" stroke-width="1.5"/>
+            <circle cx="62" cy="48" r="6.5" fill="#7A4A2C"/>
+            <circle cx="60" cy="158" r="6.5" fill="#7A4A2C"/>
+            <circle cx="118" cy="64" r="6" fill="#7A4A2C"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROW 3 — OPTION C : HEAVIER BORDER ============ -->
+  <section class="row">
+    <h2 class="row-title">Option C: terracotta + heavier/darker border</h2>
+    <p class="row-caption">Border weight separates visited from unvisited structurally.</p>
+    <div class="maps">
+      <div class="map-cell">
+        <p class="map-label">Normal vision</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" role="img" aria-label="Map, heavier border cue, normal vision">
+            <!-- visited: darker heavier border -->
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#7A4A2C" stroke-width="2.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#7A4A2C" stroke-width="2.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#7A4A2C" stroke-width="2.5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="map-cell">
+        <p class="map-label">Deuteranopia (simulated)</p>
+        <div class="map-frame">
+          <svg viewBox="0 0 300 220" class="sim" role="img" aria-label="Map, heavier border cue, deuteranopia simulation">
+            <path d="M22,40 q-8,-22 18,-26 l60,4 q22,2 20,24 l-4,40 q-2,18 -22,16 l-52,-6 q-20,-2 -18,-22 Z" fill="#B5663E" stroke="#7A4A2C" stroke-width="2.5"/>
+            <path d="M150,30 q26,-10 58,-2 q22,6 18,30 l-6,34 q-4,20 -26,16 l-46,-8 q-18,-4 -14,-26 l6,-44 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M240,120 q24,-6 32,16 l4,40 q4,22 -20,24 l-30,2 q-18,1 -18,-20 l0,-44 q0,-16 32,-18 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M30,118 q-12,-2 -10,22 l4,40 q2,20 24,18 l48,-4 q20,-2 16,-24 l-6,-34 q-4,-20 -26,-18 Z" fill="#B5663E" stroke="#7A4A2C" stroke-width="2.5"/>
+            <path d="M120,120 q22,-6 40,2 q18,8 14,30 l-6,34 q-4,18 -24,14 l-34,-8 q-16,-4 -14,-24 l4,-32 q2,-14 6,-16 Z" fill="#F2E8D5" stroke="#C7B79A" stroke-width="1.5"/>
+            <path d="M120,40 q14,-6 26,4 l2,30 q1,16 -16,16 l-26,-2 q-14,-1 -12,-18 l4,-24 q1,-4 22,-6 Z" fill="#B5663E" stroke="#7A4A2C" stroke-width="2.5"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Deuteranopia is one type; simulation is approximate but directionally useful.</footer>
+</div>
+
+</body>
+</html>

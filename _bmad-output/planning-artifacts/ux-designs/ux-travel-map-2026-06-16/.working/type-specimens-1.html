@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapsake — Type Specimens</title>
+<!--
+  ============================================================
+  MAPSAKE — TYPOGRAPHY DIRECTIONS (macOS-native font stacks)
+  ============================================================
+  All fonts below ship with macOS so specimens render truthfully
+  on the user's machine. Map to licensed web fonts later.
+
+  Direction 1 — "Atlas Journal"
+    Display : "Hoefler Text", "Baskerville", Georgia, serif
+    Body    : "Iowan Old Style", "Palatino", Georgia, serif
+    Label   : "Hoefler Text", "Baskerville", Georgia, serif (small-caps, tracked)
+
+  Direction 2 — "Editorial Mix"
+    Display : "Iowan Old Style", "Palatino", "Charter", Georgia, serif
+    Body    : "Avenir Next", "Helvetica Neue", system-ui, sans-serif
+    Label   : "Avenir Next", "Helvetica Neue", system-ui, sans-serif (caps, tracked)
+
+  Direction 3 — "Quiet Modern"
+    Display : "Avenir Next", -apple-system, system-ui, sans-serif
+    Body    : "Avenir Next", -apple-system, system-ui, sans-serif
+    Label   : "Avenir Next", -apple-system, system-ui, sans-serif (caps, tracked)
+
+  Direction 4 — "Cartographic Engraved"
+    Display : "Didot", "Bodoni 72", "Cochin", "Times New Roman", serif
+    Body    : "Optima", "Avenir Next", "Helvetica Neue", sans-serif
+    Label   : "Didot", "Bodoni 72", "Cochin", serif (caps, tracked)
+
+  Direction 5 — "Soft Humanist"
+    Display : "Optima", "Gill Sans", "Avenir Next", sans-serif
+    Body    : "Optima", "Gill Sans", "Avenir Next", sans-serif
+    Label   : "Optima", "Gill Sans", "Avenir Next", sans-serif (caps, tracked)
+  ============================================================
+-->
+<style>
+  /* ---- Locked palette ---- */
+  :root{
+    --canvas:#F2E8D5;
+    --surface:#FBF4E4;
+    --ink:#3A2E22;
+    --muted:#8A7456;
+    --terracotta:#B5663E;
+    --border:#C7B79A;
+    --glow:#C8893B;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--canvas);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    padding:48px 32px 80px;
+  }
+
+  /* ---- Page header ---- */
+  .page-head{
+    max-width:1200px;
+    margin:0 auto 40px;
+    text-align:center;
+  }
+  .page-head h1{
+    font-family:"Iowan Old Style","Palatino",Georgia,serif;
+    font-weight:600;
+    font-size:34px;
+    letter-spacing:.01em;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  .page-head p{
+    font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif;
+    font-size:14px;
+    color:var(--muted);
+    margin:0;
+    letter-spacing:.02em;
+  }
+
+  /* ---- Grid of directions ---- */
+  .grid{
+    max-width:1200px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:40px;
+  }
+  @media (min-width:980px){
+    .grid{ grid-template-columns:1fr 1fr; gap:48px; }
+  }
+
+  /* ---- Direction card ---- */
+  .dir{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:36px 36px 40px;
+  }
+
+  .dir-head{
+    border-bottom:1px solid var(--border);
+    padding-bottom:18px;
+    margin-bottom:28px;
+  }
+  .dir-name{
+    font-size:13px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--terracotta);
+    font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .dir-register{
+    font-size:15px;
+    color:var(--muted);
+    margin:0 0 14px;
+    font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif;
+  }
+  .dir-stacks{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:11px;
+    line-height:1.7;
+    color:var(--muted);
+  }
+  .dir-stacks b{ color:var(--ink); font-weight:600; }
+
+  /* ---- Shared specimen scaffolding ---- */
+  .specimen > *{ margin:0; }
+  .row{ margin-bottom:26px; }
+  .wordmark{ line-height:1; margin-bottom:8px; }
+  .place{ line-height:1; margin-bottom:24px; }
+
+  .maplabels{
+    margin-bottom:30px;
+    padding:18px 0;
+    border-top:1px dashed var(--border);
+    border-bottom:1px dashed var(--border);
+  }
+  .region{ display:block; margin-bottom:6px; }
+  .country{ display:block; }
+
+  .card{
+    background:var(--canvas);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:20px 22px;
+    margin-bottom:24px;
+  }
+  .card .c-title{ margin:0 0 4px; line-height:1.15; }
+  .card .c-date{ margin:0 0 12px; }
+  .card .c-note{ margin:0; }
+
+  .ui-row{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:24px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    background:var(--terracotta);
+    color:var(--surface);
+    border:none;
+    border-radius:8px;
+    padding:11px 18px;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .link{
+    color:var(--terracotta);
+    font-size:14px;
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+  }
+
+  .chip{
+    display:inline-block;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:7px 14px;
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:22px;
+  }
+  .chip b{ color:var(--terracotta); font-weight:600; }
+
+  .readline{ font-size:15px; color:var(--ink); }
+
+  /* =========================================================
+     DIRECTION 1 — ATLAS JOURNAL
+     ========================================================= */
+  .d1 .wordmark{ font-family:"Hoefler Text","Baskerville",Georgia,serif; font-weight:600; font-size:52px; color:var(--ink); letter-spacing:.005em; }
+  .d1 .place{ font-family:"Hoefler Text","Baskerville",Georgia,serif; font-weight:500; font-size:30px; color:var(--terracotta); }
+  .d1 .region{ font-family:"Hoefler Text","Baskerville",Georgia,serif; font-variant:small-caps; font-size:14px; letter-spacing:.34em; color:var(--ink); }
+  .d1 .country{ font-family:"Hoefler Text","Baskerville",Georgia,serif; font-variant:small-caps; font-size:12px; letter-spacing:.42em; color:var(--muted); }
+  .d1 .c-title{ font-family:"Hoefler Text","Baskerville",Georgia,serif; font-weight:600; font-size:22px; color:var(--ink); }
+  .d1 .c-date{ font-family:"Iowan Old Style","Palatino",Georgia,serif; font-style:italic; font-size:14px; color:var(--muted); }
+  .d1 .c-note{ font-family:"Iowan Old Style","Palatino",Georgia,serif; font-size:16px; line-height:1.55; color:var(--ink); }
+  .d1 .btn{ font-family:"Iowan Old Style","Palatino",Georgia,serif; }
+  .d1 .link{ font-family:"Iowan Old Style","Palatino",Georgia,serif; }
+  .d1 .chip{ font-family:"Iowan Old Style","Palatino",Georgia,serif; }
+  .d1 .readline{ font-family:"Iowan Old Style","Palatino",Georgia,serif; line-height:1.5; }
+
+  /* =========================================================
+     DIRECTION 2 — EDITORIAL MIX
+     ========================================================= */
+  .d2 .wordmark{ font-family:"Iowan Old Style","Palatino","Charter",Georgia,serif; font-weight:600; font-size:54px; color:var(--ink); letter-spacing:.002em; }
+  .d2 .place{ font-family:"Iowan Old Style","Palatino","Charter",Georgia,serif; font-weight:600; font-size:32px; color:var(--terracotta); }
+  .d2 .region{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.36em; color:var(--ink); }
+  .d2 .country{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:.44em; color:var(--muted); }
+  .d2 .c-title{ font-family:"Iowan Old Style","Palatino",Georgia,serif; font-weight:600; font-size:22px; color:var(--ink); }
+  .d2 .c-date{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; font-size:13px; color:var(--muted); letter-spacing:.02em; }
+  .d2 .c-note{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; font-size:15px; line-height:1.6; color:var(--ink); }
+  .d2 .btn{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; font-weight:500; }
+  .d2 .link{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; font-weight:500; }
+  .d2 .chip{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; }
+  .d2 .readline{ font-family:"Avenir Next","Helvetica Neue",system-ui,sans-serif; line-height:1.5; }
+
+  /* =========================================================
+     DIRECTION 3 — QUIET MODERN
+     ========================================================= */
+  .d3 .wordmark{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:600; font-size:50px; color:var(--ink); letter-spacing:-.01em; }
+  .d3 .place{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:500; font-size:30px; color:var(--terracotta); letter-spacing:-.005em; }
+  .d3 .region{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.32em; color:var(--ink); }
+  .d3 .country{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:400; font-size:11px; text-transform:uppercase; letter-spacing:.4em; color:var(--muted); }
+  .d3 .c-title{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:600; font-size:21px; color:var(--ink); }
+  .d3 .c-date{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:400; font-size:13px; color:var(--muted); }
+  .d3 .c-note{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:400; font-size:15px; line-height:1.6; color:var(--ink); }
+  .d3 .btn{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:500; }
+  .d3 .link{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; font-weight:500; }
+  .d3 .chip{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; }
+  .d3 .readline{ font-family:"Avenir Next",-apple-system,system-ui,sans-serif; line-height:1.5; }
+
+  /* =========================================================
+     DIRECTION 4 — CARTOGRAPHIC ENGRAVED
+     ========================================================= */
+  .d4 .wordmark{ font-family:"Didot","Bodoni 72","Cochin","Times New Roman",serif; font-weight:400; font-size:54px; color:var(--ink); letter-spacing:.01em; }
+  .d4 .place{ font-family:"Didot","Bodoni 72","Cochin","Times New Roman",serif; font-weight:400; font-size:32px; color:var(--terracotta); }
+  .d4 .region{ font-family:"Didot","Bodoni 72","Cochin",serif; font-size:13px; text-transform:uppercase; letter-spacing:.4em; color:var(--ink); }
+  .d4 .country{ font-family:"Didot","Bodoni 72","Cochin",serif; font-size:11px; text-transform:uppercase; letter-spacing:.5em; color:var(--muted); }
+  .d4 .c-title{ font-family:"Didot","Bodoni 72","Cochin",serif; font-weight:400; font-size:23px; color:var(--ink); }
+  .d4 .c-date{ font-family:"Optima","Avenir Next","Helvetica Neue",sans-serif; font-size:13px; color:var(--muted); letter-spacing:.03em; }
+  .d4 .c-note{ font-family:"Optima","Avenir Next","Helvetica Neue",sans-serif; font-size:15px; line-height:1.6; color:var(--ink); }
+  .d4 .btn{ font-family:"Optima","Avenir Next","Helvetica Neue",sans-serif; letter-spacing:.02em; }
+  .d4 .link{ font-family:"Optima","Avenir Next","Helvetica Neue",sans-serif; }
+  .d4 .chip{ font-family:"Optima","Avenir Next","Helvetica Neue",sans-serif; }
+  .d4 .readline{ font-family:"Optima","Avenir Next","Helvetice Neue",sans-serif; line-height:1.5; }
+
+  /* =========================================================
+     DIRECTION 5 — SOFT HUMANIST
+     ========================================================= */
+  .d5 .wordmark{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:600; font-size:52px; color:var(--ink); letter-spacing:.005em; }
+  .d5 .place{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:500; font-size:31px; color:var(--terracotta); }
+  .d5 .region{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:.3em; color:var(--ink); }
+  .d5 .country{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:400; font-size:11px; text-transform:uppercase; letter-spacing:.38em; color:var(--muted); }
+  .d5 .c-title{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:600; font-size:22px; color:var(--ink); }
+  .d5 .c-date{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:400; font-size:13px; color:var(--muted); }
+  .d5 .c-note{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; font-weight:400; font-size:15px; line-height:1.6; color:var(--ink); }
+  .d5 .btn{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; }
+  .d5 .link{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; }
+  .d5 .chip{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; }
+  .d5 .readline{ font-family:"Optima","Gill Sans","Avenir Next",sans-serif; line-height:1.5; }
+</style>
+</head>
+<body>
+
+  <header class="page-head">
+    <h1>Mapsake — Typography Directions</h1>
+    <p>Five directions on the locked parchment palette. macOS-native fonts so they render true. Compare the type, not the layout.</p>
+  </header>
+
+  <main class="grid">
+
+    <!-- DIRECTION 1 -->
+    <section class="dir d1">
+      <div class="dir-head">
+        <p class="dir-name">1 · Atlas Journal</p>
+        <p class="dir-register">Nostalgic travel journal — ink, paper, and a steady hand.</p>
+        <div class="dir-stacks">
+          <div><b>Display</b> "Hoefler Text", "Baskerville", Georgia, serif</div>
+          <div><b>Body</b> "Iowan Old Style", "Palatino", Georgia, serif</div>
+          <div><b>Label</b> "Hoefler Text" small-caps, tracked</div>
+        </div>
+      </div>
+      <div class="specimen">
+        <div class="wordmark">Mapsake</div>
+        <div class="place">Kyoto</div>
+        <div class="maplabels">
+          <span class="region">Kansai</span>
+          <span class="country">Japan</span>
+        </div>
+        <div class="card">
+          <p class="c-title">Kyoto</p>
+          <p class="c-date">April 2022</p>
+          <p class="c-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+        </div>
+        <div class="ui-row">
+          <button class="btn">Add a photo</button>
+          <a class="link" href="#">Add details later</a>
+        </div>
+        <span class="chip">2 years ago today: <b>Kyoto</b></span>
+        <p class="readline">Twelve regions visited across four countries.</p>
+      </div>
+    </section>
+
+    <!-- DIRECTION 2 -->
+    <section class="dir d2">
+      <div class="dir-head">
+        <p class="dir-name">2 · Editorial Mix</p>
+        <p class="dir-register">Magazine-quiet — a literate serif over a clean modern sans.</p>
+        <div class="dir-stacks">
+          <div><b>Display</b> "Iowan Old Style", "Palatino", "Charter", Georgia, serif</div>
+          <div><b>Body</b> "Avenir Next", "Helvetica Neue", system-ui, sans-serif</div>
+          <div><b>Label</b> "Avenir Next" caps, tracked</div>
+        </div>
+      </div>
+      <div class="specimen">
+        <div class="wordmark">Mapsake</div>
+        <div class="place">Kyoto</div>
+        <div class="maplabels">
+          <span class="region">Kansai</span>
+          <span class="country">Japan</span>
+        </div>
+        <div class="card">
+          <p class="c-title">Kyoto</p>
+          <p class="c-date">April 2022</p>
+          <p class="c-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+        </div>
+        <div class="ui-row">
+          <button class="btn">Add a photo</button>
+          <a class="link" href="#">Add details later</a>
+        </div>
+        <span class="chip">2 years ago today: <b>Kyoto</b></span>
+        <p class="readline">Twelve regions visited across four countries.</p>
+      </div>
+    </section>
+
+    <!-- DIRECTION 3 -->
+    <section class="dir d3">
+      <div class="dir-head">
+        <p class="dir-name">3 · Quiet Modern</p>
+        <p class="dir-register">Calm and contemporary — one humanist sans, speaking in weight.</p>
+        <div class="dir-stacks">
+          <div><b>Display</b> "Avenir Next", -apple-system, system-ui, sans-serif</div>
+          <div><b>Body</b> "Avenir Next", -apple-system, system-ui, sans-serif</div>
+          <div><b>Label</b> "Avenir Next" caps, tracked</div>
+        </div>
+      </div>
+      <div class="specimen">
+        <div class="wordmark">Mapsake</div>
+        <div class="place">Kyoto</div>
+        <div class="maplabels">
+          <span class="region">Kansai</span>
+          <span class="country">Japan</span>
+        </div>
+        <div class="card">
+          <p class="c-title">Kyoto</p>
+          <p class="c-date">April 2022</p>
+          <p class="c-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+        </div>
+        <div class="ui-row">
+          <button class="btn">Add a photo</button>
+          <a class="link" href="#">Add details later</a>
+        </div>
+        <span class="chip">2 years ago today: <b>Kyoto</b></span>
+        <p class="readline">Twelve regions visited across four countries.</p>
+      </div>
+    </section>
+
+    <!-- DIRECTION 4 -->
+    <section class="dir d4">
+      <div class="dir-head">
+        <p class="dir-name">4 · Cartographic Engraved</p>
+        <p class="dir-register">Atlas plate — high-contrast serif, engraved on fine paper.</p>
+        <div class="dir-stacks">
+          <div><b>Display</b> "Didot", "Bodoni 72", "Cochin", "Times New Roman", serif</div>
+          <div><b>Body</b> "Optima", "Avenir Next", "Helvetica Neue", sans-serif</div>
+          <div><b>Label</b> "Didot" caps, tracked</div>
+        </div>
+      </div>
+      <div class="specimen">
+        <div class="wordmark">Mapsake</div>
+        <div class="place">Kyoto</div>
+        <div class="maplabels">
+          <span class="region">Kansai</span>
+          <span class="country">Japan</span>
+        </div>
+        <div class="card">
+          <p class="c-title">Kyoto</p>
+          <p class="c-date">April 2022</p>
+          <p class="c-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+        </div>
+        <div class="ui-row">
+          <button class="btn">Add a photo</button>
+          <a class="link" href="#">Add details later</a>
+        </div>
+        <span class="chip">2 years ago today: <b>Kyoto</b></span>
+        <p class="readline">Twelve regions visited across four countries.</p>
+      </div>
+    </section>
+
+    <!-- DIRECTION 5 -->
+    <section class="dir d5">
+      <div class="dir-head">
+        <p class="dir-name">5 · Soft Humanist</p>
+        <p class="dir-register">Warm and friendly — a soft humanist face, approachable not formal.</p>
+        <div class="dir-stacks">
+          <div><b>Display</b> "Optima", "Gill Sans", "Avenir Next", sans-serif</div>
+          <div><b>Body</b> "Optima", "Gill Sans", "Avenir Next", sans-serif</div>
+          <div><b>Label</b> "Optima" caps, tracked</div>
+        </div>
+      </div>
+      <div class="specimen">
+        <div class="wordmark">Mapsake</div>
+        <div class="place">Kyoto</div>
+        <div class="maplabels">
+          <span class="region">Kansai</span>
+          <span class="country">Japan</span>
+        </div>
+        <div class="card">
+          <p class="c-title">Kyoto</p>
+          <p class="c-date">April 2022</p>
+          <p class="c-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+        </div>
+        <div class="ui-row">
+          <button class="btn">Add a photo</button>
+          <a class="link" href="#">Add details later</a>
+        </div>
+        <span class="chip">2 years ago today: <b>Kyoto</b></span>
+        <p class="readline">Twelve regions visited across four countries.</p>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

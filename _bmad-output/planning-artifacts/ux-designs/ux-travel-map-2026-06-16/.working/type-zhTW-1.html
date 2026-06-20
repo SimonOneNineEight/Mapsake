@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapsake — 繁體中文（台灣）字體示範</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* =============================================================
+   FONT ROLES — Mapsake type system (zh-TW first, EN fast-follow)
+   -------------------------------------------------------------
+   Latin glyphs always render in a Latin font; CJK glyphs fall
+   through to the Noto TC fonts. Latin font is listed FIRST in
+   every stack so ASCII picks it up, Noto TC catches the rest.
+
+   --font-cjk-serif : Noto Serif TC  -> Chinese DISPLAY / titles /
+                      wordmark-adjacent headings (Song/Ming).
+   --font-cjk-sans  : Noto Sans TC   -> Chinese body / UI / buttons /
+                      labels / dates.
+   --font-lat-serif : Newsreader     -> "Mapsake" wordmark + Latin
+                      display/serif (English titles).
+   --font-lat-sans  : Nunito Sans    -> Latin UI / body / English.
+   ============================================================= */
+:root{
+  /* Mixed stacks: Latin first, CJK fallback */
+  --font-display: "Newsreader", "Noto Serif TC", serif;        /* Latin serif + CJK serif */
+  --font-cjk-serif: "Newsreader", "Noto Serif TC", serif;      /* CJK titles, Latin in serif */
+  --font-cjk-sans: "Nunito Sans", "Noto Sans TC", sans-serif;  /* CJK UI, Latin in sans */
+  --font-lat-serif: "Newsreader", "Noto Serif TC", serif;
+  --font-lat-sans: "Nunito Sans", "Noto Sans TC", sans-serif;
+
+  /* LOCKED PALETTE (light) */
+  --canvas-bg:#F2E8D5;
+  --surface:#FBF4E4;
+  --terracotta:#B5663E;
+  --border:#C7B79A;
+  --text-primary:#3A2E22;
+  --text-muted:#8A7456;
+  --accent-glow:#C8893B;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  background:var(--canvas-bg);
+  color:var(--text-primary);
+  font-family:var(--font-cjk-sans);
+  line-height:1.6;
+  padding:48px 32px 72px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Top one-line label — Noto Serif TC (CJK), Newsreader for "Mapsake" */
+.page-label{
+  font-family:var(--font-cjk-serif);
+  font-weight:500;
+  font-size:15px;
+  letter-spacing:.02em;
+  color:var(--text-muted);
+  text-align:center;
+  margin-bottom:44px;
+}
+.page-label .wm{color:var(--text-primary);font-weight:600;}
+
+.wrap{
+  max-width:1080px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:36px;
+}
+@media (max-width:760px){
+  .wrap{grid-template-columns:1fr;}
+}
+
+.panel{
+  background:var(--canvas-bg);
+}
+
+.panel-tag{
+  font-family:var(--font-cjk-sans);
+  font-weight:600;
+  font-size:12px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:24px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+
+/* Wordmark — always Newsreader for the Latin word "Mapsake" */
+.wordmark{
+  font-family:var(--font-lat-serif);
+  font-weight:600;
+  font-size:46px;
+  line-height:1;
+  letter-spacing:-.01em;
+  color:var(--text-primary);
+}
+
+.tagline{
+  font-family:var(--font-cjk-serif);
+  font-weight:400;
+  font-style:italic;
+  font-size:16px;
+  color:var(--text-muted);
+  margin-top:10px;
+  letter-spacing:.03em;
+}
+
+/* Large memory/place title — Noto Serif TC */
+.place-title{
+  font-family:var(--font-cjk-serif);
+  font-weight:500;
+  font-size:30px;
+  color:var(--text-primary);
+  margin-top:34px;
+  letter-spacing:.02em;
+}
+
+/* Map labels — Noto Sans TC, tracked, muted */
+.map-labels{
+  margin-top:18px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px 26px;
+}
+.map-label{
+  font-family:var(--font-cjk-sans);
+  font-weight:400;
+  font-size:13px;
+  letter-spacing:.22em;
+  color:var(--text-muted);
+  text-transform:uppercase;
+}
+.map-label.glow{color:var(--accent-glow);}
+
+/* Memory card */
+.card{
+  margin-top:30px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:24px 26px;
+}
+.card-title{
+  font-family:var(--font-cjk-serif);
+  font-weight:500;
+  font-size:20px;
+  color:var(--text-primary);
+}
+.card-date{
+  font-family:var(--font-cjk-sans);
+  font-weight:400;
+  font-size:13px;
+  letter-spacing:.06em;
+  color:var(--text-muted);
+  margin-top:6px;
+}
+.card-note{
+  font-family:var(--font-cjk-sans);
+  font-weight:400;
+  font-size:15px;
+  line-height:1.7;
+  color:var(--text-primary);
+  margin-top:14px;
+}
+
+/* UI row */
+.ui-row{
+  margin-top:24px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+.btn{
+  font-family:var(--font-cjk-sans);
+  font-weight:500;
+  font-size:15px;
+  background:var(--terracotta);
+  color:var(--surface);
+  border:none;
+  border-radius:8px;
+  padding:11px 20px;
+  cursor:pointer;
+  letter-spacing:.04em;
+}
+.link{
+  font-family:var(--font-cjk-sans);
+  font-weight:500;
+  font-size:15px;
+  color:var(--terracotta);
+  text-decoration:none;
+  letter-spacing:.04em;
+}
+.link:hover{text-decoration:underline;}
+
+/* Notification chip */
+.chip{
+  margin-top:24px;
+  display:inline-block;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:7px 15px;
+  font-family:var(--font-cjk-sans);
+  font-weight:400;
+  font-size:13px;
+  letter-spacing:.04em;
+  color:var(--text-muted);
+}
+.chip .accent{color:var(--terracotta);font-weight:500;}
+
+/* Readability line */
+.read-line{
+  margin-top:22px;
+  font-family:var(--font-cjk-sans);
+  font-weight:400;
+  font-size:14px;
+  color:var(--text-muted);
+  letter-spacing:.03em;
+}
+
+/* Mixed-script line — Mapsake (Newsreader) + Chinese (Noto Serif TC) */
+.mixed-line{
+  margin-top:30px;
+  padding-top:22px;
+  border-top:1px solid var(--border);
+  font-family:var(--font-cjk-serif);
+  font-weight:400;
+  font-size:15px;
+  color:var(--text-primary);
+  letter-spacing:.04em;
+}
+.mixed-line .wm{font-family:var(--font-lat-serif);font-weight:600;}
+</style>
+</head>
+<body>
+
+  <div class="page-label"><span class="wm">Mapsake</span> — 繁體中文（台灣）字體示範</div>
+
+  <div class="wrap">
+
+    <!-- SECTION 1 — zh-TW (primary) -->
+    <section class="panel">
+      <div class="panel-tag">繁體中文 (zh-TW)</div>
+
+      <div class="wordmark">Mapsake</div>
+      <div class="tagline">你走過的世界，留成回憶。</div>
+
+      <h1 class="place-title">京都</h1>
+
+      <div class="map-labels">
+        <span class="map-label">關西</span>
+        <span class="map-label">日本</span>
+        <span class="map-label glow">臺北市</span>
+        <span class="map-label">台灣</span>
+      </div>
+
+      <article class="card">
+        <div class="card-title">京都</div>
+        <div class="card-date">2022 年 4 月</div>
+        <p class="card-note">第一天整天都在下雨，但我們一點也不介意——在車站附近找到了整趟旅程最好吃的拉麵。</p>
+      </article>
+
+      <div class="ui-row">
+        <button class="btn">新增照片</button>
+        <a class="link" href="#">稍後再補充</a>
+      </div>
+
+      <div class="chip"><span class="accent">兩年前的今天：</span>京都</div>
+
+      <div class="read-line">已造訪 12 個地區，橫跨 4 個國家。</div>
+
+      <div class="mixed-line"><span class="wm">Mapsake</span> ｜ 你的私人旅行回憶地圖</div>
+    </section>
+
+    <!-- SECTION 2 — English (fast-follow) -->
+    <section class="panel">
+      <div class="panel-tag">English (fast-follow)</div>
+
+      <div class="wordmark">Mapsake</div>
+      <div class="tagline" style="font-family:var(--font-lat-serif);">The world you've walked, kept as memory.</div>
+
+      <h1 class="place-title">Kyoto</h1>
+
+      <div class="map-labels">
+        <span class="map-label">Kansai</span>
+        <span class="map-label">Japan</span>
+        <span class="map-label glow">Taipei</span>
+        <span class="map-label">Taiwan</span>
+      </div>
+
+      <article class="card">
+        <div class="card-title">Kyoto</div>
+        <div class="card-date">April 2022</div>
+        <p class="card-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+      </article>
+
+      <div class="ui-row">
+        <button class="btn">Add a photo</button>
+        <a class="link" href="#">Add details later</a>
+      </div>
+
+      <div class="chip"><span class="accent">2 years ago today:</span> Kyoto</div>
+
+      <div class="read-line">Twelve regions visited across four countries.</div>
+
+      <div class="mixed-line"><span class="wm">Mapsake</span> ｜ your private map of travel memories</div>
+    </section>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mapsake — light-only v1. Tokens from DESIGN.md (ux-travel-map-2026-06-16).
+   Dark/"Lamplight" is Phase 2 and intentionally NOT shipped here. */
+@layer base {
+  :root {
+    /* shadcn semantic tokens mapped to the Sepia Parchment palette */
+    --background: #f2e8d5; /* canvas / parchment */
+    --foreground: #3a2e22; /* text-primary */
+    --card: #fbf4e4; /* surface */
+    --card-foreground: #3a2e22;
+    --popover: #fbf4e4;
+    --popover-foreground: #3a2e22;
+    --primary: #9e4f2b; /* terracotta-text — button bg / links (AA on cream) */
+    --primary-foreground: #fbf4e4; /* cream label on terracotta */
+    --secondary: #ede0c8; /* soft cream for secondary surfaces */
+    --secondary-foreground: #3a2e22;
+    --muted: #ede0c8;
+    --muted-foreground: #6f5c40; /* text-muted (AA) */
+    --accent: #ede0c8; /* shadcn UI hover bg (soft, not the brand glow) */
+    --accent-foreground: #3a2e22;
+    --destructive: #9b3b2e; /* muted brick for destructive confirms */
+    --destructive-foreground: #fbf4e4;
+    --border: #96835e; /* region/UI border (>=3:1 on canvas) */
+    --input: #c7b79a; /* softer input border */
+    --ring: #9e4f2b; /* terracotta focus ring */
+    --radius: 0.5rem; /* 8px default */
+
+    /* Mapsake brand tokens (used by map + features) */
+    --canvas-bg: #f2e8d5;
+    --surface: #fbf4e4;
+    --region-visited-fill: #b5663e; /* hero terracotta — MAP FILLS only */
+    --region-unvisited: #f2e8d5; /* = canvas; unvisited land is the paper */
+    --region-border: #96835e;
+    --text-primary: #3a2e22;
+    --text-muted: #6f5c40;
+    --terracotta-text: #9e4f2b;
+    --accent-glow: #c8893b; /* re-living glow + active states (non-text) */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), var(--font-sans-tc), ui-sans-serif, system-ui,
+      sans-serif;
+  }
+}

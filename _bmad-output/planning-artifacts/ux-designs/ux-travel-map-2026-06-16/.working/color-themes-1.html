@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapsake — Color Themes</title>
+<style>
+  /* =====================================================================
+     MAPSAKE — Color theme exploration
+     5 variations. All warm, muted, milky-canvas atlas. "Milk, not white."
+     Paper/canvas surfaces, never glossy. Hero role = region-visited-fill.
+
+     ---------------------------------------------------------------------
+     THEME 1 — SEPIA PARCHMENT  (light)  "the aged atlas in a drawer"
+       canvas-bg          #F2E8D5
+       surface            #FBF4E4
+       region-visited     #B5663E   <- HERO terracotta clay
+       region-unvisited   #DCCBA8
+       region-border      #9C8761
+       text-primary       #3A2E22
+       text-muted         #8A7456
+       accent             #C8893B   (glowing re-live region / links)
+
+     THEME 2 — MILK & SAGE  (light)  "botanical and calm"
+       canvas-bg          #EDEBDF
+       surface            #F7F5EC
+       region-visited     #7E9476   <- HERO muted sage
+       region-unvisited   #D7D5C2
+       region-border      #9AA083
+       text-primary       #33372C
+       text-muted         #79806A
+       accent             #B0905A   (warm honey accent)
+
+     THEME 3 — FADED LINEN  (light)  "soft, tender, dusty rose"
+       canvas-bg          #F0E7DE
+       surface            #FAF3EC
+       region-visited     #BE8A86   <- HERO dusty rose / clay
+       region-unvisited   #DED2C6
+       region-border      #B09C8C
+       text-primary       #423733
+       text-muted         #94817A
+       accent             #C97B62   (warm coral accent)
+
+     THEME 4 — SUNLIT PAPER  (light)  "honeyed, sunlit afternoon"
+       canvas-bg          #F6EDD6
+       surface            #FCF6E6
+       region-visited     #D9A24B   <- HERO honeyed ochre/gold
+       region-unvisited   #E4D6B5
+       region-border      #BFA871
+       text-primary       #44372165
+       text-muted         #8E7A52
+       accent             #C56B3A   (burnt-orange accent)
+
+     THEME 5 — LAMPLIGHT  (DARK)  "kids asleep, re-living on the couch"
+       canvas-bg          #2A211B   <- warm dark brown, never black
+       surface            #352A22
+       region-visited     #D69B4E   <- HERO glowing amber
+       region-unvisited   #3E332A
+       region-border      #564537
+       text-primary       #EFE2CF
+       text-muted         #A6917A
+       accent             #E8B05E   (lamp-glow amber)
+     ===================================================================== */
+
+  :root{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background:#E7E0D2;
+    color:#3A2E22;
+    -webkit-font-smoothing:antialiased;
+    padding:40px 32px 64px;
+  }
+  .page-head{ max-width:1400px; margin:0 auto 36px; }
+  .page-head h1{ font-size:24px; font-weight:600; letter-spacing:.2px; margin:0 0 6px; }
+  .page-head p{ margin:0; font-size:14px; color:#6E6354; max-width:680px; line-height:1.5; }
+
+  .grid{
+    max-width:1400px; margin:0 auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(330px, 1fr));
+    gap:26px;
+  }
+
+  .card{
+    border-radius:14px;
+    padding:22px 20px 24px;
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+
+  .v-head h2{ font-size:17px; font-weight:600; margin:0 0 3px; letter-spacing:.2px; }
+  .v-head .register{ font-size:12.5px; font-style:italic; margin:0 0 2px; opacity:.85; }
+  .v-head .mode{ font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:.6; }
+
+  /* token chips */
+  .tokens{ display:flex; flex-wrap:wrap; gap:7px; margin:16px 0 18px; }
+  .chip{
+    display:flex; align-items:center; gap:7px;
+    font-size:10.5px; line-height:1;
+    padding:5px 9px 5px 5px; border-radius:7px;
+    border:1px solid rgba(0,0,0,.07);
+  }
+  .swatch{ width:18px; height:18px; border-radius:5px; border:1px solid rgba(0,0,0,.12); flex:none; }
+  .chip .role{ font-weight:600; }
+  .chip .hex{ opacity:.65; font-variant-numeric:tabular-nums; }
+  .chip.hero{ font-weight:700; }
+  .chip.hero .swatch{ width:22px; height:22px; }
+
+  /* mini map */
+  .snippet{ display:flex; flex-direction:column; gap:14px; }
+  .map{
+    position:relative; height:150px; border-radius:11px; overflow:hidden;
+    border:1px solid rgba(0,0,0,.07);
+  }
+  .map svg{ display:block; width:100%; height:100%; }
+  .region{ stroke-width:1.4; }
+
+  /* memory panel */
+  .panel{
+    border-radius:11px; padding:15px 16px 16px;
+    border:1px solid rgba(0,0,0,.06);
+  }
+  .panel h3{ font-size:16px; font-weight:600; margin:0 0 2px; }
+  .panel .date{ font-size:12px; margin:0 0 9px; }
+  .panel .note{ font-size:13px; line-height:1.5; margin:0; }
+  .notif{
+    display:inline-flex; align-items:center; gap:7px;
+    margin-top:13px; padding:7px 11px; border-radius:20px;
+    font-size:11.5px; font-weight:500;
+  }
+  .notif .dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+</style>
+</head>
+<body>
+
+  <div class="page-head">
+    <h1>Mapsake — color theme exploration</h1>
+    <p>Five warm, muted, milky-canvas atlas palettes. Pick a register: the hero role is the visited-region fill, since the map is the product. Four are light, one is a warm dark ("Lamplight").</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ============ THEME 1 — SEPIA PARCHMENT ============ -->
+    <div class="card" style="background:#F2E8D5; color:#3A2E22;">
+      <div class="v-head">
+        <h2>Sepia Parchment</h2>
+        <p class="register">the aged atlas pulled from a drawer</p>
+        <p class="mode">Light</p>
+      </div>
+      <div class="tokens">
+        <span class="chip"><span class="swatch" style="background:#F2E8D5"></span><span class="role">canvas-bg</span> <span class="hex">#F2E8D5</span></span>
+        <span class="chip"><span class="swatch" style="background:#FBF4E4"></span><span class="role">surface</span> <span class="hex">#FBF4E4</span></span>
+        <span class="chip hero"><span class="swatch" style="background:#B5663E"></span><span class="role">visited-fill</span> <span class="hex">#B5663E</span></span>
+        <span class="chip"><span class="swatch" style="background:#DCCBA8"></span><span class="role">unvisited</span> <span class="hex">#DCCBA8</span></span>
+        <span class="chip"><span class="swatch" style="background:#9C8761"></span><span class="role">border</span> <span class="hex">#9C8761</span></span>
+        <span class="chip"><span class="swatch" style="background:#3A2E22"></span><span class="role">text</span> <span class="hex">#3A2E22</span></span>
+        <span class="chip"><span class="swatch" style="background:#8A7456"></span><span class="role">text-muted</span> <span class="hex">#8A7456</span></span>
+        <span class="chip"><span class="swatch" style="background:#C8893B"></span><span class="role">accent</span> <span class="hex">#C8893B</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#F2E8D5;">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#B5663E" stroke="#9C8761"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#DCCBA8" stroke="#9C8761"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#B5663E" stroke="#9C8761"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#DCCBA8" stroke="#9C8761"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#B5663E" stroke="#C8893B" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#FBF4E4;">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#8A7456;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#F2E2C7; color:#7A5A33;"><span class="dot" style="background:#C8893B;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ THEME 2 — MILK & SAGE ============ -->
+    <div class="card" style="background:#EDEBDF; color:#33372C;">
+      <div class="v-head">
+        <h2>Milk &amp; Sage</h2>
+        <p class="register">botanical, calm, light on the eyes</p>
+        <p class="mode">Light</p>
+      </div>
+      <div class="tokens">
+        <span class="chip"><span class="swatch" style="background:#EDEBDF"></span><span class="role">canvas-bg</span> <span class="hex">#EDEBDF</span></span>
+        <span class="chip"><span class="swatch" style="background:#F7F5EC"></span><span class="role">surface</span> <span class="hex">#F7F5EC</span></span>
+        <span class="chip hero"><span class="swatch" style="background:#7E9476"></span><span class="role">visited-fill</span> <span class="hex">#7E9476</span></span>
+        <span class="chip"><span class="swatch" style="background:#D7D5C2"></span><span class="role">unvisited</span> <span class="hex">#D7D5C2</span></span>
+        <span class="chip"><span class="swatch" style="background:#9AA083"></span><span class="role">border</span> <span class="hex">#9AA083</span></span>
+        <span class="chip"><span class="swatch" style="background:#33372C"></span><span class="role">text</span> <span class="hex">#33372C</span></span>
+        <span class="chip"><span class="swatch" style="background:#79806A"></span><span class="role">text-muted</span> <span class="hex">#79806A</span></span>
+        <span class="chip"><span class="swatch" style="background:#B0905A"></span><span class="role">accent</span> <span class="hex">#B0905A</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#EDEBDF;">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#7E9476" stroke="#9AA083"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#D7D5C2" stroke="#9AA083"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#7E9476" stroke="#9AA083"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#D7D5C2" stroke="#9AA083"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#7E9476" stroke="#B0905A" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#F7F5EC;">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#79806A;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#E3E6D4; color:#5C6448;"><span class="dot" style="background:#B0905A;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ THEME 3 — FADED LINEN ============ -->
+    <div class="card" style="background:#F0E7DE; color:#423733;">
+      <div class="v-head">
+        <h2>Faded Linen</h2>
+        <p class="register">soft, tender, dusty rose</p>
+        <p class="mode">Light</p>
+      </div>
+      <div class="tokens">
+        <span class="chip"><span class="swatch" style="background:#F0E7DE"></span><span class="role">canvas-bg</span> <span class="hex">#F0E7DE</span></span>
+        <span class="chip"><span class="swatch" style="background:#FAF3EC"></span><span class="role">surface</span> <span class="hex">#FAF3EC</span></span>
+        <span class="chip hero"><span class="swatch" style="background:#BE8A86"></span><span class="role">visited-fill</span> <span class="hex">#BE8A86</span></span>
+        <span class="chip"><span class="swatch" style="background:#DED2C6"></span><span class="role">unvisited</span> <span class="hex">#DED2C6</span></span>
+        <span class="chip"><span class="swatch" style="background:#B09C8C"></span><span class="role">border</span> <span class="hex">#B09C8C</span></span>
+        <span class="chip"><span class="swatch" style="background:#423733"></span><span class="role">text</span> <span class="hex">#423733</span></span>
+        <span class="chip"><span class="swatch" style="background:#94817A"></span><span class="role">text-muted</span> <span class="hex">#94817A</span></span>
+        <span class="chip"><span class="swatch" style="background:#C97B62"></span><span class="role">accent</span> <span class="hex">#C97B62</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#F0E7DE;">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#BE8A86" stroke="#B09C8C"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#DED2C6" stroke="#B09C8C"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#BE8A86" stroke="#B09C8C"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#DED2C6" stroke="#B09C8C"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#BE8A86" stroke="#C97B62" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#FAF3EC;">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#94817A;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#F1DED6; color:#9A5440;"><span class="dot" style="background:#C97B62;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ THEME 4 — SUNLIT PAPER ============ -->
+    <div class="card" style="background:#F6EDD6; color:#443721;">
+      <div class="v-head">
+        <h2>Sunlit Paper</h2>
+        <p class="register">honeyed, sunlit afternoon</p>
+        <p class="mode">Light</p>
+      </div>
+      <div class="tokens">
+        <span class="chip"><span class="swatch" style="background:#F6EDD6"></span><span class="role">canvas-bg</span> <span class="hex">#F6EDD6</span></span>
+        <span class="chip"><span class="swatch" style="background:#FCF6E6"></span><span class="role">surface</span> <span class="hex">#FCF6E6</span></span>
+        <span class="chip hero"><span class="swatch" style="background:#D9A24B"></span><span class="role">visited-fill</span> <span class="hex">#D9A24B</span></span>
+        <span class="chip"><span class="swatch" style="background:#E4D6B5"></span><span class="role">unvisited</span> <span class="hex">#E4D6B5</span></span>
+        <span class="chip"><span class="swatch" style="background:#BFA871"></span><span class="role">border</span> <span class="hex">#BFA871</span></span>
+        <span class="chip"><span class="swatch" style="background:#443721"></span><span class="role">text</span> <span class="hex">#443721</span></span>
+        <span class="chip"><span class="swatch" style="background:#8E7A52"></span><span class="role">text-muted</span> <span class="hex">#8E7A52</span></span>
+        <span class="chip"><span class="swatch" style="background:#C56B3A"></span><span class="role">accent</span> <span class="hex">#C56B3A</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#F6EDD6;">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#D9A24B" stroke="#BFA871"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#E4D6B5" stroke="#BFA871"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#D9A24B" stroke="#BFA871"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#E4D6B5" stroke="#BFA871"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#D9A24B" stroke="#C56B3A" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#FCF6E6;">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#8E7A52;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#F4E2C2; color:#A8521F;"><span class="dot" style="background:#C56B3A;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ THEME 5 — LAMPLIGHT (DARK) ============ -->
+    <div class="card" style="background:#2A211B; color:#EFE2CF; border-color:rgba(255,255,255,.06); box-shadow:0 1px 3px rgba(0,0,0,.35);">
+      <div class="v-head">
+        <h2>Lamplight</h2>
+        <p class="register">kids asleep, re-living on the couch</p>
+        <p class="mode">Dark</p>
+      </div>
+      <div class="tokens">
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#2A211B"></span><span class="role">canvas-bg</span> <span class="hex">#2A211B</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#352A22"></span><span class="role">surface</span> <span class="hex">#352A22</span></span>
+        <span class="chip hero" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#D69B4E"></span><span class="role">visited-fill</span> <span class="hex">#D69B4E</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#3E332A"></span><span class="role">unvisited</span> <span class="hex">#3E332A</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#564537"></span><span class="role">border</span> <span class="hex">#564537</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#EFE2CF"></span><span class="role">text</span> <span class="hex">#EFE2CF</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#A6917A"></span><span class="role">text-muted</span> <span class="hex">#A6917A</span></span>
+        <span class="chip" style="border-color:rgba(255,255,255,.1)"><span class="swatch" style="background:#E8B05E"></span><span class="role">accent</span> <span class="hex">#E8B05E</span></span>
+      </div>
+      <div class="snippet">
+        <div class="map" style="background:#2A211B; border-color:rgba(255,255,255,.07);">
+          <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice">
+            <path class="region" d="M20 30 Q60 12 110 28 L120 70 Q70 88 26 76 Z" fill="#D69B4E" stroke="#564537"/>
+            <path class="region" d="M120 70 Q70 88 26 76 L34 120 Q90 134 130 116 Z" fill="#3E332A" stroke="#564537"/>
+            <path class="region" d="M110 28 Q165 16 210 34 L200 78 Q150 92 120 70 Z" fill="#D69B4E" stroke="#564537"/>
+            <path class="region" d="M210 34 Q258 24 286 46 L278 96 Q230 108 200 78 Z" fill="#3E332A" stroke="#564537"/>
+            <path class="region glow" d="M130 116 Q90 134 34 120 L40 144 Q120 152 168 138 L160 100 Q150 92 120 70 Z" fill="#D69B4E" stroke="#E8B05E" stroke-width="3" style="filter:drop-shadow(0 0 6px rgba(232,176,94,.6));"/>
+          </svg>
+        </div>
+        <div class="panel" style="background:#352A22; border-color:rgba(255,255,255,.07);">
+          <h3>Kyoto</h3>
+          <p class="date" style="color:#A6917A;">April 2022</p>
+          <p class="note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+          <span class="notif" style="background:#43342600; background:#43342B; color:#E8B05E;"><span class="dot" style="background:#E8B05E;"></span>2 years ago today: Kyoto</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

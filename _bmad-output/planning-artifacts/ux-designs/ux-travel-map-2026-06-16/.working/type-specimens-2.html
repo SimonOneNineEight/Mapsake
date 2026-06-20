@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapsake — Type Specimens 2 (Real Web Fonts)</title>
+
+<!-- Google Fonts: real licensed web fonts, loaded with preconnect -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Lora:wght@400;500;600&family=Nunito+Sans:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   MAPSAKE — TYPE SPECIMENS 2
+   Direction: "Editorial Mix" = warm serif (display) + humanist sans (UI/body)
+
+   LOCKED PALETTE
+   --page-bg     #F2E8D5  page / canvas
+   --surface     #FBF4E4  cards / panels
+   --text        #3A2E22  text-primary
+   --muted       #8A7456  text-muted
+   --terracotta  #B5663E  accent / hero
+   --border      #C7B79A  soft border
+   --glow        #C8893B  accent-glow
+
+   FONT ROLES PER BLOCK
+   ------------------------------------------------------------
+   BLOCK 1 (RECOMMENDED) — Newsreader + Nunito Sans
+     serif (display/wordmark/titles/italic) = Newsreader
+     sans  (body / UI / map labels / chips)  = Nunito Sans
+   BLOCK 2 — Lora + Nunito Sans
+     serif = Lora
+     sans  = Nunito Sans
+   BLOCK 3 — Newsreader + Inter
+     serif = Newsreader
+     sans  = Inter
+   ------------------------------------------------------------
+   Layout is identical across all 3 blocks so only type differs.
+   ============================================================ */
+
+:root{
+  --page-bg:#F2E8D5;
+  --surface:#FBF4E4;
+  --text:#3A2E22;
+  --muted:#8A7456;
+  --terracotta:#B5663E;
+  --border:#C7B79A;
+  --glow:#C8893B;
+
+  --serif:'Newsreader', Georgia, serif;          /* default; overridden per block */
+  --sans:'Nunito Sans', system-ui, sans-serif;    /* default; overridden per block */
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--page-bg);
+  color:var(--text);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  line-height:1.5;
+}
+
+.page{
+  max-width:760px;
+  margin:0 auto;
+  padding:72px 32px 120px;
+}
+
+/* ---- page intro ---- */
+.intro{ margin-bottom:64px; }
+.intro .kicker{
+  font-family:var(--sans);
+  text-transform:uppercase;
+  letter-spacing:0.16em;
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+}
+.intro h1{
+  font-family:'Newsreader', Georgia, serif;
+  font-weight:600;
+  font-size:34px;
+  margin:14px 0 6px;
+  color:var(--text);
+}
+.intro p{
+  font-family:var(--sans);
+  font-size:15px;
+  color:var(--muted);
+  max-width:54ch;
+  margin:0;
+}
+
+/* ---- block scoping: each block sets its own --serif / --sans ---- */
+.block--newsreader-nunito{ --serif:'Newsreader', Georgia, serif; --sans:'Nunito Sans', system-ui, sans-serif; }
+.block--lora-nunito{       --serif:'Lora', Georgia, serif;       --sans:'Nunito Sans', system-ui, sans-serif; }
+.block--newsreader-inter{  --serif:'Newsreader', Georgia, serif; --sans:'Inter', system-ui, sans-serif; }
+
+.block{
+  padding:48px 0 8px;
+  border-top:1px solid var(--border);
+  margin-top:56px;
+}
+
+/* ---- block header ---- */
+.block-head{ margin-bottom:40px; }
+.block-name{
+  font-family:var(--sans);
+  font-weight:700;
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:0.10em;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.recommended{
+  font-family:var(--sans);
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--surface);
+  background:var(--terracotta);
+  padding:4px 10px;
+  border-radius:999px;
+}
+.block-fonts{
+  font-family:var(--sans);
+  font-size:13px;
+  color:var(--muted);
+  margin-top:8px;
+}
+
+/* ---- specimen pieces ---- */
+.wordmark{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:48px;
+  line-height:1;
+  color:var(--terracotta);
+  margin:0 0 28px;
+}
+
+.place-title{
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:30px;
+  color:var(--text);
+  margin:0 0 22px;
+}
+
+.map-labels{
+  display:flex;
+  gap:28px;
+  margin-bottom:34px;
+}
+.map-label{
+  font-family:var(--sans);
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+/* ---- memory card ---- */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:24px 26px;
+  margin-bottom:30px;
+}
+.card-title{
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:20px;
+  color:var(--text);
+  margin:0 0 4px;
+}
+.card-date{
+  font-family:var(--sans);
+  font-size:13px;
+  color:var(--muted);
+  margin:0 0 12px;
+}
+.card-note{
+  font-family:var(--sans);
+  font-size:15px;
+  color:var(--text);
+  margin:0;
+  max-width:48ch;
+}
+
+/* ---- UI row ---- */
+.ui-row{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-bottom:30px;
+}
+.btn-primary{
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:600;
+  color:#FBF4E4;
+  background:var(--terracotta);
+  border:none;
+  border-radius:8px;
+  padding:10px 18px;
+  cursor:pointer;
+}
+.link-quiet{
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:500;
+  color:var(--terracotta);
+  text-decoration:none;
+}
+.link-quiet:hover{ text-decoration:underline; }
+
+/* ---- notification chip ---- */
+.chip{
+  display:inline-block;
+  font-family:var(--sans);
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:7px 14px;
+  margin-bottom:30px;
+}
+.chip .accent{ color:var(--terracotta); }
+
+/* ---- small readability line ---- */
+.readability{
+  font-family:var(--sans);
+  font-size:14px;
+  color:var(--text);
+  margin:0 0 22px;
+}
+
+/* ---- serif italic caption ---- */
+.italic-caption{
+  font-family:var(--serif);
+  font-style:italic;
+  font-weight:400;
+  font-size:18px;
+  color:var(--muted);
+  margin:0;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="intro">
+    <div class="kicker">Mapsake · Type Specimens</div>
+    <h1>Editorial Mix — choosing the real web fonts</h1>
+    <p>Three pairings of a warm display serif with a humanist sans. Same layout in each block, so only the type changes. Fonts are the actual licensed Google Fonts, not macOS stand-ins.</p>
+  </header>
+
+  <!-- ============ BLOCK 1 — Newsreader + Nunito Sans (RECOMMENDED) ============ -->
+  <section class="block block--newsreader-nunito">
+    <div class="block-head">
+      <div class="block-name">
+        Newsreader + Nunito Sans
+        <span class="recommended">Recommended</span>
+      </div>
+      <div class="block-fonts">Display serif: Newsreader · Body &amp; UI sans: Nunito Sans</div>
+    </div>
+
+    <div class="wordmark">Mapsake</div>
+    <div class="place-title">Kyoto</div>
+
+    <div class="map-labels">
+      <span class="map-label">Kansai</span>
+      <span class="map-label">Japan</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kyoto</div>
+      <div class="card-date">April 2022</div>
+      <p class="card-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+    </div>
+
+    <div class="ui-row">
+      <button class="btn-primary">Add a photo</button>
+      <a class="link-quiet" href="#">Add details later</a>
+    </div>
+
+    <div class="chip">2 years ago today: <span class="accent">Kyoto</span></div>
+
+    <p class="readability">Twelve regions visited across four countries.</p>
+
+    <p class="italic-caption">the map you keep, for the sake of memory</p>
+  </section>
+
+  <!-- ============ BLOCK 2 — Lora + Nunito Sans (softer-serif alternate) ============ -->
+  <section class="block block--lora-nunito">
+    <div class="block-head">
+      <div class="block-name">Lora + Nunito Sans</div>
+      <div class="block-fonts">Display serif: Lora · Body &amp; UI sans: Nunito Sans · softer-serif alternate</div>
+    </div>
+
+    <div class="wordmark">Mapsake</div>
+    <div class="place-title">Kyoto</div>
+
+    <div class="map-labels">
+      <span class="map-label">Kansai</span>
+      <span class="map-label">Japan</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kyoto</div>
+      <div class="card-date">April 2022</div>
+      <p class="card-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+    </div>
+
+    <div class="ui-row">
+      <button class="btn-primary">Add a photo</button>
+      <a class="link-quiet" href="#">Add details later</a>
+    </div>
+
+    <div class="chip">2 years ago today: <span class="accent">Kyoto</span></div>
+
+    <p class="readability">Twelve regions visited across four countries.</p>
+
+    <p class="italic-caption">the map you keep, for the sake of memory</p>
+  </section>
+
+  <!-- ============ BLOCK 3 — Newsreader + Inter (cooler-sans alternate) ============ -->
+  <section class="block block--newsreader-inter">
+    <div class="block-head">
+      <div class="block-name">Newsreader + Inter</div>
+      <div class="block-fonts">Display serif: Newsreader · Body &amp; UI sans: Inter · cooler-sans alternate</div>
+    </div>
+
+    <div class="wordmark">Mapsake</div>
+    <div class="place-title">Kyoto</div>
+
+    <div class="map-labels">
+      <span class="map-label">Kansai</span>
+      <span class="map-label">Japan</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kyoto</div>
+      <div class="card-date">April 2022</div>
+      <p class="card-note">Rained the whole first day. We didn't mind — found the best ramen of the trip near the station.</p>
+    </div>
+
+    <div class="ui-row">
+      <button class="btn-primary">Add a photo</button>
+      <a class="link-quiet" href="#">Add details later</a>
+    </div>
+
+    <div class="chip">2 years ago today: <span class="accent">Kyoto</span></div>
+
+    <p class="readability">Twelve regions visited across four countries.</p>
+
+    <p class="italic-caption">the map you keep, for the sake of memory</p>
+  </section>
+
+</div>
+</body>
+</html>
