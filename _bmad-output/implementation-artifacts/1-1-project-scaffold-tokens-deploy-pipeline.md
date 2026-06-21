@@ -49,11 +49,29 @@ so that every later story builds on a consistent, live, conventions-enforcing fo
 - [x] **Task 6 — Smoke verification (local)**
   - [x] `pnpm build` succeeds (all 14 routes prerender). Typecheck + lint green. Sample page renders tokens/fonts correctly (screenshot captured). _CI-green-on-PR confirms once the GitHub repo exists (Simon)._
 
+### Review Findings (code review 2026-06-21)
+
+_3 adversarial layers (Blind Hunter, Edge Case Hunter, Acceptance Auditor). 0 decision-needed · 7 patch · 3 defer · 9 dismissed (false positives, several from diff abbreviation in the review prompt). Headline: the opacity/alpha token issue is real and reaches the shadcn Button used everywhere._
+
+**Patch (unchecked):**
+- [x] [Review][Patch] Opacity utilities break on bare-`var()` theme colors — shadcn `/NN` modifiers (`hover:bg-primary/90` in `components/ui/button.tsx`, `border-b-foreground/10` in `app/protected/layout.tsx`, badge/hero/tutorial) render fully opaque. Convert tokens to channel triplets + `rgb(var(--x) / <alpha-value>)`. [app/globals.css, tailwind.config.ts]
+- [x] [Review][Patch] `<a>` without `href` is a keyboard/AT dead-end → make it a `<button type="button">`. [app/page.tsx]
+- [x] [Review][Patch] Enable `pnpm build` in CI (it builds fine in pre-Supabase mode; catches RSC/font/route errors typecheck+lint miss). [.github/workflows/ci.yml]
+- [x] [Review][Patch] Add `types/.gitkeep` — AC3 skeleton lists `types/`; it's absent. [types/]
+- [x] [Review][Patch] Prune orphaned `next-themes` dependency (zero imports after dark-mode removal). [package.json]
+- [x] [Review][Patch] `--input` uses `#C7B79A` — the value DESIGN.md explicitly retired (1.62:1). Use a higher-contrast warm tan for input borders. [app/globals.css]
+- [x] [Review][Patch] Story Dev Notes "Stack" line still says "Tailwind CSS v4" — implementation is v3 (Deviation #1). Fix the stale line. [this story]
+
+**Deferred (pre-existing / latent — see deferred-work.md):**
+- [x] [Review][Defer] CJK UI weight 600 not loaded (Noto Sans/Serif TC load 400/500/700; DESIGN.md ui=600) — add when CJK UI strings land. [app/layout.tsx]
+- [x] [Review][Defer] `metadataBase` uses `VERCEL_URL` (per-deploy preview URL) — pre-existing starter; fix with production domain at deploy. [app/layout.tsx]
+- [x] [Review][Defer] Partial-env (`hasEnvVars` AND) + non-null assertions in `lib/supabase/*` can mask misconfig / throw — pre-existing starter behavior. [lib/supabase/*]
+
 ## Dev Notes
 
 ### Stack & versions (verified June 2026 — confirm at run time)
 - **Next.js 16.2.x** (App Router, Turbopack default, Node 20+). [Source: architecture.md#Foundation Decisions; #Starter Template Evaluation]
-- **Tailwind CSS v4**; **TypeScript strict**. [Source: architecture.md#Starter Template Evaluation]
+- **Tailwind CSS v3** (the official `with-supabase` example ships v3.4.x; see Deviation #1); **TypeScript strict**. [Source: architecture.md#Starter Template Evaluation]
 - **Supabase** (Postgres BaaS) — auth/storage/realtime/RLS; cookie-based SSR auth from the `with-supabase` example. [Source: architecture.md#Foundation Decisions]
 - **shadcn/ui** (Radix + Tailwind, copy-in) supports Tailwind v4 + Next.js 16; theme to DESIGN.md tokens. **Vaul Drawer** (bottom sheet) arrives with Epic 3, not here. [Source: architecture.md#Implementation Patterns › UI component strategy]
 - **pnpm** is the package manager (global rule). **Hosting** = Vercel (frontend + Cron) + Supabase. [Source: architecture.md#Foundation Decisions]
@@ -118,6 +136,7 @@ Once 1–3 are done, AC4 + AC5 are satisfied → run `bmad-code-review`, which m
 
 ### Change Log
 
+- 2026-06-21 — Code review (3 adversarial layers): 7 patches applied (opacity-safe channel-triplet tokens, `<a>`→`<button>`, CI build step enabled, `types/.gitkeep`, pruned `next-themes`, `--input` de-retired, doc fix), 3 deferred (see deferred-work.md), 9 dismissed. Typecheck + lint + build green post-patch. Review clean; story stays `in-progress` pending Simon's GitHub+Vercel deploy (AC5).
 - 2026-06-20 — Story 1.1 implemented (local scaffold). Next.js 16 + Supabase + DESIGN.md tokens + dual-script fonts + light-only + feature skeleton + CI workflow + git baseline. Build/typecheck/lint green; running app verified by screenshot. Account-gated AC4/AC5 steps handed to Simon (checklist above).
 
 ### File List

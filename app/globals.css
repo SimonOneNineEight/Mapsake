@@ -3,41 +3,44 @@
 @tailwind utilities;
 
 /* Mapsake — light-only v1. Tokens from DESIGN.md (ux-travel-map-2026-06-16).
-   Dark/"Lamplight" is Phase 2 and intentionally NOT shipped here. */
+   Dark/"Lamplight" is Phase 2 and intentionally NOT shipped here.
+   Colors are stored as "R G B" channel triplets so Tailwind opacity modifiers
+   (e.g. bg-primary/90, border-b-foreground/10) work — consumed via
+   rgb(var(--x) / <alpha-value>) in tailwind.config.ts. */
 @layer base {
   :root {
     /* shadcn semantic tokens mapped to the Sepia Parchment palette */
-    --background: #f2e8d5; /* canvas / parchment */
-    --foreground: #3a2e22; /* text-primary */
-    --card: #fbf4e4; /* surface */
-    --card-foreground: #3a2e22;
-    --popover: #fbf4e4;
-    --popover-foreground: #3a2e22;
-    --primary: #9e4f2b; /* terracotta-text — button bg / links (AA on cream) */
-    --primary-foreground: #fbf4e4; /* cream label on terracotta */
-    --secondary: #ede0c8; /* soft cream for secondary surfaces */
-    --secondary-foreground: #3a2e22;
-    --muted: #ede0c8;
-    --muted-foreground: #6f5c40; /* text-muted (AA) */
-    --accent: #ede0c8; /* shadcn UI hover bg (soft, not the brand glow) */
-    --accent-foreground: #3a2e22;
-    --destructive: #9b3b2e; /* muted brick for destructive confirms */
-    --destructive-foreground: #fbf4e4;
-    --border: #96835e; /* region/UI border (>=3:1 on canvas) */
-    --input: #c7b79a; /* softer input border */
-    --ring: #9e4f2b; /* terracotta focus ring */
+    --background: 242 232 213; /* #F2E8D5 canvas / parchment */
+    --foreground: 58 46 34; /* #3A2E22 text-primary */
+    --card: 251 244 228; /* #FBF4E4 surface */
+    --card-foreground: 58 46 34;
+    --popover: 251 244 228;
+    --popover-foreground: 58 46 34;
+    --primary: 158 79 43; /* #9E4F2B terracotta-text — button bg / links (AA on cream) */
+    --primary-foreground: 251 244 228; /* cream label on terracotta */
+    --secondary: 237 224 200; /* #EDE0C8 soft cream */
+    --secondary-foreground: 58 46 34;
+    --muted: 237 224 200;
+    --muted-foreground: 111 92 64; /* #6F5C40 text-muted (AA) */
+    --accent: 237 224 200; /* shadcn UI hover bg (soft, not the brand glow) */
+    --accent-foreground: 58 46 34;
+    --destructive: 155 59 46; /* #9B3B2E muted brick for destructive confirms */
+    --destructive-foreground: 251 244 228;
+    --border: 150 131 94; /* #96835E region/UI border (>=3:1 on canvas) */
+    --input: 179 161 124; /* #B3A17C warm tan input border (clears the retired #C7B79A) */
+    --ring: 158 79 43; /* terracotta focus ring */
     --radius: 0.5rem; /* 8px default */
 
     /* Mapsake brand tokens (used by map + features) */
-    --canvas-bg: #f2e8d5;
-    --surface: #fbf4e4;
-    --region-visited-fill: #b5663e; /* hero terracotta — MAP FILLS only */
-    --region-unvisited: #f2e8d5; /* = canvas; unvisited land is the paper */
-    --region-border: #96835e;
-    --text-primary: #3a2e22;
-    --text-muted: #6f5c40;
-    --terracotta-text: #9e4f2b;
-    --accent-glow: #c8893b; /* re-living glow + active states (non-text) */
+    --canvas-bg: 242 232 213;
+    --surface: 251 244 228;
+    --region-visited-fill: 181 102 62; /* #B5663E hero terracotta — MAP FILLS only */
+    --region-unvisited: 242 232 213; /* = canvas; unvisited land is the paper */
+    --region-border: 150 131 94;
+    --text-primary: 58 46 34;
+    --text-muted: 111 92 64;
+    --terracotta-text: 158 79 43;
+    --accent-glow: 200 137 59; /* #C8893B re-living glow + active states (non-text) */
   }
 }
 

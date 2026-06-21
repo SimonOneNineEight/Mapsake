@@ -25,9 +25,12 @@ export default function Home() {
             <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
               新增照片
             </button>
-            <a className="text-sm font-semibold text-terracotta-text hover:underline">
+            <button
+              type="button"
+              className="text-sm font-semibold text-terracotta-text hover:underline"
+            >
               稍後再補充
-            </a>
+            </button>
           </div>
         </section>
 

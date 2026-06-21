@@ -20,6 +20,8 @@ jobs:
         run: pnpm exec tsc --noEmit
       - name: Lint
         run: pnpm lint
-      # Build runs on Vercel with real env; uncomment to gate builds in CI once
-      # NEXT_PUBLIC_SUPABASE_* are added as GitHub Actions secrets.
-      # - run: pnpm build
+      - name: Build
+        run: pnpm build
+        # Builds in pre-Supabase mode (no env) like local; catches RSC/font/route
+        # errors that typecheck + lint miss. Add NEXT_PUBLIC_SUPABASE_* as Actions
+        # secrets if a future build step needs a live connection.

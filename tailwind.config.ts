@@ -1,7 +1,10 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
-// Mapsake — light-only v1. Tokens are direct CSS values (see app/globals.css).
+// Mapsake — light-only v1. Colors are channel triplets in app/globals.css,
+// wrapped here so Tailwind opacity modifiers (bg-primary/90, etc.) work.
+const c = (v: string) => `rgb(var(${v}) / <alpha-value>)`;
+
 export default {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -13,48 +16,48 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: c("--background"),
+        foreground: c("--foreground"),
         card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
+          DEFAULT: c("--card"),
+          foreground: c("--card-foreground"),
         },
         popover: {
-          DEFAULT: "var(--popover)",
-          foreground: "var(--popover-foreground)",
+          DEFAULT: c("--popover"),
+          foreground: c("--popover-foreground"),
         },
         primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
+          DEFAULT: c("--primary"),
+          foreground: c("--primary-foreground"),
         },
         secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
+          DEFAULT: c("--secondary"),
+          foreground: c("--secondary-foreground"),
         },
         muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
+          DEFAULT: c("--muted"),
+          foreground: c("--muted-foreground"),
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
+          DEFAULT: c("--accent"),
+          foreground: c("--accent-foreground"),
         },
         destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
+          DEFAULT: c("--destructive"),
+          foreground: c("--destructive-foreground"),
         },
-        border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
+        border: c("--border"),
+        input: c("--input"),
+        ring: c("--ring"),
         // Mapsake brand tokens
-        canvas: "var(--canvas-bg)",
-        surface: "var(--surface)",
-        "region-visited": "var(--region-visited-fill)",
-        "region-border": "var(--region-border)",
-        "text-primary": "var(--text-primary)",
-        "text-muted": "var(--text-muted)",
-        "terracotta-text": "var(--terracotta-text)",
-        "accent-glow": "var(--accent-glow)",
+        canvas: c("--canvas-bg"),
+        surface: c("--surface"),
+        "region-visited": c("--region-visited-fill"),
+        "region-border": c("--region-border"),
+        "text-primary": c("--text-primary"),
+        "text-muted": c("--text-muted"),
+        "terracotta-text": c("--terracotta-text"),
+        "accent-glow": c("--accent-glow"),
       },
       borderRadius: {
         lg: "var(--radius)",
