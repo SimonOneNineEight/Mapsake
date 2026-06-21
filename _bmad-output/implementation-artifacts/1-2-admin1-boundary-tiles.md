@@ -42,6 +42,23 @@ so that the render story (1.3) has fast, correctly-labeled, gap-free geometry to
   - [ ] Inspect the PMTiles (e.g. `pmtiles show`) — confirm layers, zoom range, and that a sample of features (US-CA → "California"/"加州"; JP-26 → "Kyoto"/"京都"; a TW county) carry correct `iso`/`name`/`name_zh`.
   - [ ] Confirm gap-free borders at admin-1 and the size budget. (Smooth-on-phone render is verified in Story 1.3.)
 
+### Review Findings (code review 2026-06-21)
+
+_3 adversarial layers. 0 decision-needed · 5 patch · 4 defer · 4 dismissed. The review caught a real CRITICAL the dev's own "confirm layers" verify missed — the sample tileset is **not** correct as shipped, so this honestly downgrades the earlier "sample verified" claim._
+
+**Patch (unchecked):**
+- [x] [Review][Patch][HIGH] **tippecanoe layer collapse.** Repeated `-l countries … -l regions …` sets ONE global layer (second wins) → ADM0+ADM1 merged into a single `regions` layer (`pmtiles show` = layerCount 1, 128 features); no `countries` layer. Breaks AC1 (separate layers) + AC3 (per-layer minzoom) and blocks Story 1.3 country-vs-region styling. Fix: use `-L` named-layer JSON with per-layer minzoom (countries z0, regions z3). [build-tiles.mjs tile()]
+- [x] [Review][Patch][HIGH] **Malformed ISO + no validation.** geoBoundaries ships South Dakota as `SU-SD` (typo; should `US-SD`); `norm()` copies it verbatim → broken region-identity join + missed zh label. Task 1 promised "log unmatched" but no validation exists. Fix: validate ADM1 `iso` format (`^[A-Z]{2}-`), correct known typos, log mismatches. [build-tiles.mjs norm()]
+- [x] [Review][Patch][MED] **zh fallback chain incomplete.** AC2 wants zh-Hant → zh → English; code does zh-Hant → English (skips `zh`/`zh-tw`/`zh-hk`). Add the intermediate Chinese variants to the gazetteer. [build-tiles.mjs buildGazetteer()]
+- [x] [Review][Patch][MED] **No binary preflight.** Missing tippecanoe/pmtiles throws opaque ENOENT after all the work; add an up-front check pointing at scripts/README.md. [build-tiles.mjs]
+- [x] [Review][Patch][MED] **Robustness guards.** Validate `meta.gjDownloadURL` before fetch; guard `data.results.bindings`; atomic cache writes (temp→rename) so a killed/partial download doesn't poison future runs. [build-tiles.mjs getJSON/fetchToCache/buildGazetteer]
+
+**Deferred (see deferred-work.md):**
+- [x] [Review][Defer] Gazetteer cache has no TTL/force-refresh flag.
+- [x] [Review][Defer] `--drop-densest-as-needed` can silently drop features — add a post-tile feature-count check.
+- [x] [Review][Defer] Wikidata SPARQL has no retry/backoff for the documented 429/timeout risk (works today).
+- [x] [Review][Defer] Gazetteer duplicate-code keep-last is non-deterministic.
+
 ## Dev Notes
 
 ### What this story is (and is NOT)
@@ -98,6 +115,7 @@ claude-opus-4-8 (1M context) — dev-story
 
 ### Change Log
 
+- 2026-06-21 — Code review: 5 patches applied + re-verified. **Layer-collapse fixed** (per-feature `tippecanoe.layer` → 2 named layers `countries`/`regions`; ADM0 minzoom 0, ADM1 minzoom 3). **ISO validation + typo fix** (SU-SD→US-SD, now labeled 南達科他州; format-validate + warn on mismatches; 0 warnings on sample). **zh fallback chain** (zh-Hant→zh-tw/zh-hk→zh→English): gazetteer 3,659→5,450 codes, sample zh coverage 122→124/125 (only US-VI lacks any Wikidata Chinese label). **Binary preflight** + **robustness guards** (URL/response validation, atomic temp→rename writes). Lint green. 4 deferred (deferred-work.md). Story stays `in-progress` pending the global run.
 - 2026-06-21 — Story 1.2 implemented at sample scope: `scripts/build-tiles.mjs` pipeline (geoBoundaries → Wikidata zh-Hant join → tippecanoe → PMTiles), `pnpm tiles:build`, `scripts/README.md`, cached `wikidata-zh-gazetteer.json`, dev `public/tiles/boundaries.pmtiles`. tippecanoe + pmtiles installed. Global-scope run gated (download + full ISO3→ISO2). Story stays `in-progress`.
 
 ### File List
