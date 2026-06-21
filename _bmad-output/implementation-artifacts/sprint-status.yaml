@@ -46,7 +46,7 @@ development_status:
   epic-1: in-progress
   1-1-project-scaffold-tokens-deploy-pipeline: in-progress
   1-2-admin1-boundary-tiles: in-progress
-  1-3-render-map-and-zoom: ready-for-dev
+  1-3-render-map-and-zoom: review
   1-4-durable-anonymous-session-marks-store: backlog
   1-5-tap-to-mark-a-region-visited: backlog
   1-6-visited-roll-up-rendering: backlog
