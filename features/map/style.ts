@@ -22,6 +22,9 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         type: "vector",
         url: `pmtiles://${pmtilesUrl}`,
         attribution: "Boundaries © geoBoundaries (CC BY)",
+        // Stable feature id from the ISO code: dedupes labels across tile
+        // boundaries AND is the feature-state key for visited fill (Story 1.5).
+        promoteId: { countries: "iso", regions: "iso" },
       },
     },
     layers: [
@@ -59,7 +62,7 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         id: "country-labels",
         type: "symbol",
         source: "boundaries",
-        "source-layer": "countries",
+        "source-layer": "country_labels",
         layout: { "text-field": LABEL, "text-font": ["Open Sans Regular"], "text-size": 12 },
         paint: {
           "text-color": MAP_COLORS.textMuted,
@@ -71,7 +74,7 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         id: "region-labels",
         type: "symbol",
         source: "boundaries",
-        "source-layer": "regions",
+        "source-layer": "region_labels",
         minzoom: 4,
         layout: { "text-field": LABEL, "text-font": ["Open Sans Regular"], "text-size": 11 },
         paint: {
