@@ -162,39 +162,44 @@ As the builder, I want the project initialized on the chosen stack and deploying
 **Given** DESIGN.md tokens **When** the Tailwind theme + CSS variables are configured **Then** the light palette and dual-script fonts (Newsreader/Nunito Sans + Noto Serif/Sans TC) are available app-wide.
 **Given** a GitHub repo **When** I push **Then** CI (typecheck/lint) runs and the app deploys to Vercel; **And** the Supabase project is linked via env vars with no secrets committed.
 
-### Story 1.2: World map renders with admin-1 tiles
-As a user, I want a continuous map I can zoom from world to admin-1, so that I can find places I've been.
-**Acceptance Criteria:**
-**Given** the build-tiles script **When** geoBoundaries ADM0/ADM1 → tippecanoe → PMTiles runs (ISO 3166-2 codes + baked zh-Hant labels, English fallback) **Then** one PMTiles file is produced and served from Storage/CDN.
-**Given** the app **When** I open it **Then** MapLibre renders the parchment-styled map and I can pan/zoom across world → country → admin-1.
-**Given** a mid-range phone **When** I pan/zoom at admin-1 **Then** it stays smooth (the de-risk spike acceptance); **And** labels show in zh-TW where available, English otherwise.
+> **Split 2026-06-21:** original Story 1.2 ("world map renders with admin-1 tiles") was split into **1.2 (tile pipeline)** + **1.3 (map render + zoom)**; the old "continuous zoom + world landing" story folded into 1.3. Epic 1 remains 6 stories.
 
-### Story 1.3: Durable anonymous session + marks store
+### Story 1.2: Admin-1 boundary tiles (data pipeline)
+As the builder, I want the worldwide country + admin-1 boundaries built into a single map-tile file with Chinese labels, so that the render story has fast, correctly-labeled geometry to draw.
+**Acceptance Criteria:**
+**Given** `scripts/build-tiles.ts` **When** it processes geoBoundaries ADM0 + ADM1 through tippecanoe **Then** it outputs one **PMTiles** file with per-feature `iso` (ISO 3166-2), `country`, `name`, and `name_zh` properties.
+**Given** the label step **When** it joins **Wikidata** by ISO 3166-2 (`wdt:P300`) **Then** each feature carries a `zh-Hant` label (fallback `zh` → English), baked into the tiles (no runtime lookup).
+**Given** tippecanoe simplification (per-zoom, `--detect-shared-borders`) **Then** the PMTiles file meets the size budget (tens of MB) and admin-1 geometry is gap-free.
+**Given** Taiwan **Then** it is its own ADM0 with its admin-1 (counties/special municipalities), per the documented stance.
+
+### Story 1.3: Render the map + continuous zoom
+As a user, I want a continuous parchment map I can fluidly zoom from world to admin-1, so that I can find the places I've been.
+**Acceptance Criteria:**
+**Given** the PMTiles from Story 1.2 served from Storage/CDN **When** I open the app **Then** MapLibre renders the parchment-styled map via the `pmtiles` protocol and I land on the world view (chosen-view selection comes in Epic 4).
+**Given** the map **When** I zoom **Then** tiers flow world → country → admin-1 with no mode toggle, over shared data; labels show in zh-TW where available, English otherwise.
+**Given** a mid-range phone **When** I pan/zoom at admin-1 **Then** it stays smooth (~60fps — the de-risk spike acceptance).
+_Depends on: 1.2 (tiles). FR5._
+
+### Story 1.4: Durable anonymous session + marks store
 As a user, I want my actions saved from the first tap without signing up, so that nothing is lost before I create an account.
 **Acceptance Criteria:**
 **Given** a first visit **When** the app loads **Then** a Supabase anonymous session is established.
 **Given** migrations **When** they run **Then** `profiles` and `region_marks` exist with owner-scoped RLS and indexes.
 **Given** an anon user writing **Then** RLS scopes all rows to their session and no other user's data is readable.
 
-### Story 1.4: Tap to mark a region visited
+### Story 1.5: Tap to mark a region visited
 As a user, I want to tap a region to mark it visited and watch it color in, so that I can record where I've been.
 **Acceptance Criteria:**
 **Given** the map at admin-1 **When** I tap empty land in a region **Then** it marks visited and fills terracotta + the texture cue (never color alone).
 **Given** a visited region **When** I tap its empty land again **Then** it stays visited (no-op; unmark lives elsewhere).
 **Given** a mark **Then** it persists to `region_marks` and survives reload (optimistic + confirmed on ack); **And** marking works at country and admin-1 levels.
 
-### Story 1.5: Visited roll-up rendering
+### Story 1.6: Visited roll-up rendering
 As a user, I want a country to show visited when I've marked any region inside it, so that the map reflects my travels without extra taps.
 **Acceptance Criteria:**
 **Given** an admin-1 region marked **When** I zoom out **Then** its country renders visited (rolled up).
 **Given** a country-level explicit mark **Then** the country shows visited but its regions are NOT auto-marked (no downward cascade).
 **Given** no marks in a country **Then** it stays plain; **And** roll-up is computed client-side via MapLibre feature-state from the user's marks.
-
-### Story 1.6: Continuous zoom + world landing
-As a user, I want to land on the world map and move fluidly across zoom tiers, so that it feels like one continuous atlas.
-**Acceptance Criteria:**
-**Given** a returning user **When** they open the app **Then** they land on the world view (chosen-view selection comes in Epic 4).
-**Given** the map **When** I zoom **Then** tiers flow world → country → admin-1 with no mode toggle, over shared data; **And** pan/zoom holds on desktop and a mid-range phone.
 
 ## Epic 2: Keep your map (accounts & durability)
 
