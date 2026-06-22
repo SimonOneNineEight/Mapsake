@@ -18,3 +18,8 @@
 ## Deferred from: code review of story-1.3 (2026-06-21)
 
 - **Prod glyph self-hosting** — `features/map/style.ts` uses MapLibre's public demo glyph endpoint (`demotiles.maplibre.org`) serving `Open Sans Regular` for Latin labels. Prod must self-host font PBFs (range-served), and the DESIGN.md `map-label` Latin face is Nunito Sans, not Open Sans — so the prod glyph host + the `text-font` value should be reconciled together. CJK is unaffected (rendered locally via `localIdeographFontFamily`). Wire when prod hosting is set up (Vercel/Supabase Storage), alongside the prod tile URL.
+
+## Deferred from: code review of story-1.4 (2026-06-22)
+
+- **Offline/error mid-request hardening (anon session)** — if the middleware anon bootstrap fails open (Supabase unreachable, or the anon toggle off), the page serves with no session and subsequent marks fail closed with no client-side recovery until a full navigation re-hits middleware. Also `addRegionMark` uses `getUser()` (auth-server round-trip) per mark vs reading the local JWT via `getClaims()`. Wire a client-side re-bootstrap + cheaper session read with the offline/error-state work. [lib/supabase/proxy.ts, data/region-marks.ts]
+- **`removeRegionMark` defense-in-depth** — add an explicit `.eq("user_id", user.id)` to the delete so a future RLS misconfiguration can't widen it to other users' rows. RLS (`region_marks_owner_delete`) scopes it correctly today, so this is belt-and-suspenders. [data/region-marks.ts]

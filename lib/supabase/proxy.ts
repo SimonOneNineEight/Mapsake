@@ -47,16 +47,30 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+  // Local-first (Story 1.4): every visitor gets a durable Supabase session from the
+  // first load — an ANONYMOUS one until they create an account — so marks persist
+  // before sign-up. We bootstrap it here (the sign-in writes the auth cookies via
+  // the setAll wiring above), replacing the starter's redirect-to-login.
+  //
+  // Bootstrap ONLY on a top-level GET navigation: prefetches and sub-resource hits
+  // that arrive before the session cookie lands would each mint a separate anonymous
+  // user (orphan auth.users/profiles rows). The try/catch keeps a thrown network error
+  // (or a disabled anonymous-sign-in toggle) from breaking the request — we log and
+  // serve the page session-less rather than block.
+  const isPrefetch =
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("purpose") === "prefetch" ||
+    (request.headers.get("sec-purpose") ?? "").includes("prefetch");
+  const dest = request.headers.get("sec-fetch-dest");
+  const isDocNavigation =
+    request.method === "GET" && !isPrefetch && (!dest || dest === "document");
+  if (!user && isDocNavigation) {
+    try {
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) console.error("[mapsake] anonymous sign-in failed:", error.message);
+    } catch (e) {
+      console.error("[mapsake] anonymous sign-in threw:", e);
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
