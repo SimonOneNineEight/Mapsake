@@ -107,7 +107,7 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
       },
       // Texture cue (DESIGN region-visited): an always-on hatch over visited land so
       // visited is never signaled by color alone. fill-pattern is screen-space, so the
-      // hatch is zoom-stable. (Small-region pin fallback is Story 1.6.)
+      // hatch is zoom-stable. (Small-region pin fallback — DESIGN UX-DR6 — is deferred.)
       {
         id: "countries-visited-hatch-base",
         type: "fill",

@@ -4,7 +4,12 @@ import { defineConfig, devices } from "@playwright/test";
 //      pnpm test:e2e
 export default defineConfig({
   testDir: "./e2e",
-  use: { baseURL: "http://localhost:3000" },
+  // MapLibre needs a WebGL context; headless chromium only provides one via the
+  // software (SwiftShader) path, which modern Chrome gates behind this flag.
+  use: {
+    baseURL: "http://localhost:3000",
+    launchOptions: { args: ["--enable-unsafe-swiftshader"] },
+  },
   webServer: {
     command: "pnpm dev",
     url: "http://localhost:3000",

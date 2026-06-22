@@ -36,9 +36,11 @@ test("renders the parchment atlas with zh-TW admin-1 labels", async ({ page }) =
 });
 
 // Story 1.5 — tap a region to mark it visited; the mark persists across reload.
-const KYOTO = { source: "boundaries", sourceLayer: "regions", id: "JP-26" } as const;
+// NOTE: helpers passed to page.waitForFunction run IN THE BROWSER, so they must be
+// self-contained (no closure over Node-scope consts) — inline the feature ref.
 const isVisited = () =>
-  window.__mapsakeMap!.getFeatureState(KYOTO).visited === true;
+  window.__mapsakeMap!.getFeatureState({ source: "boundaries", sourceLayer: "regions", id: "JP-26" })
+    .visited === true;
 
 test("tap marks a region visited and the mark survives reload", async ({ page }) => {
   await page.goto("/");
@@ -59,10 +61,40 @@ test("tap marks a region visited and the mark survives reload", async ({ page })
     m.fire("click", { point: p, lngLat: { lng: 135.75, lat: 35.0 } });
   });
   await page.waitForFunction(isVisited);
+  // Wait for the durable ACK before reloading. "已儲存" (saved) appears only after the
+  // server ack (durable-write contract); reloading on the optimistic fill alone would
+  // navigate away and cancel the in-flight write, so nothing would persist.
+  await expect(page.getByText("已儲存")).toBeVisible({ timeout: 15_000 });
 
   // Reload → the saved mark re-applies (persisted to region_marks).
   await page.reload();
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   await page.evaluate(() => window.__mapsakeMap!.jumpTo({ center: [135.75, 35.0], zoom: 6 }));
   await page.waitForFunction(isVisited);
+});
+
+// Story 1.6 — marking an admin-1 region rolls its country up to visited (no cascade).
+const isCountryVisited = () =>
+  window.__mapsakeMap!.getFeatureState({ source: "boundaries", sourceLayer: "countries", id: "JP" })
+    .visited === true;
+
+test("marking an admin-1 region rolls its country up to visited", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await page.evaluate(() => window.__mapsakeMap!.jumpTo({ center: [135.75, 35.0], zoom: 6 }));
+  await page.waitForFunction(() =>
+    (window.__mapsakeMap?.querySourceFeatures("boundaries", { sourceLayer: "regions" }) ?? [])
+      .some((f) => f.properties?.iso === "JP-26"),
+  );
+
+  // Tap 京都府 (JP-26) → its country (JP) rolls up to visited via feature-state.
+  await page.evaluate(() => {
+    const m = window.__mapsakeMap!;
+    const p = m.project([135.75, 35.0]);
+    m.fire("click", { point: p, lngLat: { lng: 135.75, lat: 35.0 } });
+  });
+  await page.waitForFunction(isVisited); // the region itself
+  await page.waitForFunction(isCountryVisited); // and its rolled-up country
 });

@@ -67,27 +67,51 @@ export function regionFromPoint(map: MlMap, point: PointLike): TappedRegion | nu
   return null;
 }
 
+export type VisitedMark = { regionCode: string; level: RegionLevel; countryCode?: string };
+
+/** Split a `"<sourceLayer>|<id>"` feature-state key back into its parts. */
+function splitKey(key: string): { sourceLayer: string; id: string } {
+  const sep = key.indexOf("|");
+  return { sourceLayer: key.slice(0, sep), id: key.slice(sep + 1) };
+}
+
 /**
- * Apply the user's marks as `visited` feature-state and clear any feature no longer
- * marked. Returns the new key-set (used as the previous set on the next call).
- * Keys are `"<sourceLayer>|<regionCode>"`.
+ * The set of feature-state keys to render visited, derived from the user's marks
+ * (Story 1.6 roll-up). Keys are `"<sourceLayer>|<id>"` (e.g. `regions|JP-26`,
+ * `countries|JP`). Pure + a full recompute, so removing a mark correctly drops a roll-up
+ * that no longer has any contributor. Nothing here is persisted — the render is derived;
+ * `region_marks` holds only EXPLICIT marks. [architecture#Data line 113]
+ *
+ * Roll-up rule: a marked admin-1 region ALSO lights its parent country
+ * (`countries|<countryCode>`). There is NO downward cascade — a country mark contributes
+ * only its own `countries|<regionCode>` key, never a region key. [epics 1.6 AC1/AC2]
+ */
+export function computeVisitedKeys(marks: ReadonlyArray<VisitedMark>): Set<string> {
+  const keys = new Set<string>();
+  for (const m of marks) {
+    keys.add(`${sourceLayerFor(m.level)}|${m.regionCode}`);
+    if (m.level === "admin1" && m.countryCode) keys.add(`countries|${m.countryCode}`);
+  }
+  return keys;
+}
+
+/**
+ * Apply the derived visited key-set as `visited` feature-state and clear any feature no
+ * longer in it. Returns the new key-set (used as the previous set on the next call).
  */
 export function applyVisitedState(
   map: MlMap,
-  marks: ReadonlyArray<{ regionCode: string; level: RegionLevel }>,
+  marks: ReadonlyArray<VisitedMark>,
   prev: Set<string>,
 ): Set<string> {
-  const next = new Set<string>();
-  for (const m of marks) {
-    const sourceLayer = sourceLayerFor(m.level);
-    next.add(`${sourceLayer}|${m.regionCode}`);
-    map.setFeatureState({ source: "boundaries", sourceLayer, id: m.regionCode }, { visited: true });
+  const next = computeVisitedKeys(marks);
+  for (const key of next) {
+    const { sourceLayer, id } = splitKey(key);
+    map.setFeatureState({ source: "boundaries", sourceLayer, id }, { visited: true });
   }
   for (const key of prev) {
     if (next.has(key)) continue;
-    const sep = key.indexOf("|");
-    const sourceLayer = key.slice(0, sep);
-    const id = key.slice(sep + 1);
+    const { sourceLayer, id } = splitKey(key);
     map.setFeatureState({ source: "boundaries", sourceLayer, id }, { visited: false });
   }
   return next;

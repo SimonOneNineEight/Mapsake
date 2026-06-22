@@ -46,3 +46,6 @@ next-env.d.ts
 
 # tile build cache
 /.tiles-cache/
+
+# Playwright run artifacts
+test-results/
