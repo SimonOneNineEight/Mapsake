@@ -4,10 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildStyle } from "../style";
 import { applyVisitedState, createVisitedHatch, regionFromPoint } from "../lib/visited";
+import { applyPins } from "../lib/pins";
 import {
   useAddRegionMark,
   useRegionMarks,
 } from "@/features/regions/queries/region-marks-queries";
+import { useAddPin, usePins } from "@/features/pins/queries/pins-queries";
+import { AddPinButton } from "@/features/pins/components/add-pin-button";
+import { PinNameInput } from "@/features/pins/components/pin-name-input";
 import { MarkStatus, type MarkPhase } from "@/features/regions/components/mark-status";
 import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
 
@@ -30,15 +34,44 @@ export function MapCanvas() {
   const addMark = useAddRegionMark();
   const userId = useSessionUserId();
 
+  const { data: pins } = usePins();
+  const addPin = useAddPin();
+  // Drop mode (Story 3.1): while ON, the next map tap lands a pin instead of marking.
+  const [dropMode, setDropMode] = useState(false);
+  // A just-dropped pin awaiting its name — its coords + the region/country under the tap.
+  const [pendingPin, setPendingPin] = useState<
+    { lng: number; lat: number; regionCode: string | null; countryCode: string | null } | null
+  >(null);
+
   // Keep the latest tap handler in a ref so the once-attached map `click` listener
   // never calls a stale closure. Updated in an effect (not during render).
-  const onTapRef = useRef<(point: [number, number]) => void>(() => {});
+  const onTapRef = useRef<(point: [number, number], lngLat: { lng: number; lat: number }) => void>(
+    () => {},
+  );
   useEffect(() => {
-    onTapRef.current = (point) => {
+    onTapRef.current = (point, lngLat) => {
       const map = mapRef.current;
       if (!map) return;
+      // Drop mode → land a pin at the tapped coords. Capture the region/country under the
+      // tap (regionFromPoint) so Story 3.9 can later roll the region up to visited. The
+      // name is captured next (pendingPin → PinNameInput). Exit drop mode after placing.
+      if (dropMode) {
+        const region = regionFromPoint(map, point);
+        setPendingPin({
+          lng: lngLat.lng,
+          lat: lngLat.lat,
+          regionCode: region?.regionCode ?? null,
+          countryCode: region?.countryCode ?? null,
+        });
+        setDropMode(false);
+        return;
+      }
+      // Plain tap → mark the region (Story 1.5), unchanged.
       if (!userId) return; // session not resolved yet — ignore the tap (avoids a save with no optimistic fill)
       if (typeof navigator !== "undefined" && navigator.onLine === false) return; // offline guard (AC4)
+      // A tap that lands on an existing pin is a no-op here (opening a pin is Story 3.4) —
+      // never mark the region from a pin tap.
+      if (map.queryRenderedFeatures(point, { layers: ["pins-marker"] }).length > 0) return;
       const region = regionFromPoint(map, point);
       if (region) addMark.mutate(region);
     };
@@ -87,8 +120,8 @@ export function MapCanvas() {
         map.keyboard.disableRotation();
         map.getCanvas().style.outline = "none";
 
-        // Tap a region to mark it visited.
-        map.on("click", (e) => onTapRef.current([e.point.x, e.point.y]));
+        // Tap a region to mark it visited (or, in drop mode, land a pin at e.lngLat).
+        map.on("click", (e) => onTapRef.current([e.point.x, e.point.y], e.lngLat));
 
         // Pointer cursor over markable land (desktop hover affordance).
         const setCursor = (c: string) => {
@@ -165,13 +198,29 @@ export function MapCanvas() {
     };
   }, [marks, mapReady]);
 
-  const phase: MarkPhase = addMark.isPending
-    ? "pending"
-    : addMark.isError
-      ? "error"
-      : addMark.isSuccess
-        ? "success"
-        : "idle";
+  // Push the user's pins into the `pins` GeoJSON source (drives the marker layer).
+  // applyPins no-ops until the source exists; the source is in the style from load.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    applyPins(map, pins ?? []);
+  }, [pins, mapReady]);
+
+  const toPhase = (m: { isPending: boolean; isError: boolean; isSuccess: boolean }): MarkPhase =>
+    m.isPending ? "pending" : m.isError ? "error" : m.isSuccess ? "success" : "idle";
+  // One quiet save indicator covers both writes (they're sequential user actions). Show the
+  // pin write when it's in flight/recent, else the region-mark write. Retry targets whichever
+  // is showing — so a failed pin write gets the same calm retry as a mark (durable-write, AC4).
+  const pinPhase = toPhase(addPin);
+  const showingPin = pinPhase !== "idle";
+  const phase: MarkPhase = showingPin ? pinPhase : toPhase(addMark);
+  const onRetry = () => {
+    if (showingPin) {
+      if (addPin.variables) addPin.mutate(addPin.variables);
+    } else if (addMark.variables) {
+      addMark.mutate(addMark.variables);
+    }
+  };
 
   return (
     <div className="relative h-full w-full">
@@ -185,12 +234,31 @@ export function MapCanvas() {
           僅供瀏覽 — 重新連線後可標記
         </div>
       )}
-      <MarkStatus
-        phase={phase}
-        onRetry={() => {
-          if (addMark.variables) addMark.mutate(addMark.variables);
-        }}
-      />
+      <MarkStatus phase={phase} onRetry={onRetry} />
+      {/* "+ add memory" affordance — the deliberate entry into drop mode (Story 3.1).
+          Bottom-right so it clears the bottom-center save indicator. */}
+      <div className="absolute bottom-6 right-4">
+        <AddPinButton
+          active={dropMode}
+          disabled={!userId || offline}
+          onToggle={() => setDropMode((v) => !v)}
+        />
+      </div>
+      {pendingPin && (
+        <PinNameInput
+          onSave={(name) => {
+            addPin.mutate({
+              name,
+              lat: pendingPin.lat,
+              lng: pendingPin.lng,
+              regionCode: pendingPin.regionCode,
+              countryCode: pendingPin.countryCode,
+            });
+            setPendingPin(null);
+          }}
+          onCancel={() => setPendingPin(null)}
+        />
+      )}
     </div>
   );
 }

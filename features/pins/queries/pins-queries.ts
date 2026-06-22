@@ -1,0 +1,69 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addPin, listPins, type Pin } from "@/data/pins";
+import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
+
+const pinsKey = (userId: string | null) => ["pins", userId] as const;
+
+/** The current user's pins (RLS-scoped). Drives the pin marker layer. */
+export function usePins() {
+  const userId = useSessionUserId();
+  return useQuery({
+    queryKey: pinsKey(userId),
+    queryFn: listPins,
+    enabled: !!userId,
+  });
+}
+
+export interface AddPinInput {
+  name: string;
+  lat: number;
+  lng: number;
+  regionCode: string | null;
+  countryCode: string | null;
+}
+
+/**
+ * Drop a named pin. Optimistic: the pin lands in the cache immediately (with a temp
+ * client id) so it renders before the server acks. Durable-write contract: on failure
+ * we KEEP the optimistic pin (no rollback) and surface a calm retry — never silently
+ * drop it. Invalidate on success (ack) to swap the temp pin for the real server row.
+ */
+export function useAddPin() {
+  const queryClient = useQueryClient();
+  const userId = useSessionUserId();
+  const key = pinsKey(userId);
+
+  return useMutation({
+    mutationFn: (input: AddPinInput) => addPin(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<Pin[]>(key) ?? [];
+      if (userId) {
+        const now = new Date().toISOString();
+        const optimistic: Pin = {
+          id: crypto.randomUUID(), // temp; replaced by the server row on ack (invalidate)
+          userId,
+          name: input.name,
+          lat: input.lat,
+          lng: input.lng,
+          countryCode: input.countryCode,
+          regionCode: input.regionCode,
+          note: null,
+          memoryDate: null,
+          exifTakenAt: null,
+          muted: false,
+          createdAt: now,
+          updatedAt: now,
+        };
+        queryClient.setQueryData<Pin[]>(key, [...prev, optimistic]);
+      }
+      return { prev };
+    },
+    // Reconcile with the server only after a confirmed write (ack) — swaps temp id for real.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    // No onError rollback: retain the optimistic pin; the UI offers a calm retry.
+    retry: 1,
+  });
+}

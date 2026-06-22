@@ -73,6 +73,12 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         // boundaries AND is the feature-state key for visited fill (Story 1.5).
         promoteId: { countries: "iso", regions: "iso" },
       },
+      // Memory pins (Story 3.1): a client-driven GeoJSON source, updated from the user's
+      // pins in MapCanvas. Clustering + zoom fade-in are Story 3.3.
+      pins: {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      },
     },
     layers: [
       { id: "bg", type: "background", paint: { "background-color": MAP_COLORS.ocean } },
@@ -209,6 +215,19 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
           "text-color": MAP_COLORS.textMuted,
           "text-halo-color": MAP_COLORS.surface,
           "text-halo-width": 1.0,
+        },
+      },
+      // Memory pins (Story 3.1) — terracotta marker on top of everything. A simple circle
+      // for now; the teardrop + clustering + zoom fade-in are Story 3.3.
+      {
+        id: "pins-marker",
+        type: "circle",
+        source: "pins",
+        paint: {
+          "circle-radius": 6,
+          "circle-color": MAP_COLORS.visited,
+          "circle-stroke-color": MAP_COLORS.surface,
+          "circle-stroke-width": 2,
         },
       },
     ],

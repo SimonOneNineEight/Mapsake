@@ -39,6 +39,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      pins: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          exif_taken_at: string | null
+          id: string
+          lat: number
+          lng: number
+          memory_date: string | null
+          muted: boolean
+          name: string
+          note: string | null
+          region_code: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          exif_taken_at?: string | null
+          id?: string
+          lat: number
+          lng: number
+          memory_date?: string | null
+          muted?: boolean
+          name: string
+          note?: string | null
+          region_code?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          exif_taken_at?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          memory_date?: string | null
+          muted?: boolean
+          name?: string
+          note?: string | null
+          region_code?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
