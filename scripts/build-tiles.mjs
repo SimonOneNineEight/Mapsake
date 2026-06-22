@@ -3,7 +3,10 @@
 //
 // Scope:
 //   default      = representative SAMPLE (TWN, JPN, USA) via the geoBoundaries per-country API (small downloads)
-//   TILES_SCOPE=global = full worldwide CGAZ files (~760MB total; run locally/CI with bandwidth + time)
+//   TILES_SCOPE=global = every country via the SAME per-country gbOpen API (~250 countries, looped).
+//     Per-country gbOpen ADM1 carries shapeISO (ISO 3166-2) — the worldwide CGAZ ADM1 file does NOT,
+//     so the global path must NOT use CGAZ or admin-1 ends up with empty ISO codes + no zh labels.
+//     Countries with no ADM1 layer are skipped (logged); their ADM0 still renders.
 //
 // Prereqs (system binaries, NOT pnpm): tippecanoe, pmtiles. See scripts/README.md.
 // Run: pnpm tiles:build   (node scripts/build-tiles.mjs)
@@ -14,7 +17,7 @@
 // Layers: ADM0 -> "countries" (minzoom 0), ADM1 -> "regions" (minzoom 3), via per-feature tippecanoe{}.
 
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync, readFileSync, existsSync, renameSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, renameSync, createWriteStream } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = process.cwd();
@@ -58,6 +61,21 @@ const ISO3_TO_ISO2 = {
 // Known source typos in geoBoundaries shapeISO (geoBoundaries data, not ours).
 const ISO_FIXUPS = { "SU-SD": "US-SD" };
 
+// Coerce a gbOpen ADM1 shapeISO toward valid ISO 3166-2 ("CC-XXX"). gbOpen's
+// shapeISO has recurring defects; this recovers the cleanly-fixable ones:
+//   - wrong separators: "AF_KAN" / "CF=OP"  -> "AF-KAN" / "CF-OP"
+//   - missing country prefix: Belgium "BRU"  -> "BE-BRU"
+// Unrecoverable cases (e.g. Chile regions all stamped "CHL", the country code)
+// are returned cleaned-but-invalid and flagged by the caller.
+function normSubISO(raw, country, group) {
+  const s = (ISO_FIXUPS[raw] || raw || "").trim().toUpperCase().replace(/[_=]/g, "-").replace(/\*+$/, "");
+  if (/^[A-Z]{2}-[A-Z0-9]+$/.test(s)) return s; // already valid ISO 3166-2
+  if (group && s === String(group).toUpperCase()) return s; // country code misused as region — unrecoverable
+  if (country && country.length === 2 && /^[A-Z0-9]{1,4}$/.test(s) && s !== country)
+    return `${country}-${s}`; // bare subdivision code -> add the country prefix
+  return s; // best effort; caller flags if still invalid
+}
+
 const log = (...a) => console.log("[tiles]", ...a);
 const warn = (...a) => console.warn("[tiles][warn]", ...a);
 
@@ -90,50 +108,26 @@ async function getJSON(url) {
   return res.json();
 }
 
-// --- 1. Source geometry ------------------------------------------------------
-async function sourceGeo() {
-  if (SCOPE === "global") {
-    const base =
-      "https://github.com/wmgeolab/geoBoundaries/raw/main/releaseData/CGAZ";
-    return {
-      adm0: await fetchToCache("cgaz_adm0.geojson", `${base}/geoBoundariesCGAZ_ADM0.geojson`),
-      adm1: await fetchToCache("cgaz_adm1.geojson", `${base}/geoBoundariesCGAZ_ADM1.geojson`),
-    };
-  }
-  const adm0 = { type: "FeatureCollection", features: [] };
-  const adm1 = { type: "FeatureCollection", features: [] };
-  for (const iso3 of SAMPLE_ISO3) {
-    for (const [lvl, fc] of [["ADM0", adm0], ["ADM1", adm1]]) {
-      const meta = await getJSON(
-        `https://www.geoboundaries.org/api/current/gbOpen/${iso3}/${lvl}/`,
-      );
-      if (!meta || !meta.gjDownloadURL)
-        throw new Error(`geoBoundaries ${iso3}/${lvl}: no gjDownloadURL in response`);
-      const gj = await fetchToCache(`${iso3}_${lvl}.geojson`, meta.gjDownloadURL);
-      const parsed = JSON.parse(gj);
-      for (const f of parsed.features) fc.features.push(f);
-      log(`${iso3} ${lvl}: ${parsed.features.length} features`);
-    }
-  }
-  const p0 = join(CACHE, "sample_adm0.geojson");
-  const p1 = join(CACHE, "sample_adm1.geojson");
-  writeAtomic(p0, JSON.stringify(adm0));
-  writeAtomic(p1, JSON.stringify(adm1));
-  return { adm0: p0, adm1: p1 };
-}
+// --- 1. Source geometry (per-country gbOpen for BOTH scopes) ------------------
+// Sample = SAMPLE_ISO3; global = every country in ISO3_TO_ISO2. Both use the same
+// per-country API so admin-1 always carries shapeISO (ISO 3166-2). Missing ADM1 is
+// skipped (many micro-states/territories have no admin-1 layer) rather than fatal.
+// Geometry is NORMALIZED + STREAMED to disk per country (see main) so peak memory
+// stays at one country, not the whole world (global ADM1 is multiple GB combined).
+const GLOBAL_ISO3 = Object.keys(ISO3_TO_ISO2);
 
 async function fetchToCache(name, url) {
   const p = join(CACHE, name);
   if (existsSync(p)) {
     log(`cache hit ${name}`);
-    return SCOPE === "global" ? p : readFileSync(p, "utf8");
+    return readFileSync(p, "utf8");
   }
   log(`download ${name} <- ${url}`);
   const res = await fetch(url, { headers: { "User-Agent": UA } });
   if (!res.ok) throw new Error(`GET ${url} -> ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
   writeAtomic(p, buf); // temp->rename so a killed download never leaves a truncated cache
-  return SCOPE === "global" ? p : buf.toString("utf8");
+  return buf.toString("utf8");
 }
 
 // --- 2. zh-Hant gazetteer (Wikidata), with zh fallback chain ------------------
@@ -196,52 +190,54 @@ function labelPoint(geom) {
   return best ? ringCentroid(best) : [0, 0];
 }
 
-// --- 3. Normalize properties + assign layer/minzoom + validate ---------------
-function norm(path, level, gaz, labels) {
-  const fc = JSON.parse(readFileSync(path, "utf8"));
-  const layer = level === "ADM0" ? "countries" : "regions";
-  const minzoom = level === "ADM0" ? 0 : 3;
-  let withZh = 0;
-  const bad = [];
-  for (const f of fc.features) {
-    const p = f.properties || {};
-    const group = p.shapeGroup || (p.shapeISO ? p.shapeISO.slice(0, 3) : undefined);
-    let iso, country;
-    if (level === "ADM0") {
-      iso = ISO3_TO_ISO2[group] || p.shapeISO || group;
-      country = iso;
-    } else {
-      iso = ISO_FIXUPS[p.shapeISO] || p.shapeISO || "";
-      country = ISO3_TO_ISO2[group] || group;
-      // validate ISO 3166-2 shape: "CC-..." with the country prefix matching
-      if (!/^[A-Z]{2}-/.test(iso)) bad.push(`${p.shapeName}: iso="${iso}"`);
-      else if (country && country.length === 2 && !iso.startsWith(country + "-"))
-        bad.push(`${p.shapeName}: iso="${iso}" but country="${country}"`);
-    }
-    const name_zh = gaz[iso] || p.shapeName;
-    if (gaz[iso]) withZh++;
-    f.properties = { iso, country, name: p.shapeName, name_zh };
-    f.tippecanoe = { layer, minzoom }; // routes feature to its layer + per-layer minzoom
-    // one label point per feature -> exactly one label per country/region
-    labels.push({
-      type: "Feature",
-      properties: f.properties,
-      tippecanoe: {
-        layer: level === "ADM0" ? "country_labels" : "region_labels",
-        minzoom: level === "ADM0" ? 0 : 4,
-      },
-      geometry: { type: "Point", coordinates: labelPoint(f.geometry) },
-    });
+// --- 3. Normalize ONE feature: ISO codes + zh label + layer routing ----------
+// Returns { feature, label } both already carrying tippecanoe.layer so a single
+// merged GeoJSONL stream still tiles into countries/regions + their label layers.
+function normalizeFeature(f, level, gaz, stats) {
+  const p = f.properties || {};
+  const group = p.shapeGroup || (p.shapeISO ? p.shapeISO.slice(0, 3) : undefined);
+  let iso, country;
+  if (level === "ADM0") {
+    iso = ISO3_TO_ISO2[group] || p.shapeISO || group;
+    country = iso;
+  } else {
+    country = ISO3_TO_ISO2[group] || group;
+    iso = normSubISO(p.shapeISO, country, group);
+    // flag anything still not valid ISO 3166-2 (residual gbOpen data gaps)
+    if (!/^[A-Z]{2}-[A-Z0-9]+$/.test(iso))
+      stats.bad.push(`${p.shapeName}: shapeISO="${p.shapeISO}" -> "${iso}"`);
   }
-  const out = path.replace(/\.geojson$/, ".norm.geojson");
-  writeAtomic(out, JSON.stringify(fc));
-  log(`${level} -> layer "${layer}" (minzoom ${minzoom}): ${fc.features.length} features, zh labels on ${withZh}`);
-  if (bad.length) warn(`${level} ${bad.length} feature(s) with suspect/empty ISO: ${bad.join("; ")}`);
-  return out;
+  const name_zh = gaz[iso] || p.shapeName;
+  if (gaz[iso]) stats.withZh++;
+  const props = { iso, country, name: p.shapeName, name_zh };
+  const feature = {
+    type: "Feature",
+    properties: props,
+    tippecanoe: { layer: level === "ADM0" ? "countries" : "regions", minzoom: level === "ADM0" ? 0 : 3 },
+    geometry: f.geometry,
+  };
+  const label = {
+    type: "Feature",
+    properties: props,
+    tippecanoe: { layer: level === "ADM0" ? "country_labels" : "region_labels", minzoom: level === "ADM0" ? 0 : 4 },
+    geometry: { type: "Point", coordinates: labelPoint(f.geometry) },
+  };
+  return { feature, label };
+}
+
+// Stream write with backpressure (resolve once the chunk is flushed).
+function writeChunk(stream, s) {
+  if (!s) return Promise.resolve();
+  return new Promise((res, rej) => stream.write(s, (e) => (e ? rej(e) : res())));
+}
+function endStream(stream) {
+  return new Promise((res, rej) => stream.end((e) => (e ? rej(e) : res())));
 }
 
 // --- 4. tippecanoe -> PMTiles (layers come from per-feature tippecanoe.layer) -
-function tile(adm0, adm1, labels) {
+// Inputs are line-delimited GeoJSON (one Feature per line); tippecanoe reads them
+// natively and routes each feature by its tippecanoe.layer.
+function tile(features, labels) {
   const args = [
     "-o", OUT, "--force",
     "-Z0", "-z8",
@@ -249,24 +245,65 @@ function tile(adm0, adm1, labels) {
     "--drop-densest-as-needed",
     "--coalesce-densest-as-needed",
     "--detect-shared-borders",
-    adm0, adm1, labels,
+    features, labels,
   ];
   log("tippecanoe", args.join(" "));
   execFileSync("tippecanoe", args, { stdio: "inherit" });
 }
 
-// --- main --------------------------------------------------------------------
+// --- main: stream per-country so peak memory = one country, not the world -----
 preflight();
 mkdirSync(CACHE, { recursive: true });
 mkdirSync(OUT_DIR, { recursive: true });
-const { adm0, adm1 } = await sourceGeo();
 const gaz = await buildGazetteer();
-const labelFeatures = [];
-const n0 = norm(adm0, "ADM0", gaz, labelFeatures);
-const n1 = norm(adm1, "ADM1", gaz, labelFeatures);
-const labelsPath = join(CACHE, "labels.norm.geojson");
-writeAtomic(labelsPath, JSON.stringify({ type: "FeatureCollection", features: labelFeatures }));
-log(`labels: ${labelFeatures.length} points`);
-tile(n0, n1, labelsPath);
+
+const iso3s = SCOPE === "global" ? GLOBAL_ISO3 : SAMPLE_ISO3;
+const featPath = join(CACHE, `${SCOPE}_features.geojsonl`);
+const labelPath = join(CACHE, `${SCOPE}_labels.geojsonl`);
+const featOut = createWriteStream(featPath);
+const labelOut = createWriteStream(labelPath);
+const stats = { withZh: 0, bad: [] };
+let ok0 = 0, ok1 = 0, featCount = 0;
+const noAdm1 = [];
+
+for (const iso3 of iso3s) {
+  for (const lvl of ["ADM0", "ADM1"]) {
+    let gj;
+    try {
+      const meta = await getJSON(`https://www.geoboundaries.org/api/current/gbOpen/${iso3}/${lvl}/`);
+      // Prefer geoBoundaries' SIMPLIFIED geometry: accurate enough at our z8 cap,
+      // far smaller, and avoids the full-res files (e.g. Canada ADM1 is 648MB,
+      // over V8's max string length -> readFileSync would throw).
+      const url = meta?.simplifiedGeometryGeoJSON || meta?.gjDownloadURL;
+      if (!url) throw new Error("no geometry URL");
+      gj = await fetchToCache(`${iso3}_${lvl}_s.geojson`, url);
+    } catch (e) {
+      // ADM0 should always exist; ADM1 legitimately absent for some places.
+      if (lvl === "ADM1") noAdm1.push(iso3);
+      else warn(`${iso3}/${lvl}: ${e.message} — skipped`);
+      continue;
+    }
+    const parsed = JSON.parse(gj); // one country only -> bounded memory
+    let fbuf = "", lbuf = "";
+    for (const f of parsed.features) {
+      const { feature, label } = normalizeFeature(f, lvl, gaz, stats);
+      fbuf += JSON.stringify(feature) + "\n";
+      lbuf += JSON.stringify(label) + "\n";
+      featCount++;
+    }
+    await writeChunk(featOut, fbuf);
+    await writeChunk(labelOut, lbuf);
+    if (lvl === "ADM0") ok0++; else ok1++;
+    if (SCOPE !== "global") log(`${iso3} ${lvl}: ${parsed.features.length} features`);
+  }
+}
+await endStream(featOut);
+await endStream(labelOut);
+
+log(`sourced ${ok0} countries, ${ok1} with admin-1; ${noAdm1.length} without ADM1${noAdm1.length ? ": " + noAdm1.join(",") : ""}`);
+log(`${featCount} features, zh labels on ${stats.withZh}`);
+if (stats.bad.length) warn(`${stats.bad.length} feature(s) with suspect/empty ISO (first 10): ${stats.bad.slice(0, 10).join("; ")}`);
+
+tile(featPath, labelPath);
 log(`done -> ${OUT}`);
 execFileSync("pmtiles", ["show", OUT], { stdio: "inherit" });

@@ -19,18 +19,18 @@ test("renders the parchment atlas with zh-TW admin-1 labels", async ({ page }) =
   // the map instance becomes available
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
 
-  // fly to Japan so the regions layer is in view, then wait for the map to settle
-  await page.evaluate(async () => {
-    const m = window.__mapsakeMap!;
-    m.jumpTo({ center: [136, 36], zoom: 5.2 });
-    await new Promise<void>((resolve) => m.once("idle", () => resolve()));
+  // fly to Japan so the regions layer is in view
+  await page.evaluate(() => {
+    window.__mapsakeMap!.jumpTo({ center: [136, 36], zoom: 5.2 });
   });
 
-  // a known prefecture is present in the `regions` layer with its baked zh-Hant label
-  const hasKyoto = await page.evaluate(() => {
-    const m = window.__mapsakeMap!;
+  // Poll until 京都府's baked zh-Hant label is present in the `regions` source.
+  // querySourceFeatures only returns tiles already loaded AND in view, so a single
+  // `idle` right after jumpTo can race tile loading on a cold cache — poll instead.
+  await page.waitForFunction(() => {
+    const m = window.__mapsakeMap;
+    if (!m) return false;
     const feats = m.querySourceFeatures("boundaries", { sourceLayer: "regions" });
     return feats.some((f) => f.properties?.name_zh === "京都府");
   });
-  expect(hasKyoto).toBe(true);
 });

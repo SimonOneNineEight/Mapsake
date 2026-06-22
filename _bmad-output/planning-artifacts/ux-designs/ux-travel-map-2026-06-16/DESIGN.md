@@ -5,10 +5,12 @@ description: A private travel keepsake. A warm, muted milky-canvas atlas where v
 updated: 2026-06-20
 colors:
   # Light (default) — v1 ships LIGHT-ONLY
-  canvas-bg: '#F2E8D5'          # milky parchment; also the unvisited land
+  canvas-bg: '#F2E8D5'          # milky parchment — app canvas (body, panel backdrop)
   surface: '#FBF4E4'            # panels, cards, sheets
   region-visited-fill: '#B5663E' # hero terracotta clay — the signature MAP FILL hue (unchanged)
-  region-unvisited: '#F2E8D5'   # = canvas-bg; unvisited land IS the paper
+  map-sea: '#EADFC8'            # MAP ocean/background — deeper milky tone (light-mode land/sea revision, see note below)
+  region-unvisited: '#FBF4E4'   # MAP unvisited land fill (= surface tone); lifts off the deeper sea
+  map-frame: '#DCCBA6'          # desktop-only inset mat behind the map (deeper than the sea)
   region-border: '#96835E'      # soft warm brown; sole delineator of regions (≥3:1 on canvas)
   text-primary: '#3A2E22'
   text-muted: '#6F5C40'         # dates/secondary; ≥4.5:1 on both canvas and surface
@@ -150,11 +152,13 @@ Two anchors hold the whole system together: the **milky canvas** (warm paper, ne
 The palette is **Sepia Parchment** — warm, low-saturation, paper-first. Shaped by the user's own words: "warm feeling," "muted," "milk not white," "canvas/paper texture." Visited regions are the hero; unvisited regions are the bare page; only a soft border delineates them.
 
 **Light (default):**
-- **Canvas (`{colors.canvas-bg}` `#F2E8D5`)** — the milky parchment base, and *also the unvisited land*. Unvisited regions are not a separate color; they are the paper itself. This is intentional and matches the PRD's "unvisited stays plain."
-- **Surface (`{colors.surface}` `#FBF4E4`)** — panels, memory cards, the bottom sheet. A half-shade lighter than canvas so containers lift gently off the page without a hard edge.
+- **Canvas (`{colors.canvas-bg}` `#F2E8D5`)** — the milky parchment base for the app surfaces (body, panel backdrop).
+- **Map sea + land (revised 2026-06-21):** the map sea is **`{colors.map-sea}` `#EADFC8`** (a deeper milky tone) and unvisited land is **`{colors.region-unvisited}` `#FBF4E4`** (the surface tone), so land lifts off the water. This **revises the original "unvisited land IS the canvas, same paper as sea" decision**: in testing, an identical land/sea fill read as confusing — a flat field of labels, worst at the world tier — so light mode now gives the sea its own tone (the same reasoning the dark theme already used). Unvisited land stays plain paper per the PRD; it is just a half-shade brighter than the sea, with the region border still the sole *internal* delineator.
+- **Map frame (`{colors.map-frame}` `#DCCBA6`):** a desktop-only inset mat behind the map — the map sits in a ~14px margin with `{rounded.md}`-ish corners and a soft shadow, reading as a mounted keepsake. **Phones stay full-bleed** (every pixel of map counts); the framing on phones comes from the floating sheet/cards instead.
+- **Surface (`{colors.surface}` `#FBF4E4`)** — panels, memory cards, the bottom sheet, and the unvisited map land. A half-shade lighter than canvas so containers (and land) lift gently off the page without a hard edge.
 - **Visited fill (`{colors.region-visited-fill}` `#B5663E`)** — the hero terracotta clay, Mapsake's signature hue. **MAP FILLS only**, kept unchanged at `#B5663E` to hold the milky-canvas feel. Never decoration.
 - **Terracotta text (`{colors.terracotta-text}` `#9E4F2B`)** — a darker sibling of the hero fill, used for **text uses only**: quiet links and the primary-button background (where cream text sits on it). Darkened so it clears AA both as link text on canvas and as a button background under cream text (see table). The bright `#B5663E` stays for fills; this darker variant carries text.
-- **Region border (`{colors.region-border}` `#96835E`)** — soft warm brown, the *sole* delineator between unvisited regions (since unvisited = canvas). **Trade-off:** the user originally wanted this border as soft as possible, but at the old `#C7B79A` it was effectively invisible (1.62:1) and failed the 3:1 non-text floor. `#96835E` is the *lightest* warm brown that still clears 3:1 on canvas (3.03:1), so it stays as quiet a hairline as legibility allows — soft, but now actually visible to low-vision users and in glare.
+- **Region border (`{colors.region-border}` `#96835E`)** — soft warm brown, the *sole* delineator between adjacent unvisited regions (which share the same land tone). **Trade-off:** the user originally wanted this border as soft as possible, but at the old `#C7B79A` it was effectively invisible (1.62:1) and failed the 3:1 non-text floor. `#96835E` is the *lightest* warm brown that still clears 3:1 on canvas (3.03:1), so it stays as quiet a hairline as legibility allows — soft, but now actually visible to low-vision users and in glare.
 - **Text primary (`{colors.text-primary}` `#3A2E22`)** — warm near-black ink (10.84:1 on canvas).
 - **Text muted (`{colors.text-muted}` `#6F5C40`)** — dates, secondary lines, map labels. Darkened from the old `#8A7456` (which failed AA on both surfaces) to a warm brown that clears ≥4.5:1 on **both** canvas and surface, while staying clearly muted against the 10.84:1 primary ink.
 - **Accent (`{colors.accent}` `#C8893B`)** — the glow on a region being re-lived and active states. A warmer, lighter sibling of the terracotta fill so the two never compete. **Non-text only** — never used for text (it computes only 2.43:1 as text; see Do/Don't).
@@ -178,7 +182,7 @@ Tokens are fully specified and preserved for later; do not build a theme toggle 
 - Text primary `{colors.text-primary-dark}` `#E8E2D8` · Text muted `{colors.text-muted-dark}` `#978F84`
 - Accent `{colors.accent-dark}` `#E08A4E`
 
-Note: in dark mode, unvisited land (`region-unvisited-dark`) is a *distinct* token from the canvas, because at low light an identical fill would lose the land/sea read; in light mode they are deliberately the same paper.
+Note: unvisited land is a *distinct* tone from the sea in **both** themes, because an identical land/sea fill loses the land/sea read (dark mode always treated it this way; light mode adopted it 2026-06-21 — see the Light section above). Dark mode keeps its own `region-unvisited-dark` / sea tokens.
 
 There is **no free user color-picker** (see Do's and Don'ts). Curated map-theme presets are a documented fast-follow, not v1.
 

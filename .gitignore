@@ -40,9 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-/mapsake-story-1-1.png
+/mapsake-*.png
 /.playwright-mcp/
 
 # tile build cache
 /.tiles-cache/
-/mapsake-map-*.png

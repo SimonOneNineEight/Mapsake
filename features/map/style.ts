@@ -2,8 +2,9 @@ import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl";
 
 // DESIGN.md tokens as literals — a MapLibre style needs concrete colors.
 export const MAP_COLORS = {
-  canvas: "#F2E8D5", // parchment / unvisited land
-  surface: "#FBF4E4", // label halo
+  ocean: "#EADFC8", // sea + map background — a deeper milky tone so land reads distinct from water
+  land: "#FBF4E4", // unvisited land fill (DESIGN surface tone); lifts gently off the ocean
+  surface: "#FBF4E4", // label halo (cream)
   border: "#96835E", // region-border
   textMuted: "#6F5C40", // map labels
 } as const;
@@ -28,21 +29,22 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
       },
     },
     layers: [
-      { id: "bg", type: "background", paint: { "background-color": MAP_COLORS.canvas } },
-      // Fills are the paper now; visited terracotta arrives via feature-state in Story 1.5.
+      { id: "bg", type: "background", paint: { "background-color": MAP_COLORS.ocean } },
+      // Land is the lighter paper, lifting off the deeper ocean; visited terracotta
+      // arrives via feature-state in Story 1.5.
       {
         id: "countries-fill",
         type: "fill",
         source: "boundaries",
         "source-layer": "countries",
-        paint: { "fill-color": MAP_COLORS.canvas },
+        paint: { "fill-color": MAP_COLORS.land },
       },
       {
         id: "regions-fill",
         type: "fill",
         source: "boundaries",
         "source-layer": "regions",
-        paint: { "fill-color": MAP_COLORS.canvas },
+        paint: { "fill-color": MAP_COLORS.land },
       },
       {
         id: "regions-line",
@@ -63,11 +65,20 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         type: "symbol",
         source: "boundaries",
         "source-layer": "country_labels",
-        layout: { "text-field": LABEL, "text-font": ["Open Sans Regular"], "text-size": 12 },
+        layout: {
+          "text-field": LABEL,
+          "text-font": ["Open Sans Regular"],
+          // Small + gently zoom-ramped (the map scales, not the type). Generous
+          // text-padding lets MapLibre's collision culling thin the world-zoom
+          // crowd, labels reveal as you zoom in. No importance rank in the tiles
+          // yet, so which labels survive a tie is geometric, not by prominence.
+          "text-size": ["interpolate", ["linear"], ["zoom"], 1, 9, 3, 10.5, 6, 12],
+          "text-padding": 14,
+        },
         paint: {
           "text-color": MAP_COLORS.textMuted,
           "text-halo-color": MAP_COLORS.surface,
-          "text-halo-width": 1.2,
+          "text-halo-width": 1.0,
         },
       },
       {
@@ -76,11 +87,16 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         source: "boundaries",
         "source-layer": "region_labels",
         minzoom: 4,
-        layout: { "text-field": LABEL, "text-font": ["Open Sans Regular"], "text-size": 11 },
+        layout: {
+          "text-field": LABEL,
+          "text-font": ["Open Sans Regular"],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 4, 9, 8, 11.5],
+          "text-padding": 8,
+        },
         paint: {
           "text-color": MAP_COLORS.textMuted,
           "text-halo-color": MAP_COLORS.surface,
-          "text-halo-width": 1.2,
+          "text-halo-width": 1.0,
         },
       },
     ],

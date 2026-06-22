@@ -41,6 +41,7 @@
     --text-muted: 111 92 64;
     --terracotta-text: 158 79 43;
     --accent-glow: 200 137 59; /* #C8893B re-living glow + active states (non-text) */
+    --map-frame: 220 203 166; /* #DCCBA6 desktop inset mat behind the map (deeper than the sea) */
   }
 }
 

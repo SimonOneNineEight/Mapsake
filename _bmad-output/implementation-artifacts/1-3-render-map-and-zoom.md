@@ -4,7 +4,7 @@ baseline_commit: 63e6c4d
 
 # Story 1.3: Render the map + continuous zoom
 
-Status: review
+Status: done
 
 <!-- Validation optional. Run validate-create-story for a quality check before dev-story. -->
 
@@ -17,7 +17,7 @@ so that I can find the places I've been.
 ## Acceptance Criteria
 
 1. **Map renders from the PMTiles.** On app open, MapLibre GL renders the boundary tileset (`public/tiles/boundaries.pmtiles`, built in Story 1.2) via the `pmtiles://` protocol — the parchment-styled world map, with the `countries` and `regions` layers from those tiles.
-2. **Parchment visual identity.** Background = canvas `#F2E8D5`; region borders = `#96835E`; unvisited land is the bare paper (no fill yet — visited fill arrives in Story 1.5). The map reads as the Mapsake atlas, not a default MapLibre basemap (no OSM raster, no default colors).
+2. **Parchment visual identity.** Sea/background = `#EADFC8` (`map-sea`); unvisited land = `#FBF4E4`; region borders = `#96835E` (visited fill arrives in Story 1.5). *Land/sea revised 2026-06-21 — see DESIGN.md; the original "background = canvas #F2E8D5, land = bare paper" was superseded because identical land/sea read as confusing.* The map reads as the Mapsake atlas, not a default MapLibre basemap (no OSM raster, no default colors).
 3. **Continuous zoom, three tiers.** One map, no mode toggle: countries carry the view at low zoom; admin-1 `regions` fade in from ~z3 (per-feature minzoom is already baked into the tiles). Pan/zoom is smooth across world → country → admin-1.
 4. **World landing.** A returning user lands on the world view (chosen-view selection is Epic 4).
 5. **zh-TW labels.** Region labels show `name_zh` (Traditional Chinese) where present, English `name` otherwise, rendered with the Noto Sans TC family. No tofu/boxes for CJK.
@@ -31,7 +31,7 @@ so that I can find the places I've been.
   - [x] In a root client provider (or a `features/map` hook), `import { Protocol } from "pmtiles"`, `maplibregl.addProtocol("pmtiles", protocol.tile)` inside a `useEffect([])`, with cleanup on unmount. Register exactly once for the app lifetime.
 - [x] **Task 2 — Map canvas component (AC: 1, 2, 4)**
   - [x] `features/map/components/MapCanvas.tsx` — a **client component** (`'use client'`). `useRef` for the container, `useEffect` to `new maplibregl.Map({...})`, clean up on unmount. SSR-safe (MapLibre is browser-only; no import at module top-level that runs on server, or guard).
-  - [x] Style object: `background` paint = `var canvas #F2E8D5`; `glyphs` endpoint for Latin label fonts; **`localIdeographFontFamily: "'Noto Sans TC','Noto Sans CJK TC',sans-serif"`** so CJK labels render locally (no giant glyph download). Source `boundaries` = `{ type:"vector", url:"pmtiles:///tiles/boundaries.pmtiles" }` (dev path; prod = Supabase Storage URL — make it env-configurable).
+  - [x] Style object: `background` paint = `map-sea #EADFC8` (land fills = `#FBF4E4`); `glyphs` endpoint for Latin label fonts; **`localIdeographFontFamily: "'Noto Sans TC','Noto Sans CJK TC',sans-serif"`** so CJK labels render locally (no giant glyph download). Source `boundaries` = `{ type:"vector", url:"pmtiles:///tiles/boundaries.pmtiles" }` (dev path; prod = Supabase Storage URL — make it env-configurable).
   - [x] Land on world view: `center:[0,20], zoom:1.5`.
 - [x] **Task 3 — Layers + zoom tiers (AC: 2, 3)**
   - [x] `countries`: fill (transparent/paper) + line (border `#96835E`), visible all zooms; `regions`: fill (paper) + line (border), the tiles' baked minzoom makes admin-1 appear from ~z3. No mode toggle; one continuous map.
@@ -43,6 +43,16 @@ so that I can find the places I've been.
 - [x] **Task 6 — Verify (AC: 1-6)**
   - [x] Run the app; screenshot world + a zoomed-in admin-1 view (e.g. Japan prefectures, Taiwan counties) showing zh labels + borders on parchment.
   - [x] Phone viewport: confirm smooth pan/zoom at admin-1 (the spike). A Playwright e2e in `e2e/` asserting the canvas renders + a region label is present.
+
+### Review Findings (code review 2026-06-21)
+
+- [ ] [Review][Patch] Harden map effect lifecycle — wrap the async init in try/catch (log failures), assign `window.__mapsakeMap` immediately after map construction, and clear it on cleanup (guard it still points at this instance). Currently a removed map leaks on the global + an init error surfaces only as an opaque e2e timeout. [features/map/components/MapCanvas.tsx] (blind+edge)
+- [ ] [Review][Patch] Surface tile-load failure — add `map.on("error", …)` so a PMTiles 404 / protocol failure is logged instead of rendering a silent blank parchment. (User-facing error state stays out of 1.3 scope.) [features/map/components/MapCanvas.tsx] (edge)
+- [ ] [Review][Patch] De-flake e2e — replace the single `once("idle")` + one-shot `querySourceFeatures` with a `waitForFunction` that polls for 京都府, so cold-cache CI runs don't race tile load. [e2e/map.spec.ts:23-35] (edge)
+- [ ] [Review][Patch] Reconcile stale spec text — AC2 + Task 2 still say background `#F2E8D5`; the implemented sea is `#EADFC8` (DESIGN.md updated 2026-06-21). Update the AC2/Task 2 wording to the revised land/sea. [this story] (auditor)
+- [x] [Review][Defer] Prod glyph self-hosting — dev uses MapLibre demo glyphs serving `Open Sans Regular`; prod must self-host PBFs, and the DESIGN map-label Latin face is Nunito Sans, not Open Sans. Folds into the existing prod-glyph follow-up. [features/map/style.ts] — deferred, pre-existing (blind+auditor)
+
+Dismissed (verified non-issues): `pmtiles://` absolute-URL form (renders all session); StrictMode re-check after map creation (cancelled flag + cleanup handle it, edge-verified); `protocolRegistered` HMR reset (dev-only, re-register harmless); e2e `regions` carries `name_zh` (verified in build-tiles.mjs); Latin labels not letter-spaced/uppercased (intentional — MapLibre can't scope transform per-script in a mixed field, and the hard Han rule holds); AC5 labeling countries too (consistent with intent, not a violation).
 
 ## Dev Notes
 
@@ -97,6 +107,7 @@ claude-opus-4-8 (1M context) — dev-story
 ### Change Log
 
 - 2026-06-21 — Story 1.3 implemented: MapLibre GL + pmtiles render of the boundary tileset on the parchment style, world→admin-1 zoom, zh-TW labels. Fixed the auth-middleware matcher to make the public map tiles reachable. Playwright e2e authored. Build/typecheck/lint green; render screenshot-verified.
+- 2026-06-21 — Render polish (post-review-handoff, screenshot-verified with Simon): (a) `renderWorldCopies:false` — no duplicated world/labels at world zoom; (b) land/sea read — sea `#EADFC8` vs land `#FBF4E4` (revises DESIGN.md's light-mode "same paper" decision; DESIGN.md updated with `map-sea`/`map-frame` tokens); (c) desktop-only inset keepsake frame (mat + rounded + shadow; phones full-bleed); (d) labels smaller + zoom-ramped + collision padding to declutter (Google-style progressive reveal); (e) canvas focus-ring suppressed (`getCanvas().style.outline="none"`) + `resize()` on load (stale-canvas guard); (f) north-up lock — disabled dragRotate/touch-rotate/touchPitch/keyboard-rotate. Typecheck + lint green.
 
 ### File List
 
@@ -106,7 +117,8 @@ claude-opus-4-8 (1M context) — dev-story
 - `playwright.config.ts`, `e2e/map.spec.ts` — e2e regression test
 
 **Modified**
-- `app/page.tsx` — replaced the Story 1.1 sample with the full-viewport map
+- `app/page.tsx` — full-viewport map host; desktop-only inset frame (mat + padding), phones full-bleed
+- `app/globals.css` — `--map-frame` token (desktop inset mat)
 - `proxy.ts` — exclude `tiles`/`.pmtiles` from the auth middleware (public map tiles)
 - `package.json` — added `maplibre-gl`, `pmtiles`, `@playwright/test`, `test:e2e` script
 - `tsconfig.json`, `eslint.config.mjs` — exclude `e2e/`, `scripts/`, `playwright.config.ts` from app typecheck/lint
