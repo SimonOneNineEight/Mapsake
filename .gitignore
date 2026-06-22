@@ -41,6 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /mapsake-*.png
+/mark-*.png
 /.playwright-mcp/
 
 # tile build cache

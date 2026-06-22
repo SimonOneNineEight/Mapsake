@@ -34,3 +34,35 @@ test("renders the parchment atlas with zh-TW admin-1 labels", async ({ page }) =
     return feats.some((f) => f.properties?.name_zh === "京都府");
   });
 });
+
+// Story 1.5 — tap a region to mark it visited; the mark persists across reload.
+const KYOTO = { source: "boundaries", sourceLayer: "regions", id: "JP-26" } as const;
+const isVisited = () =>
+  window.__mapsakeMap!.getFeatureState(KYOTO).visited === true;
+
+test("tap marks a region visited and the mark survives reload", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  // Fly to Japan and wait until 京都府 (JP-26) is in the loaded regions tiles.
+  await page.evaluate(() => window.__mapsakeMap!.jumpTo({ center: [135.75, 35.0], zoom: 6 }));
+  await page.waitForFunction(() =>
+    (window.__mapsakeMap?.querySourceFeatures("boundaries", { sourceLayer: "regions" }) ?? [])
+      .some((f) => f.properties?.iso === "JP-26"),
+  );
+
+  // Tap its centroid → optimistic + ack write → visited feature-state.
+  await page.evaluate(() => {
+    const m = window.__mapsakeMap!;
+    const p = m.project([135.75, 35.0]);
+    m.fire("click", { point: p, lngLat: { lng: 135.75, lat: 35.0 } });
+  });
+  await page.waitForFunction(isVisited);
+
+  // Reload → the saved mark re-applies (persisted to region_marks).
+  await page.reload();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await page.evaluate(() => window.__mapsakeMap!.jumpTo({ center: [135.75, 35.0], zoom: 6 }));
+  await page.waitForFunction(isVisited);
+});

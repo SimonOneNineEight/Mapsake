@@ -6,6 +6,7 @@ import {
   Noto_Sans_TC,
 } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -56,7 +57,9 @@ export default function RootLayout({
       lang="zh-Hant"
       className={`${newsreader.variable} ${nunitoSans.variable} ${notoSerifTC.variable} ${notoSansTC.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
