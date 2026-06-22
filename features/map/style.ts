@@ -1,4 +1,8 @@
-import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl";
+import type {
+  ExpressionSpecification,
+  FilterSpecification,
+  StyleSpecification,
+} from "maplibre-gl";
 
 // DESIGN.md tokens as literals — a MapLibre style needs concrete colors.
 export const MAP_COLORS = {
@@ -36,6 +40,26 @@ const VISITED_HATCH_OPACITY: ExpressionSpecification = [
   0,
 ];
 
+// Soft warm-brown border on bare land; a darker brown on visited regions so the edge
+// reads against the terracotta fill (border #96835E and fill #B5663E are both warm
+// browns — too low-contrast to delineate the visited edge without this).
+const LINE_COLOR: ExpressionSpecification = [
+  "case",
+  ["boolean", ["feature-state", "visited"], false],
+  MAP_COLORS.textMuted,
+  MAP_COLORS.border,
+];
+
+// ADM0 land model. Countries WITHOUT admin-1 render their country fill at every zoom
+// (it's their only land). Countries WITH admin-1 render the country fill only below
+// the takeover zoom; above it the ADM1 union is the land, so the ADM0/ADM1 coastline
+// mismatch can't leave a cream coastal sliver. Done with a layer `filter` on the
+// `has_admin1` property + a layer `maxzoom` — feature-state and zoom can't be combined
+// in a single paint expression.
+const HAS_ADMIN1: FilterSpecification = ["==", ["get", "has_admin1"], true];
+const NO_ADMIN1: FilterSpecification = ["!=", ["get", "has_admin1"], true];
+const ADMIN1_TAKEOVER_ZOOM = 6;
+
 export function buildStyle(pmtilesUrl: string): StyleSpecification {
   return {
     version: 8,
@@ -54,14 +78,24 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
       { id: "bg", type: "background", paint: { "background-color": MAP_COLORS.ocean } },
       // Land is the lighter paper, lifting off the deeper ocean; visited terracotta
       // arrives via feature-state in Story 1.5.
+      // Country fill, split by has_admin1. Terracotta when visited (feature-state),
+      // paper otherwise; color fades in ~300ms (MapCanvas zeroes it for reduced motion).
+      // The has-admin1 copy stops at the takeover zoom so the ADM1 union becomes the land.
       {
-        id: "countries-fill",
+        id: "countries-fill-base",
         type: "fill",
         source: "boundaries",
         "source-layer": "countries",
-        // Terracotta when visited (feature-state), paper otherwise; the color fades
-        // in (~300ms) as the quiet mark confirmation. MapCanvas drops the transition
-        // to 0 under prefers-reduced-motion.
+        filter: NO_ADMIN1,
+        paint: { "fill-color": FILL_COLOR, "fill-color-transition": { duration: 300, delay: 0 } },
+      },
+      {
+        id: "countries-fill-world",
+        type: "fill",
+        source: "boundaries",
+        "source-layer": "countries",
+        filter: HAS_ADMIN1,
+        maxzoom: ADMIN1_TAKEOVER_ZOOM,
         paint: { "fill-color": FILL_COLOR, "fill-color-transition": { duration: 300, delay: 0 } },
       },
       {
@@ -75,32 +109,68 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
       // visited is never signaled by color alone. fill-pattern is screen-space, so the
       // hatch is zoom-stable. (Small-region pin fallback is Story 1.6.)
       {
-        id: "countries-visited-hatch",
+        id: "countries-visited-hatch-base",
         type: "fill",
         source: "boundaries",
         "source-layer": "countries",
-        paint: { "fill-pattern": VISITED_HATCH_IMAGE, "fill-opacity": VISITED_HATCH_OPACITY },
+        filter: NO_ADMIN1,
+        // Hatch fades in over ~300ms with the terracotta so a fresh tap doesn't flash
+        // hatch-on-pale before the color catches up.
+        paint: {
+          "fill-pattern": VISITED_HATCH_IMAGE,
+          "fill-opacity": VISITED_HATCH_OPACITY,
+          "fill-opacity-transition": { duration: 300, delay: 0 },
+        },
+      },
+      {
+        id: "countries-visited-hatch-world",
+        type: "fill",
+        source: "boundaries",
+        "source-layer": "countries",
+        filter: HAS_ADMIN1,
+        maxzoom: ADMIN1_TAKEOVER_ZOOM,
+        paint: {
+          "fill-pattern": VISITED_HATCH_IMAGE,
+          "fill-opacity": VISITED_HATCH_OPACITY,
+          "fill-opacity-transition": { duration: 300, delay: 0 },
+        },
       },
       {
         id: "regions-visited-hatch",
         type: "fill",
         source: "boundaries",
         "source-layer": "regions",
-        paint: { "fill-pattern": VISITED_HATCH_IMAGE, "fill-opacity": VISITED_HATCH_OPACITY },
+        paint: {
+          "fill-pattern": VISITED_HATCH_IMAGE,
+          "fill-opacity": VISITED_HATCH_OPACITY,
+          "fill-opacity-transition": { duration: 300, delay: 0 },
+        },
       },
       {
         id: "regions-line",
         type: "line",
         source: "boundaries",
         "source-layer": "regions",
-        paint: { "line-color": MAP_COLORS.border, "line-width": 0.5 },
+        paint: { "line-color": LINE_COLOR, "line-width": 0.5 },
       },
       {
-        id: "countries-line",
+        id: "countries-line-base",
         type: "line",
         source: "boundaries",
         "source-layer": "countries",
-        paint: { "line-color": MAP_COLORS.border, "line-width": 0.9 },
+        filter: NO_ADMIN1,
+        paint: { "line-color": LINE_COLOR, "line-width": 0.9 },
+      },
+      {
+        // has-admin1 country outline drops at the takeover zoom with its fill, so no
+        // orphan ADM0 coastline floats in the sea once the ADM1 union is the land.
+        id: "countries-line-world",
+        type: "line",
+        source: "boundaries",
+        "source-layer": "countries",
+        filter: HAS_ADMIN1,
+        maxzoom: ADMIN1_TAKEOVER_ZOOM,
+        paint: { "line-color": LINE_COLOR, "line-width": 0.9 },
       },
       {
         id: "country-labels",

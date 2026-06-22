@@ -50,7 +50,9 @@ export interface TappedRegion {
  * admin-1 = ISO 3166-2 (CC-XXX); country = ISO 3166-1 alpha-2 (CC).
  */
 export function regionFromPoint(map: MlMap, point: PointLike): TappedRegion | null {
-  const feats = map.queryRenderedFeatures(point, { layers: ["regions-fill", "countries-fill"] });
+  const feats = map.queryRenderedFeatures(point, {
+    layers: ["regions-fill", "countries-fill-base", "countries-fill-world"],
+  });
   for (const f of feats) {
     const props = f.properties ?? {};
     const iso = typeof props.iso === "string" ? props.iso : "";

@@ -95,7 +95,7 @@ export function MapCanvas() {
           const canvas = mapRef.current?.getCanvas();
           if (canvas) canvas.style.cursor = c;
         };
-        for (const layer of ["regions-fill", "countries-fill"]) {
+        for (const layer of ["regions-fill", "countries-fill-base", "countries-fill-world"]) {
           map.on("mouseenter", layer, () => setCursor("pointer"));
           map.on("mouseleave", layer, () => setCursor(""));
         }
@@ -105,8 +105,15 @@ export function MapCanvas() {
           // Reduced motion: fill instantly instead of fading in (AC5). Set after the
           // style loads so the fill layers exist.
           if (map && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-            for (const id of ["countries-fill", "regions-fill"]) {
+            for (const id of ["countries-fill-base", "countries-fill-world", "regions-fill"]) {
               map.setPaintProperty(id, "fill-color-transition", { duration: 0, delay: 0 });
+            }
+            for (const id of [
+              "countries-visited-hatch-base",
+              "countries-visited-hatch-world",
+              "regions-visited-hatch",
+            ]) {
+              map.setPaintProperty(id, "fill-opacity-transition", { duration: 0, delay: 0 });
             }
           }
           if (!cancelled) setMapReady(true);
