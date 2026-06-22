@@ -4,7 +4,7 @@ baseline_commit: NO_VCS
 
 # Story 1.1: Project scaffold, tokens & deploy pipeline
 
-Status: in-progress
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -39,13 +39,13 @@ so that every later story builds on a consistent, live, conventions-enforcing fo
   - [x] Created feature-first skeleton at repo root: `features/{map,regions,pins,memories,auth,onboarding,notifications,settings}`, `data/`, `lib/{supabase,i18n,push}/`, `messages/zh-TW.json`, `supabase/migrations/`, `scripts/`, `e2e/`. _(Root layout, not `src/` — the example's convention; see Deviations.)_
   - [x] TypeScript `strict` (from starter); ESLint configured (fixed the example's missing react-hooks plugin + ignored non-app dirs).
   - [x] shadcn/ui **already initialized by the example** (components.json + ui primitives); re-themed via the token CSS variables so primitives read as Mapsake. (Vaul Drawer comes with Epic 3.)
-- [~] **Task 4 — Supabase project + clients + secrets (AC: 4)** — _local parts done; project creation pending Simon_
-  - [ ] **(Simon)** Create the Supabase project; paste URL + publishable/anon key into `.env.local`.
+- [x] **Task 4 — Supabase project + clients + secrets (AC: 4)** — _done: project live, keys in `.env.local`, region marks persist_
+  - [x] **(Simon)** Create the Supabase project; paste URL + publishable/anon key into `.env.local`. _(Done — Supabase wired; anonymous auth + region_marks persistence verified in Stories 1.4/1.5.)_
   - [x] Supabase clients (`lib/supabase/client.ts` browser, `server.ts`, `proxy.ts`) load and compile; app boots in pre-Supabase mode with env empty. (service-role client added when a server route needs it — Story 1.3+.)
   - [x] `.gitignore` covers `.env*.local`; only `.env.example` is tracked. Verified `.env.local` is git-ignored (no secrets committed).
-- [~] **Task 5 — CI + Vercel deploy (AC: 5)** — _CI authored; deploy pending Simon_
+- [x] **Task 5 — CI + Vercel deploy (AC: 5)** — _done: repo on GitHub, Vercel deploy live_
   - [x] Added `.github/workflows/ci.yml`: pnpm install + `tsc --noEmit` + `pnpm lint` (build gated on Vercel / once secrets added).
-  - [ ] **(Simon)** Push to GitHub + connect Vercel; set Supabase env vars in Vercel; confirm a live deploy URL.
+  - [x] **(Simon)** Push to GitHub + connect Vercel; set Supabase env vars in Vercel; confirm a live deploy URL. _(Done — `origin` = SimonOneNineEight/Mapsake; Vercel deploy live, confirmed 2026-06-22.)_
 - [x] **Task 6 — Smoke verification (local)**
   - [x] `pnpm build` succeeds (all 14 routes prerender). Typecheck + lint green. Sample page renders tokens/fonts correctly (screenshot captured). _CI-green-on-PR confirms once the GitHub repo exists (Simon)._
 
