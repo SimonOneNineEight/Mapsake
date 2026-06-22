@@ -74,10 +74,15 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         promoteId: { countries: "iso", regions: "iso" },
       },
       // Memory pins (Story 3.1): a client-driven GeoJSON source, updated from the user's
-      // pins in MapCanvas. Clustering + zoom fade-in are Story 3.3.
+      // pins in MapCanvas. Clustered (Story 3.3): MapLibre aggregates dense pins into
+      // count bubbles client-side; below clusterMaxZoom dense pins collapse, above it
+      // every pin shows. The flat source data is unchanged (pinsToGeoJSON).
       pins: {
         type: "geojson",
         data: { type: "FeatureCollection", features: [] },
+        cluster: true,
+        clusterRadius: 50,
+        clusterMaxZoom: 14,
       },
     },
     layers: [
@@ -217,17 +222,54 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
           "text-halo-width": 1.0,
         },
       },
-      // Memory pins (Story 3.1) — terracotta marker on top of everything. A simple circle
-      // for now; the teardrop + clustering + zoom fade-in are Story 3.3.
+      // Memory pins (Story 3.3) — clustered. Three layers on the `pins` source, all on top:
+      // a cluster bubble + its count, and the individual marker. Pins are the zoomed-in
+      // layer: a zoom-opacity ramp fades them in at the region grain and lets them recede
+      // at world zoom, where the region fill carries the at-a-glance view (EXPERIENCE). The
+      // marker is a circle for now; the DESIGN teardrop is deferred polish.
+      {
+        id: "pins-cluster",
+        type: "circle",
+        source: "pins",
+        filter: ["has", "point_count"],
+        paint: {
+          "circle-color": MAP_COLORS.visited,
+          // bubble grows with the count
+          "circle-radius": ["step", ["get", "point_count"], 14, 10, 18, 50, 22],
+          "circle-stroke-color": MAP_COLORS.surface,
+          "circle-stroke-width": 2,
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0, 5, 1],
+          "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0, 5, 1],
+        },
+      },
+      {
+        id: "pins-cluster-count",
+        type: "symbol",
+        source: "pins",
+        filter: ["has", "point_count"],
+        layout: {
+          "text-field": ["get", "point_count_abbreviated"],
+          "text-font": ["Open Sans Regular"],
+          "text-size": 12,
+        },
+        paint: {
+          "text-color": MAP_COLORS.surface,
+          "text-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0, 5, 1],
+        },
+      },
       {
         id: "pins-marker",
         type: "circle",
         source: "pins",
+        filter: ["!", ["has", "point_count"]],
         paint: {
           "circle-radius": 6,
           "circle-color": MAP_COLORS.visited,
           "circle-stroke-color": MAP_COLORS.surface,
           "circle-stroke-width": 2,
+          // fade in as you zoom into a region; faint/absent at world zoom
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 6.5, 1],
+          "circle-stroke-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 6.5, 1],
         },
       },
     ],

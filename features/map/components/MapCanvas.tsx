@@ -38,6 +38,8 @@ export function MapCanvas() {
   const addPin = useAddPin();
   // Drop mode (Story 3.1): while ON, the next map tap lands a pin instead of marking.
   const [dropMode, setDropMode] = useState(false);
+  // Ref mirror so the once-attached pins-cluster click listener can read the latest dropMode.
+  const dropModeRef = useRef(false);
   // A just-dropped pin awaiting its name — its coords + the region/country under the tap.
   const [pendingPin, setPendingPin] = useState<
     { lng: number; lat: number; regionCode: string | null; countryCode: string | null } | null
@@ -49,6 +51,7 @@ export function MapCanvas() {
     () => {},
   );
   useEffect(() => {
+    dropModeRef.current = dropMode; // keep the ref in sync for the cluster click listener
     onTapRef.current = (point, lngLat) => {
       const map = mapRef.current;
       if (!map) return;
@@ -69,9 +72,10 @@ export function MapCanvas() {
       // Plain tap → mark the region (Story 1.5), unchanged.
       if (!userId) return; // session not resolved yet — ignore the tap (avoids a save with no optimistic fill)
       if (typeof navigator !== "undefined" && navigator.onLine === false) return; // offline guard (AC4)
-      // A tap that lands on an existing pin is a no-op here (opening a pin is Story 3.4) —
-      // never mark the region from a pin tap.
-      if (map.queryRenderedFeatures(point, { layers: ["pins-marker"] }).length > 0) return;
+      // A tap on a pin or a cluster is a no-op here — never mark the region. (Opening a pin
+      // is Story 3.4; a cluster tap expands it, handled by the pins-cluster click listener.)
+      if (map.queryRenderedFeatures(point, { layers: ["pins-marker", "pins-cluster"] }).length > 0)
+        return;
       const region = regionFromPoint(map, point);
       if (region) addMark.mutate(region);
     };
@@ -123,12 +127,36 @@ export function MapCanvas() {
         // Tap a region to mark it visited (or, in drop mode, land a pin at e.lngLat).
         map.on("click", (e) => onTapRef.current([e.point.x, e.point.y], e.lngLat));
 
-        // Pointer cursor over markable land (desktop hover affordance).
+        // Click a cluster → zoom to its expansion zoom so it splits toward individual pins
+        // (Story 3.3). The general click handler above no-ops over a cluster (tap guard).
+        map.on("click", "pins-cluster", async (e) => {
+          if (dropModeRef.current) return; // in drop mode a tap places a pin — don't also expand
+          const feature = e.features?.[0];
+          const clusterId = feature?.properties?.cluster_id;
+          const src = mapRef.current?.getSource("pins") as
+            | import("maplibre-gl").GeoJSONSource
+            | undefined;
+          if (clusterId == null || !src || feature?.geometry.type !== "Point") return;
+          try {
+            const zoom = await src.getClusterExpansionZoom(clusterId);
+            mapRef.current?.easeTo({ center: feature.geometry.coordinates as [number, number], zoom });
+          } catch (err) {
+            console.error("[mapsake] cluster expand failed:", err);
+          }
+        });
+
+        // Pointer cursor over markable land + clickable clusters (desktop hover affordance).
+        // Individual pins are NOT clickable yet (open-pin is Story 3.4), so no pointer there.
         const setCursor = (c: string) => {
           const canvas = mapRef.current?.getCanvas();
           if (canvas) canvas.style.cursor = c;
         };
-        for (const layer of ["regions-fill", "countries-fill-base", "countries-fill-world"]) {
+        for (const layer of [
+          "regions-fill",
+          "countries-fill-base",
+          "countries-fill-world",
+          "pins-cluster",
+        ]) {
           map.on("mouseenter", layer, () => setCursor("pointer"));
           map.on("mouseleave", layer, () => setCursor(""));
         }
