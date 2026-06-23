@@ -155,3 +155,27 @@ test("editing one pin's note does not bleed into another pin", async ({ page }) 
   await expect(page.getByRole("heading", { name: "乙地" })).toBeVisible();
   await expect(page.getByText("甲地的筆記")).toHaveCount(0);
 });
+
+test("add a photo → it resizes, uploads, attaches, and persists (Story 3.6)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "照片地", 135.5, 34.7);
+  await clickPin(page, 135.5, 34.7);
+
+  // Absent photos → only the quiet invitation (no "0 photos"), then pick a file.
+  await expect(page.getByRole("button", { name: "＋ 加照片" })).toBeVisible();
+  await page.locator('input[type="file"]').setInputFiles("e2e/fixtures/sample.png");
+
+  // Durable-write: the real (signed-URL) thumbnail appears only after upload+insert ack.
+  // The in-flight placeholder uses a blob: URL, so asserting an http(s) src = "done".
+  await expect(page.locator('li img[src^="http"]')).toHaveCount(1, { timeout: 30_000 });
+
+  // Persists across reload.
+  await page.reload();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await clickPin(page, 135.5, 34.7);
+  await expect(page.locator('li img[src^="http"]')).toHaveCount(1, { timeout: 30_000 });
+});

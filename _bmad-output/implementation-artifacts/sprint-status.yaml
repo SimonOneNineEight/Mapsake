@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-22
+last_updated: 2026-06-23
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -73,7 +73,7 @@ development_status:
   3-3-multiple-pins-per-region-rendering-clustering: done
   3-4-open-a-pin-memory-panel-sheet: done
   3-5-add-a-note-and-optional-date-to-a-pin: done
-  3-6-add-photos-to-a-pin-batch-upload: backlog
+  3-6-add-photos-to-a-pin-batch-upload: done
   3-7-full-screen-photo-viewer-swipe: backlog
   3-8-edit-remove-quiet-states: backlog
   3-9-pins-roll-up-into-visited: backlog

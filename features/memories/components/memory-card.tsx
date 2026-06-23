@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Pin } from "@/data/pins";
 import { useUpdatePin } from "@/features/pins/queries/pins-queries";
+import { PhotoUploader } from "./photo-uploader";
 
 // zh-TW date display for a YYYY-MM-DD `memory_date` (no "Date: —" when absent).
 function formatZhDate(d: string): string {
@@ -94,6 +95,9 @@ export function MemoryCard({
           ＋ 加日期
         </button>
       )}
+
+      {/* Photos (Story 3.6) — quiet "＋ 加照片"; absent shows only the invitation, no "0 photos". */}
+      <PhotoUploader pinId={pin.id} />
 
       {/* Quiet durable-write status (ack-gated "saved"; calm retry on failure). */}
       {updatePin.isPending && <p className="text-xs text-muted-foreground">儲存中…</p>}
