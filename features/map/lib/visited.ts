@@ -95,6 +95,29 @@ export function computeVisitedKeys(marks: ReadonlyArray<VisitedMark>): Set<strin
   return keys;
 }
 
+const ADMIN1_ISO = /^[A-Z]{2}-[A-Z0-9]+$/; // ISO 3166-2 admin-1 (matches the tap-time check)
+
+/**
+ * Derive visited marks from the user's pins (Story 3.9). A pin lights its admin-1 region and
+ * — via `computeVisitedKeys`' roll-up — its parent country; a pin that resolved only a country
+ * at drop lights just that country. There is NO downward cascade (a country-only pin never
+ * lights child regions). These feed the SAME `computeVisitedKeys` path as explicit marks, so a
+ * region visited only by a pin returns to bare the moment that pin leaves the list.
+ */
+export function pinsToVisitedMarks(
+  pins: ReadonlyArray<{ regionCode: string | null; countryCode: string | null }>,
+): VisitedMark[] {
+  const out: VisitedMark[] = [];
+  for (const p of pins) {
+    if (p.regionCode && ADMIN1_ISO.test(p.regionCode)) {
+      out.push({ regionCode: p.regionCode, level: "admin1", countryCode: p.countryCode ?? undefined });
+    } else if (p.countryCode) {
+      out.push({ regionCode: p.countryCode, level: "country" });
+    }
+  }
+  return out;
+}
+
 /**
  * Apply the derived visited key-set as `visited` feature-state and clear any feature no
  * longer in it. Returns the new key-set (used as the previous set on the next call).

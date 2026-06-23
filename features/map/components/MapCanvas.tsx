@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildStyle } from "../style";
-import { applyVisitedState, createVisitedHatch, regionFromPoint } from "../lib/visited";
+import { applyVisitedState, createVisitedHatch, pinsToVisitedMarks, regionFromPoint } from "../lib/visited";
 import { applyPins } from "../lib/pins";
 import {
   useAddRegionMark,
@@ -229,13 +229,16 @@ export function MapCanvas({
     };
   }, []);
 
-  // Apply the user's marks as feature-state (drives the terracotta fill + hatch).
+  // Apply visited feature-state (drives the terracotta fill + hatch) from BOTH explicit marks
+  // AND pins (Story 3.9 roll-up). The derived set is recomputed on every marks/pins change, so
+  // dropping a pin lights its region+country and removing the last contributing pin clears it.
   const prevStateRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
     const apply = () => {
-      prevStateRef.current = applyVisitedState(map, marks ?? [], prevStateRef.current);
+      const allMarks = [...(marks ?? []), ...pinsToVisitedMarks(pins ?? [])];
+      prevStateRef.current = applyVisitedState(map, allMarks, prevStateRef.current);
     };
     if (map.isSourceLoaded("boundaries")) {
       apply();
@@ -249,7 +252,7 @@ export function MapCanvas({
     return () => {
       map.off("sourcedata", onSourceData);
     };
-  }, [marks, mapReady]);
+  }, [marks, pins, mapReady]);
 
   // Push the user's pins into the `pins` GeoJSON source (drives the marker layer).
   // applyPins no-ops until the source exists; the source is in the style from load.
