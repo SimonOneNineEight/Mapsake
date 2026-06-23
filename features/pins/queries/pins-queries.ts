@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addPin, listPins, type Pin } from "@/data/pins";
+import { addPin, listPins, updatePin, type Pin } from "@/data/pins";
 import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
 
 const pinsKey = (userId: string | null) => ["pins", userId] as const;
@@ -74,6 +74,42 @@ export function useAddPin() {
     // Reconcile with the server only after a confirmed write (ack) — swaps temp id for real.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     // No onError rollback: retain the optimistic pin; the UI offers a calm retry.
+    retry: 1,
+  });
+}
+
+export interface UpdatePinInput {
+  id: string;
+  note?: string | null;
+  memoryDate?: string | null;
+}
+
+/**
+ * Edit a pin's note and/or date (Story 3.5). Optimistic: patch the pin in the
+ * `['pins', userId]` cache so the change shows immediately (and `usePin` re-derives it).
+ * Durable-write: KEEP the edit on failure (no rollback) + calm retry; reconcile on ack.
+ */
+export function useUpdatePin() {
+  const queryClient = useQueryClient();
+  const userId = useSessionUserId();
+  const key = pinsKey(userId);
+
+  return useMutation({
+    mutationFn: (input: UpdatePinInput) => updatePin(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<Pin[]>(key) ?? [];
+      const patch: Partial<Pin> = { updatedAt: new Date().toISOString() };
+      if ("note" in input) patch.note = input.note;
+      if ("memoryDate" in input) patch.memoryDate = input.memoryDate;
+      queryClient.setQueryData<Pin[]>(
+        key,
+        prev.map((p) => (p.id === input.id ? { ...p, ...patch } : p)),
+      );
+      return { prev };
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    // No onError rollback: retain the edit; the UI offers a calm retry.
     retry: 1,
   });
 }

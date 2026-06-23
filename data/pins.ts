@@ -89,3 +89,32 @@ export async function addPin(input: {
   if (error) throw error;
   return toDomain(data as PinRow);
 }
+
+/**
+ * Update a pin's note and/or date (Story 3.5). Only the fields present in `input` are
+ * written (a note-only save must not null the date). RLS (`pins_owner_update`) scopes the
+ * UPDATE to the owner — never trust a client `user_id`, and never touch it here. Stamps
+ * `updated_at` (no DB moddatetime trigger). Resolves only on ack; throws on failure;
+ * returns the updated row.
+ */
+export async function updatePin(input: {
+  id: string;
+  note?: string | null;
+  memoryDate?: string | null;
+}): Promise<Pin> {
+  const supabase = createClient();
+  const patch: Database["public"]["Tables"]["pins"]["Update"] = {
+    updated_at: new Date().toISOString(),
+  };
+  if ("note" in input) patch.note = input.note;
+  if ("memoryDate" in input) patch.memory_date = input.memoryDate;
+
+  const { data, error } = await supabase
+    .from("pins")
+    .update(patch)
+    .eq("id", input.id)
+    .select(COLUMNS)
+    .single();
+  if (error) throw error;
+  return toDomain(data as PinRow);
+}

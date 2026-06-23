@@ -90,3 +90,68 @@ test("in drop mode, tapping a pin places a new pin instead of opening", async ({
   await expect(page.getByPlaceholder("例如：京都")).toBeVisible();
   await expect(page.getByRole("heading", { name: "二条城" })).toBeHidden();
 });
+
+// Story 3.5 — note + optional date.
+test("write a note → it saves and persists across reload", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "金閣寺", 135.73, 35.04);
+  await clickPin(page, 135.73, 35.04);
+
+  await page.getByRole("button", { name: "＋ 寫筆記" }).click();
+  const note = page.getByPlaceholder("寫下這個地方的回憶…");
+  await note.fill("金箔閃閃發光");
+  await note.blur();
+  await expect(page.getByText("已儲存")).toBeVisible({ timeout: 15_000 });
+
+  await page.reload();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await clickPin(page, 135.73, 35.04);
+  await expect(page.getByPlaceholder("寫下這個地方的回憶…")).toHaveValue("金箔閃閃發光");
+});
+
+test("set an optional date → saves, shows zh-TW, persists; absent shows the invitation not a slot", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "清水寺", 135.78, 34.99);
+  await clickPin(page, 135.78, 34.99);
+
+  // absent date → the quiet invitation, not an empty "Date: —" slot
+  await expect(page.getByRole("button", { name: "＋ 加日期" })).toBeVisible();
+  await page.getByRole("button", { name: "＋ 加日期" }).click();
+  await page.getByLabel("日期").fill("2022-04-05");
+  await expect(page.getByText("已儲存")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("2022 年 4 月 5 日")).toBeVisible();
+
+  await page.reload();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await clickPin(page, 135.78, 34.99);
+  await expect(page.getByText("2022 年 4 月 5 日")).toBeVisible();
+});
+
+test("editing one pin's note does not bleed into another pin", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "甲地", 135.55, 34.8);
+  await dropPin(page, "乙地", 135.98, 35.25);
+
+  await clickPin(page, 135.55, 34.8);
+  await page.getByRole("button", { name: "＋ 寫筆記" }).click();
+  const note = page.getByPlaceholder("寫下這個地方的回憶…");
+  await note.fill("甲地的筆記");
+  await note.blur();
+  await expect(page.getByText("已儲存")).toBeVisible({ timeout: 15_000 });
+
+  await clickPin(page, 135.98, 35.25);
+  await expect(page.getByRole("heading", { name: "乙地" })).toBeVisible();
+  await expect(page.getByText("甲地的筆記")).toHaveCount(0);
+});

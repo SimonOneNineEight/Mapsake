@@ -38,6 +38,17 @@ export function MemoryContainer({
   const pin = usePin(pinId);
   const wide = useIsWide();
   const [snap, setSnap] = useState<number | string | null>(0.5);
+  // Keyboard-compose (Story 3.5): while editing the note on the phone sheet, force Full and
+  // make the sheet non-dismissible so a drag scrolls the note, not the sheet.
+  const [composing, setComposing] = useState(false);
+
+  // Closing while the note is focused would otherwise leave `composing` stuck true (blur may
+  // not fire), so the next open starts non-dismissible. Reset it on every close path.
+  const handleClose = () => {
+    setSnap(0.5); // reset to the half snap for the next open
+    setComposing(false);
+    onClose();
+  };
 
   if (!pinId || !pin) return null;
 
@@ -52,7 +63,7 @@ export function MemoryContainer({
         >
           ×
         </button>
-        <MemoryCard pin={pin} />
+        <MemoryCard key={pin.id} pin={pin} />
       </aside>
     );
   }
@@ -61,15 +72,14 @@ export function MemoryContainer({
     <Drawer.Root
       open
       onOpenChange={(o) => {
-        if (!o) {
-          setSnap(0.5); // reset to the half snap for the next open (event handler — lint-safe)
-          onClose();
-        }
+        if (!o) handleClose();
       }}
       snapPoints={[0.5, 0.85, 1]}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
       modal={false} // keep the map visible + interactive above the sheet
+      dismissible={!composing} // don't let a drag close the sheet while writing a note
+      repositionInputs // lift the focused note field above the on-screen keyboard
     >
       <Drawer.Portal>
         <Drawer.Content
@@ -80,13 +90,21 @@ export function MemoryContainer({
           <div className="flex flex-col gap-4 overflow-y-auto p-5">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="self-start text-sm text-muted-foreground"
             >
               ▾ 回到地圖
             </button>
             <Drawer.Title className="sr-only">回憶</Drawer.Title>
-            <MemoryCard pin={pin} />
+            <MemoryCard
+              key={pin.id}
+              pin={pin}
+              onNoteFocus={() => {
+                setSnap(1); // force Full so the field has room above the keyboard
+                setComposing(true);
+              }}
+              onNoteBlur={() => setComposing(false)}
+            />
           </div>
         </Drawer.Content>
       </Drawer.Portal>
