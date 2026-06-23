@@ -24,7 +24,13 @@ let protocolRegistered = false;
  * write to region_marks). Client-only: maplibre touches `window`, so it's dynamic-imported
  * inside the effect (SSR-safe).
  */
-export function MapCanvas() {
+export function MapCanvas({
+  onOpenPin,
+  selectedPinId,
+}: {
+  onOpenPin?: (pinId: string) => void; // tap an individual pin → open its memory (Story 3.4)
+  selectedPinId?: string | null; // the opened pin → drives the accent glow layer
+} = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -50,7 +56,10 @@ export function MapCanvas() {
   const onTapRef = useRef<(point: [number, number], lngLat: { lng: number; lat: number }) => void>(
     () => {},
   );
+  // Latest onOpenPin for the once-attached pins-marker click listener (avoids a stale closure).
+  const onOpenPinRef = useRef(onOpenPin);
   useEffect(() => {
+    onOpenPinRef.current = onOpenPin;
     dropModeRef.current = dropMode; // keep the ref in sync for the cluster click listener
     onTapRef.current = (point, lngLat) => {
       const map = mapRef.current;
@@ -85,6 +94,7 @@ export function MapCanvas() {
   useEffect(() => {
     let cancelled = false;
     let map: import("maplibre-gl").Map | undefined;
+    let resizeObserver: ResizeObserver | undefined;
     const win = window as unknown as { __mapsakeMap?: import("maplibre-gl").Map };
 
     (async () => {
@@ -110,6 +120,11 @@ export function MapCanvas() {
         mapRef.current = map;
         win.__mapsakeMap = map;
         map.on("error", (e) => console.error("[mapsake] map error:", e.error ?? e));
+
+        // Resize the canvas when its container changes (e.g. the memory panel docks/undocks
+        // and the map cell shrinks/grows) — MapLibre's trackResize only watches the window.
+        resizeObserver = new ResizeObserver(() => mapRef.current?.resize());
+        resizeObserver.observe(ref.current);
 
         // Generate the visited hatch texture the first time a layer needs it.
         map.on("styleimagemissing", (e) => {
@@ -145,8 +160,16 @@ export function MapCanvas() {
           }
         });
 
-        // Pointer cursor over markable land + clickable clusters (desktop hover affordance).
-        // Individual pins are NOT clickable yet (open-pin is Story 3.4), so no pointer there.
+        // Click an individual pin → open its memory (Story 3.4). Gated on drop mode so a
+        // drop-mode tap still places a new pin. The general tap guard no-ops over pins-marker.
+        map.on("click", "pins-marker", (e) => {
+          if (dropModeRef.current) return;
+          const id = e.features?.[0]?.properties?.id;
+          if (typeof id === "string") onOpenPinRef.current?.(id);
+        });
+
+        // Pointer cursor over markable land, clickable clusters, and pins (open-on-tap,
+        // Story 3.4) — the desktop hover affordance.
         const setCursor = (c: string) => {
           const canvas = mapRef.current?.getCanvas();
           if (canvas) canvas.style.cursor = c;
@@ -156,6 +179,7 @@ export function MapCanvas() {
           "countries-fill-base",
           "countries-fill-world",
           "pins-cluster",
+          "pins-marker",
         ]) {
           map.on("mouseenter", layer, () => setCursor("pointer"));
           map.on("mouseleave", layer, () => setCursor(""));
@@ -186,6 +210,7 @@ export function MapCanvas() {
 
     return () => {
       cancelled = true;
+      resizeObserver?.disconnect();
       if (win.__mapsakeMap === map) delete win.__mapsakeMap;
       mapRef.current = null;
       map?.remove();
@@ -233,6 +258,18 @@ export function MapCanvas() {
     if (!map || !mapReady) return;
     applyPins(map, pins ?? []);
   }, [pins, mapReady]);
+
+  // Drive the selected-pin glow: filter `pins-selected` to the opened pin (Story 3.4).
+  // Empty id matches nothing → no glow when closed.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    map.setFilter("pins-selected", [
+      "all",
+      ["!", ["has", "point_count"]],
+      ["==", ["get", "id"], selectedPinId ?? ""],
+    ]);
+  }, [selectedPinId, mapReady]);
 
   const toPhase = (m: { isPending: boolean; isError: boolean; isSuccess: boolean }): MarkPhase =>
     m.isPending ? "pending" : m.isError ? "error" : m.isSuccess ? "success" : "idle";

@@ -71,7 +71,7 @@ development_status:
   # tap-based v1 stories run first; 3-2 is parked at the end of the epic (see below).
   3-1-drop-a-named-pin-tap-to-place: done
   3-3-multiple-pins-per-region-rendering-clustering: done
-  3-4-open-a-pin-memory-panel-sheet: backlog
+  3-4-open-a-pin-memory-panel-sheet: done
   3-5-add-a-note-and-optional-date-to-a-pin: backlog
   3-6-add-photos-to-a-pin-batch-upload: backlog
   3-7-full-screen-photo-viewer-swipe: backlog

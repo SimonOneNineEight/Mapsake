@@ -16,6 +16,16 @@ export function usePins() {
   });
 }
 
+/**
+ * One pin by id, read from the `usePins` list cache (no extra fetch) — the tapped pin is
+ * always already loaded (Story 3.4). A dedicated `getPin` + `['pin', pinId]` query is for
+ * deep-linking to a pin not in the list (Epic 5 re-live), not needed here.
+ */
+export function usePin(pinId: string | null): Pin | undefined {
+  const { data } = usePins();
+  return pinId ? data?.find((p) => p.id === pinId) : undefined;
+}
+
 export interface AddPinInput {
   name: string;
   lat: number;

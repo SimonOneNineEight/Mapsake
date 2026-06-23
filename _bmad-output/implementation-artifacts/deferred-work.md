@@ -55,3 +55,9 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 ## Deferred from: code review of story-3.3 (2026-06-22)
 
 - **Pin zoom-fade (AC3) not e2e-asserted** — the `circle-opacity` interpolate-by-zoom ramp (markers fade in z4→6.5, clusters z3→5) is verified by code inspection + an MCP visual, but not guarded by an e2e assertion (opacity-by-zoom is fragile to assert reliably in headless chromium). Add a fade assertion when pin rendering gets richer (Story 3.4+ / the teardrop polish). [features/map/style.ts, e2e/pins.spec.ts]
+
+## Deferred from: code review of story-3.4 (2026-06-22)
+
+- **Desktop panel can occlude the opened pin** — when the ≥840 memory panel docks (right ~38%), the map cell shrinks but doesn't recenter, so a pin that was in the right region sits behind the panel. The title shows in the panel so it isn't broken, but the glowing pin is hidden. Fix with a pan/`easeTo` that offsets by the panel width (or fold into Epic 5's re-live fly-to, which centers the pin anyway). [features/memories/components/memory-container.tsx, features/map/components/MapCanvas.tsx]
+- **Phone sheet keeps its snap across a pin swap** — tapping pin B while pin A's sheet is dragged to full opens B at full (snap resets only on close, not on pin change, to keep swap-in-place without a remount). Minor; revisit when the sheet content grows (note/photos in 3.5/3.6). [features/memories/components/memory-container.tsx]
+- **Selected pin: literal ~1.15× marker scale not implemented** — DESIGN memory-pin.selected is accent glow + ~1.15× scale; 3.4 ships the accent halo (which enlarges the footprint + glows) but doesn't scale the marker circle itself. Add a selected-marker scale (feature-state or a filtered larger marker) if/when pin rendering gets the teardrop polish. [features/map/style.ts]

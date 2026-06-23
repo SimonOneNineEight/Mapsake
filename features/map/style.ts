@@ -12,6 +12,7 @@ export const MAP_COLORS = {
   surface: "#FBF4E4", // label halo (cream)
   border: "#96835E", // region-border
   textMuted: "#6F5C40", // map labels
+  accent: "#C8893B", // selected / re-live glow (DESIGN accent) — the opened pin's halo
 } as const;
 
 // Image registered at runtime (MapCanvas, via styleimagemissing) for the visited
@@ -255,6 +256,21 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
         paint: {
           "text-color": MAP_COLORS.surface,
           "text-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0, 5, 1],
+        },
+      },
+      // Selected/opened pin (Story 3.4) — a soft accent halo UNDER the marker so the
+      // terracotta pin reads as the focal point (DESIGN memory-pin.selected: accent glow +
+      // ~1.15× scale). MapCanvas drives the filter from selectedPinId via setFilter; the
+      // empty-string id matches nothing when no pin is open. Same zoom-fade as the marker.
+      {
+        id: "pins-selected",
+        type: "circle",
+        source: "pins",
+        filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "id"], ""]],
+        paint: {
+          "circle-radius": 11,
+          "circle-color": MAP_COLORS.accent,
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 6.5, 0.35],
         },
       },
       {
