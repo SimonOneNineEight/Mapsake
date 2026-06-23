@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePhotos, useUploadPhoto } from "@/features/memories/queries/photos-queries";
 import { PhotoGrid, type PhotoTile } from "./photo-grid";
+import { PhotoViewer } from "./photo-viewer";
 
 const MAX_PER_PIN = 30; // soft cap (architecture envelope); the 2GB/user quota is monitor-only
 
@@ -27,6 +28,7 @@ export function PhotoUploader({ pinId }: { pinId: string }) {
   const { data: photos } = usePhotos(pinId);
   const uploadOne = useUploadPhoto(pinId);
   const [pending, setPending] = useState<PendingItem[]>([]);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const patchItem = useCallback((tempId: string, patch: Partial<PendingItem>) => {
@@ -77,7 +79,12 @@ export function PhotoUploader({ pinId }: { pinId: string }) {
   }, []);
 
   const tiles: PhotoTile[] = [
-    ...(photos ?? []).map((p) => ({ key: p.id, src: p.url, state: "ready" as const })),
+    ...(photos ?? []).map((p, i) => ({
+      key: p.id,
+      src: p.url,
+      state: "ready" as const,
+      onOpen: () => setViewerIndex(i),
+    })),
     ...pending.map((it) => ({
       key: it.tempId,
       src: it.previewUrl,
@@ -112,6 +119,13 @@ export function PhotoUploader({ pinId }: { pinId: string }) {
         <button type="button" className={linkQuiet} onClick={() => inputRef.current?.click()}>
           ＋ 加照片
         </button>
+      )}
+      {viewerIndex !== null && photos && photos.length > 0 && (
+        <PhotoViewer
+          photos={photos.map((p) => ({ id: p.id, url: p.url }))}
+          initialIndex={Math.min(viewerIndex, photos.length - 1)}
+          onClose={() => setViewerIndex(null)}
+        />
       )}
     </div>
   );

@@ -179,3 +179,37 @@ test("add a photo → it resizes, uploads, attaches, and persists (Story 3.6)", 
   await clickPin(page, 135.5, 34.7);
   await expect(page.locator('li img[src^="http"]')).toHaveCount(1, { timeout: 30_000 });
 });
+
+test("tap a photo → full-screen viewer, arrow between photos, close (Story 3.7)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "相簿地", 135.4, 34.6);
+  await clickPin(page, 135.4, 34.6);
+
+  // Two photos so swipe/arrow has somewhere to go.
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles(["e2e/fixtures/sample.png", "e2e/fixtures/sample.png"]);
+  await expect(page.locator('li img[src^="http"]')).toHaveCount(2, { timeout: 30_000 });
+
+  // Tap the first thumbnail → full-screen viewer opens on that photo.
+  await page.getByRole("button", { name: "檢視照片" }).first().click();
+  const viewer = page.getByRole("dialog", { name: "照片" });
+  await expect(viewer).toBeVisible();
+  const frames = viewer.locator("img");
+  await expect(frames.nth(0)).toBeInViewport();
+  await expect(frames.nth(1)).not.toBeInViewport(); // second photo is offscreen until paged
+
+  // ArrowRight pages to the second photo (deterministic vs synthetic touch-swipe).
+  await page.keyboard.press("ArrowRight");
+  await expect(frames.nth(1)).toBeInViewport();
+  await expect(frames.nth(0)).not.toBeInViewport(); // first photo paged out — proves real paging
+
+  // Escape closes back to the memory (still open).
+  await page.keyboard.press("Escape");
+  await expect(viewer).toBeHidden();
+  await expect(page.getByRole("heading", { name: "相簿地" })).toBeVisible();
+});

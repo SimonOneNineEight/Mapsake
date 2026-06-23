@@ -74,7 +74,7 @@ development_status:
   3-4-open-a-pin-memory-panel-sheet: done
   3-5-add-a-note-and-optional-date-to-a-pin: done
   3-6-add-photos-to-a-pin-batch-upload: done
-  3-7-full-screen-photo-viewer-swipe: backlog
+  3-7-full-screen-photo-viewer-swipe: done
   3-8-edit-remove-quiet-states: backlog
   3-9-pins-roll-up-into-visited: backlog
   3-2-search-to-place-a-pin: backlog  # DEFERRED post-v1 (GeoNames search); do after the v1 epic stories

@@ -76,6 +76,16 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 
 > Dev learning: **`createImageBitmap` fails under headless SwiftShader** ("source image could not be decoded") even for valid PNGs; `HTMLImageElement` + `canvas.drawImage`/`toBlob('image/webp')` works everywhere. Prefer the `<img>` decode path for client image processing in this stack.
 
+## Deferred from: code review of story-3.7 (2026-06-23)
+
+- **Viewer should key on photo `id`, not index** — `PhotoViewer` opens at a positional `initialIndex`; if `usePhotos` refetched a reordered/shortened list while the viewer was open, the index could point at the wrong photo. Benign in 3.7 (stable `sort_order, created_at`; no add/delete from inside the viewer), but capturing the photo `id` (and resolving index from it) is more robust — fold in when photo delete/reorder (3.8) lands. [features/memories/components/photo-uploader.tsx, photo-viewer.tsx]
+- **No focus trap in the full-screen viewer** — `role="dialog" aria-modal="true"` is declarative only; Tab can move focus to the sheet/panel behind the overlay. Acceptable v1 lightbox cut; add a real focus trap (and confirm focus-restore) in an accessibility polish pass (Epic 6 a11y floor). [features/memories/components/photo-viewer.tsx]
+
+## Deferred from: Story 3.7 dev (2026-06-23)
+
+- **Pinch-zoom INTO a photo** — the full-screen viewer pages between photos (scroll-snap) but doesn't support pinch-to-zoom on an individual image. Not in the 3.7 ACs; approved deferral. Add a zoom/pan layer (or adopt a lightbox lib) in a later polish pass if users want to inspect photo detail. [features/memories/components/photo-viewer.tsx]
+- **Viewer swipe + pull-down gestures not e2e-covered** — the viewer test asserts open + ArrowRight nav + Escape close (deterministic); native touch-swipe paging and pull-down-to-close are validated manually (synthetic touch-drag on a scroll-snap track is unreliable in headless chromium). Add device/gesture coverage if a touch-capable runner is introduced. [e2e/memory.spec.ts]
+
 ## Deferred from: code review of story-3.6 (2026-06-23)
 
 - **No `<img>` onError fallback for expired/failed signed URLs** — `photo-grid.tsx` `Thumb` shows nothing (or a broken image) if a signed URL 403s, e.g. a card left open past the 1h TTL without a window refocus to trigger refetch. Add an `onError` placeholder + a re-sign/refetch nudge. Pairs with the signed-URL-caching item (longer TTL / CDN / per-path cache). [features/memories/components/photo-grid.tsx, features/memories/queries/photos-queries.ts]
