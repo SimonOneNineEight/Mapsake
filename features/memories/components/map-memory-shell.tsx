@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/features/map/components/MapCanvas";
 import { Onboarding } from "@/features/onboarding/components/onboarding";
 import { readDefaultView, writeDefaultView } from "@/features/onboarding/lib/onboarding-prefs";
 import { useInstallPrompt } from "@/features/onboarding/lib/use-install-prompt";
+import { PlacesPanel } from "@/features/places/components/places-panel";
 import { MemoryContainer } from "./memory-container";
 
 /**
@@ -28,6 +29,9 @@ export function MapMemoryShell() {
   // PWA install affordance (Story 4.5), folded into the hand-off card. Lives here (always mounted)
   // so the Chromium beforeinstallprompt is caught even if it fires before the hand-off renders.
   const { mode: installMode, promptInstall } = useInstallPrompt();
+  // Imperative camera handle for the "Places visited" list (Story 4.7) — fly to a pin without
+  // importing MapLibre here (it stays in features/map). MapCanvas assigns it once ready.
+  const cameraRef = useRef<{ flyToPin: (lat: number, lng: number) => void } | null>(null);
 
   useEffect(() => {
     // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
@@ -61,7 +65,16 @@ export function MapMemoryShell() {
           initialView={initialView}
           pickCountry={onboarding === "pick"}
           onCountryPick={({ countryCode, lngLat }) => finishFocus(countryCode, [lngLat.lng, lngLat.lat])}
+          cameraRef={cameraRef}
         />
+        {/* "Places visited" list (Story 4.7) — the accessible browse path. Hidden during the
+            first-run onboarding so the payoff stays clean; available once the map is the user's. */}
+        {!onboarding && (
+          <PlacesPanel
+            onOpenPin={setSelectedPinId}
+            onFlyToPin={(lat, lng) => cameraRef.current?.flyToPin(lat, lng)}
+          />
+        )}
         {onboarding && (
           <Onboarding
             step={onboarding}

@@ -34,12 +34,16 @@ export function MapCanvas({
   pickCountry = false,
   onCountryPick,
   initialView,
+  cameraRef,
 }: {
   onOpenPin?: (pinId: string) => void; // tap an individual pin → open its memory (Story 3.4)
   selectedPinId?: string | null; // the opened pin → drives the accent glow layer
   pickCountry?: boolean; // onboarding focus-pick mode (Story 4.1): a tap selects a country, not a mark
   onCountryPick?: (info: { countryCode: string; lngLat: { lng: number; lat: number } }) => void;
   initialView?: DefaultView | null; // saved view → opening camera (Story 4.2: land on it)
+  // Imperative camera handle (Story 4.7): the Places list flies to a pin without importing MapLibre
+  // (kept confined to features/map). Assigned once the map is ready, cleared on teardown.
+  cameraRef?: React.MutableRefObject<{ flyToPin: (lat: number, lng: number) => void } | null>;
 } = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
@@ -187,6 +191,11 @@ export function MapCanvas({
         });
         mapRef.current = map;
         win.__mapsakeMap = map;
+        if (cameraRef) {
+          cameraRef.current = {
+            flyToPin: (lat, lng) => map?.flyTo({ center: [lng, lat], zoom: 6 }),
+          };
+        }
         map.on("error", (e) => console.error("[mapsake] map error:", e.error ?? e));
 
         // Resize the canvas when its container changes (e.g. the memory panel docks/undocks
@@ -287,9 +296,13 @@ export function MapCanvas({
       cancelled = true;
       resizeObserver?.disconnect();
       if (win.__mapsakeMap === map) delete win.__mapsakeMap;
+      if (cameraRef) cameraRef.current = null;
       mapRef.current = null;
       map?.remove();
     };
+    // Build-once effect; `cameraRef` is a stable ref object (mirrors the onOpenPin/initialView
+    // pattern) so it doesn't belong in deps — the map must not rebuild when props change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Track connectivity for the write-disabled banner.

@@ -287,3 +287,29 @@ test("delete a name-only pin → no confirm dialog (Story 3.8)", async ({ page }
   await expect(page.getByRole("alertdialog")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "無內容地" })).toBeHidden();
 });
+
+// Story 4.7 — "Places visited" list: the accessible browse/open path. The menu button opens a
+// drawer; a dropped pin appears under its region and activating it opens the memory.
+test("Places visited: the menu opens the list (Story 4.7)", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await page.getByRole("button", { name: "去過的地方" }).click();
+  // The drawer title renders (session-free — the list surface exists even before any data).
+  await expect(page.getByText("去過的地方", { exact: true })).toBeVisible();
+});
+
+test("Places visited: a dropped pin appears in the list and opens its memory (Story 4.7)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "京都", 135.75, 35.0); // session-gated (anon sign-in); mind the rate-limit
+  await page.getByRole("button", { name: "去過的地方" }).click();
+  // The pin is listed by name; activating it opens its memory and closes the list. `exact` so the
+  // pin button "京都" isn't ambiguous with the region label "京都府".
+  await page.getByRole("button", { name: "京都", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "京都", exact: true })).toBeVisible();
+});

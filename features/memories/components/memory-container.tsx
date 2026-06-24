@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Drawer } from "vaul";
 import { usePin } from "@/features/pins/queries/pins-queries";
 import { MemoryCard } from "./memory-card";
@@ -41,6 +41,14 @@ export function MemoryContainer({
   // Keyboard-compose (Story 3.5): while editing the note on the phone sheet, force Full and
   // make the sheet non-dismissible so a drag scrolls the note, not the sheet.
   const [composing, setComposing] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // a11y (Story 4.7): when a memory opens — especially from the keyboard "Places visited" list,
+  // where activating a pin closes the list and returns focus to its trigger — move focus into the
+  // memory so a screen-reader user lands on the opened memory. (Phone: vaul focuses the sheet.)
+  useEffect(() => {
+    if (wide && pinId && pin) panelRef.current?.focus();
+  }, [wide, pinId, pin]);
 
   // Closing while the note is focused would otherwise leave `composing` stuck true (blur may
   // not fire), so the next open starts non-dismissible. Reset it on every close path.
@@ -54,7 +62,12 @@ export function MemoryContainer({
 
   if (wide) {
     return (
-      <aside className="relative z-10 flex h-full w-[38%] max-w-md shrink-0 flex-col gap-4 overflow-y-auto bg-card p-5 shadow-[-4px_0_16px_rgba(58,46,34,0.18)]">
+      <aside
+        ref={panelRef}
+        tabIndex={-1}
+        aria-label="回憶"
+        className="relative z-10 flex h-full w-[38%] max-w-md shrink-0 flex-col gap-4 overflow-y-auto bg-card p-5 shadow-[-4px_0_16px_rgba(58,46,34,0.18)] outline-none"
+      >
         <button
           type="button"
           onClick={onClose}
