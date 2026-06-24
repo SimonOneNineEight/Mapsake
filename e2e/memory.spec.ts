@@ -110,7 +110,11 @@ test("write a note → it saves and persists across reload", async ({ page }) =>
   await page.reload();
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   await clickPin(page, 135.73, 35.04);
-  await expect(page.getByPlaceholder("寫下這個地方的回憶…")).toHaveValue("金箔閃閃發光");
+  // Generous timeout: post-reload the map + pins re-load, and under 2 concurrent SwiftShader
+  // maps the card render races a default 5s (matches the photo tests' timeout posture).
+  await expect(page.getByPlaceholder("寫下這個地方的回憶…")).toHaveValue("金箔閃閃發光", {
+    timeout: 15_000,
+  });
 });
 
 test("set an optional date → saves, shows zh-TW, persists; absent shows the invitation not a slot", async ({ page }) => {
@@ -132,7 +136,7 @@ test("set an optional date → saves, shows zh-TW, persists; absent shows the in
   await page.reload();
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   await clickPin(page, 135.78, 34.99);
-  await expect(page.getByText("2022 年 4 月 5 日")).toBeVisible();
+  await expect(page.getByText("2022 年 4 月 5 日")).toBeVisible({ timeout: 15_000 });
 });
 
 test("editing one pin's note does not bleed into another pin", async ({ page }) => {
