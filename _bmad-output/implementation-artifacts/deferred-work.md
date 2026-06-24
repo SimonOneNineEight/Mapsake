@@ -121,3 +121,8 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 - **Backfill overlay accessibility** — `features/onboarding/components/onboarding.tsx` backfill step is a bare non-blocking layer (no `aria-live`, no focus move) — same pattern as the 4.1 `pick` hint. Fold into the Epic 6 6-2 accessibility floor pass (announce the prompt / manage focus for both non-blocking coaching layers).
 - **focus→backfill e2e coverage** — only the world→backfill entry is exercised (`e2e/onboarding.spec.ts`). The focus path enters backfill at zoom 4 via the same `setOnboarding("backfill")`; add a focus-entry backfill assertion if the path ever diverges.
 - **Backfill mark-persists assertion** — the backfill test deliberately omits asserting the tap actually marks (session-gated; blocked by the anon-signin rate-limit). Re-add a positive fill assertion once the shared anon `storageState` test-session reuse lands (Epic 6 6-5).
+
+## Deferred from: code review of story-4.4 (2026-06-24)
+
+- **Hand-off card accessibility** — `features/onboarding/components/onboarding.tsx` handoff step has no `role`/`aria-label`/Escape and uses `bg-card/95` (text contrast over a busy map). Same non-blocking pattern as the 4.1 pick hint and 4.3 backfill layer. Address all three coaching layers together in the Epic 6 6-2 accessibility floor pass.
+- **Hand-off card vs ＋ button on short viewports** — the centered handoff card could, on a very short (landscape-phone) viewport, approach the bottom-right ＋ 新增回憶 button. No overlap in normal portrait/desktop use. Re-check during 6-2/6-4 polish.

@@ -19,7 +19,7 @@ export function MapMemoryShell() {
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   // Onboarding step: null = not onboarding (returning user or finished). Set after mount so
   // there's no SSR/hydration flash (localStorage is client-only).
-  const [onboarding, setOnboarding] = useState<"question" | "pick" | "backfill" | null>(null);
+  const [onboarding, setOnboarding] = useState<"question" | "pick" | "backfill" | "handoff" | null>(null);
   // The saved view read ONCE for the opening camera (Story 4.2 — land on it). Lazy initializer:
   // SSR returns null (window guard); consumed only inside MapCanvas's client build effect, so no
   // hydration mismatch. A returning focus user opens already framed on their country.
@@ -43,7 +43,10 @@ export function MapMemoryShell() {
     writeDefaultView({ kind: "focus", countryCode, center });
     setOnboarding("backfill");
   };
-  const finishBackfill = () => setOnboarding(null);
+  // Backfill's 完成 advances to the gentle hand-off line (Story 4.4); dismissing it drops the
+  // user into the freshly colored map. The map is the payoff — no account nudge here (Epic 2).
+  const finishBackfill = () => setOnboarding("handoff");
+  const finishHandoff = () => setOnboarding(null);
 
   return (
     <div className="flex h-full w-full">
@@ -62,6 +65,7 @@ export function MapMemoryShell() {
             onChooseFocus={() => setOnboarding("pick")}
             onBack={() => setOnboarding("question")}
             onDone={finishBackfill}
+            onDismiss={finishHandoff}
           />
         )}
       </div>

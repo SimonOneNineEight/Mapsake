@@ -12,13 +12,36 @@ export function Onboarding({
   onChooseFocus,
   onBack,
   onDone,
+  onDismiss,
 }: {
-  step: "question" | "pick" | "backfill";
+  step: "question" | "pick" | "backfill" | "handoff";
   onChooseWorld: () => void;
   onChooseFocus: () => void;
   onBack: () => void; // leave pick mode → back to the question (escape an ocean/missed tap)
-  onDone: () => void; // finish backfill → drop into the filled map (Story 4.3)
+  onDone: () => void; // finish backfill → the hand-off line (Story 4.3 → 4.4)
+  onDismiss: () => void; // dismiss the hand-off → drop into the filled map (Story 4.4)
 }) {
+  if (step === "handoff") {
+    // The end-of-backfill payoff hand-off (Story 4.4): ONE gentle, skippable line inviting
+    // depth later, then drop into the freshly colored map. No dimming backdrop — the filled
+    // map IS the payoff and must show through. No meter/count/"incomplete" badge (banned list).
+    return (
+      <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center p-6">
+        <div className="pointer-events-auto flex flex-col items-center gap-4 rounded-md bg-card/95 px-6 py-5 text-center shadow-[0_4px_16px_rgba(58,46,34,0.18)]">
+          <p className="max-w-xs text-sm text-foreground">用 ＋ 新增回憶 加入圖釘、照片和回憶</p>
+          <button
+            type="button"
+            autoFocus
+            onClick={onDismiss}
+            className="rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))]"
+          >
+            開始探索
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (step === "backfill") {
     // Non-blocking coaching layer (Story 4.3): map taps must pass through to MARK. A soft top
     // invitation + a "完成" to drop into the filled map. No count/meter/nag; never pushes memory.

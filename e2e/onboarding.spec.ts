@@ -154,3 +154,39 @@ test("a returning user sees no backfill prompt (Story 4.3)", async ({ page }) =>
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   await expect(page.getByText(BACKFILL_PROMPT)).toHaveCount(0);
 });
+
+// Story 4.4 — onboarding payoff hand-off. After 完成 ends backfill, one gentle skippable line
+// invites adding depth later; dismissing it drops into the freshly colored map (the payoff).
+const HANDOFF_LINE = "用 ＋ 新增回憶 加入圖釘、照片和回憶";
+
+test("hand-off: 完成 shows the gentle line; 開始探索 drops into the filled map (Story 4.4)", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await page.getByRole("button", { name: "看整個世界" }).click();
+  await expect(page.getByText(BACKFILL_PROMPT)).toBeVisible(); // backfill step
+  await expect(page.getByText(HANDOFF_LINE)).toHaveCount(0); // not shown during marking
+
+  // End backfill → the gentle hand-off line appears; the backfill prompt is gone.
+  await page.getByRole("button", { name: "完成" }).click();
+  await expect(page.getByText(BACKFILL_PROMPT)).toBeHidden();
+  await expect(page.getByText(HANDOFF_LINE)).toBeVisible();
+  // The payoff: the filled map stays visible behind the (non-blocking) hand-off card.
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+
+  // Dismiss → drop into the map; no onboarding overlay remains.
+  await page.getByRole("button", { name: "開始探索" }).click();
+  await expect(page.getByText(HANDOFF_LINE)).toBeHidden();
+  await expect(page.getByRole("button", { name: "完成" })).toHaveCount(0);
+});
+
+test("a returning user sees no hand-off line (Story 4.4)", async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("mapsake.defaultView", JSON.stringify({ kind: "world" })),
+  );
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await expect(page.getByText(HANDOFF_LINE)).toHaveCount(0);
+});
