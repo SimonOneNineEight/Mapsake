@@ -4,9 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addRegionMark,
   listRegionMarks,
+  removeRegionMark,
   type RegionLevel,
   type RegionMark,
 } from "@/data/region-marks";
+import { deletePin, type Pin } from "@/data/pins";
+import { listPhotos, removePhotoObjects } from "@/data/photos";
 import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
 
 const regionMarksKey = (userId: string | null) => ["regionMarks", userId] as const;
@@ -62,6 +65,68 @@ export function useAddRegionMark() {
     // Reconcile with the server only after a confirmed write (ack).
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     // No onError rollback: retain the optimistic mark; the UI offers a calm retry.
+    retry: 1,
+  });
+}
+
+export interface UnmarkRegionInput {
+  regionCode: string;
+  level: RegionLevel;
+  pins: Pin[]; // the pins inside this region (computed by the caller) — all removed too
+}
+
+/**
+ * "Remove this place" (Story 3.10): remove the explicit region mark AND delete every pin in
+ * the region (rows cascade their photo rows; bucket objects cleaned). The land returns to bare
+ * via the Story 3.9 derive once both caches drop their contributors. Optimistic, and — like
+ * the other deletes (Story 3.8) — ROLLS BACK on failure (a failed removal must not look
+ * successful). NOTE: there is no retry UI for unmark yet — the rollback is the only signal;
+ * a calm error/retry surface is deferred to the offline/error-state work (deferred-work.md).
+ * `onSettled` invalidates both caches so a PARTIAL multi-delete failure reconciles to server
+ * truth (a deleted pin's marker can't linger after the optimistic rollback over-restores).
+ */
+export function useUnmarkRegion() {
+  const queryClient = useQueryClient();
+  const userId = useSessionUserId();
+  const marksKey = regionMarksKey(userId);
+  const pinsKey = ["pins", userId] as const;
+
+  return useMutation({
+    mutationFn: async ({ regionCode, level, pins }: UnmarkRegionInput) => {
+      for (const pin of pins) {
+        // Row first (3.8-review ordering): a failed row delete leaves the pin intact.
+        const photos = await listPhotos(pin.id);
+        await deletePin(pin.id);
+        await removePhotoObjects(photos.map((p) => p.storagePath));
+      }
+      await removeRegionMark({ regionCode, level });
+    },
+    onMutate: async ({ regionCode, level, pins }) => {
+      await queryClient.cancelQueries({ queryKey: marksKey });
+      await queryClient.cancelQueries({ queryKey: pinsKey });
+      const prevMarks = queryClient.getQueryData<RegionMark[]>(marksKey) ?? [];
+      const prevPins = queryClient.getQueryData<Pin[]>(pinsKey) ?? [];
+      const removedIds = new Set(pins.map((p) => p.id));
+      queryClient.setQueryData<RegionMark[]>(
+        marksKey,
+        prevMarks.filter((m) => !(m.regionCode === regionCode && m.level === level)),
+      );
+      queryClient.setQueryData<Pin[]>(pinsKey, prevPins.filter((p) => !removedIds.has(p.id)));
+      return { prevMarks, prevPins };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.prevMarks) queryClient.setQueryData<RegionMark[]>(marksKey, ctx.prevMarks);
+      if (ctx?.prevPins) queryClient.setQueryData<Pin[]>(pinsKey, ctx.prevPins);
+    },
+    onSuccess: (_data, { pins }) => {
+      for (const pin of pins) queryClient.removeQueries({ queryKey: ["photos", pin.id] });
+    },
+    // Reconcile to server truth on ANY outcome — incl. a partial multi-delete failure where
+    // the optimistic rollback would otherwise re-show already-deleted pins.
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: marksKey });
+      queryClient.invalidateQueries({ queryKey: pinsKey });
+    },
     retry: 1,
   });
 }

@@ -82,7 +82,7 @@ development_status:
   # The unmark-a-region half of epic 3.8 AC2 needs a net-new long-press/region-menu surface,
   # carved into 3-10-unmark-a-region for its own interaction-design pass.
   3-8-edit-remove-quiet-states: done
-  3-10-unmark-a-region: backlog  # carved from 3-8: "Remove this place" via a region menu/long-press
+  3-10-unmark-a-region: done  # carved from 3-8: "Remove this place" via long-press/region menu
   3-2-search-to-place-a-pin: backlog  # DEFERRED post-v1 (GeoNames search); do after the v1 epic stories
   epic-3-retrospective: optional
 

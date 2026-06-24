@@ -8,10 +8,13 @@ import { applyPins } from "../lib/pins";
 import {
   useAddRegionMark,
   useRegionMarks,
+  useUnmarkRegion,
 } from "@/features/regions/queries/region-marks-queries";
 import { useAddPin, usePins } from "@/features/pins/queries/pins-queries";
+import type { Pin } from "@/data/pins";
 import { AddPinButton } from "@/features/pins/components/add-pin-button";
 import { PinNameInput } from "@/features/pins/components/pin-name-input";
+import { RegionRemoveDialog } from "@/features/regions/components/region-remove-dialog";
 import { MarkStatus, type MarkPhase } from "@/features/regions/components/mark-status";
 import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
 
@@ -42,6 +45,11 @@ export function MapCanvas({
 
   const { data: pins } = usePins();
   const addPin = useAddPin();
+  const unmarkRegion = useUnmarkRegion();
+  // "Remove this place" target awaiting confirm (Story 3.10) — the region + its pins.
+  const [pendingUnmark, setPendingUnmark] = useState<
+    { regionCode: string; level: "country" | "admin1"; name: string; pins: Pin[] } | null
+  >(null);
   // Drop mode (Story 3.1): while ON, the next map tap lands a pin instead of marking.
   const [dropMode, setDropMode] = useState(false);
   // Ref mirror so the once-attached pins-cluster click listener can read the latest dropMode.
@@ -58,9 +66,43 @@ export function MapCanvas({
   );
   // Latest onOpenPin for the once-attached pins-marker click listener (avoids a stale closure).
   const onOpenPinRef = useRef(onOpenPin);
+  // Latest long-press (contextmenu) handler for "Remove this place" (Story 3.10).
+  const onContextRef = useRef<(point: [number, number]) => void>(() => {});
   useEffect(() => {
     onOpenPinRef.current = onOpenPin;
     dropModeRef.current = dropMode; // keep the ref in sync for the cluster click listener
+    // Long-press / right-click a VISITED region → "Remove this place" (Story 3.10). A bare mark
+    // (no pins) unmarks with no friction; a region holding pins opens the gentle confirm.
+    onContextRef.current = (point) => {
+      const map = mapRef.current;
+      if (!map || !userId) return;
+      // Over a pin/cluster → not a region action (mirror the tap guard).
+      if (map.queryRenderedFeatures(point, { layers: ["pins-marker", "pins-cluster"] }).length > 0)
+        return;
+      const region = regionFromPoint(map, point);
+      if (!region) return;
+      const inRegion = (pins ?? []).filter((p) =>
+        region.level === "admin1"
+          ? p.regionCode === region.regionCode
+          : p.countryCode === region.regionCode,
+      );
+      const hasMark = (marks ?? []).some(
+        (m) => m.regionCode === region.regionCode && m.level === region.level,
+      );
+      if (!hasMark && inRegion.length === 0) return; // not visited → no-op
+      if (inRegion.length === 0) {
+        // Bare mark → remove with no friction.
+        unmarkRegion.mutate({ regionCode: region.regionCode, level: region.level, pins: [] });
+        return;
+      }
+      // Holds pins → confirm, naming the loss. Pull a zh-TW label off the fill feature.
+      const feats = map.queryRenderedFeatures(point, {
+        layers: ["regions-fill", "countries-fill-base", "countries-fill-world"],
+      });
+      const f = feats.find((ff) => ff.properties?.iso === region.regionCode);
+      const name = (f?.properties?.name_zh ?? f?.properties?.name ?? "這個地區") as string;
+      setPendingUnmark({ regionCode: region.regionCode, level: region.level, name, pins: inRegion });
+    };
     onTapRef.current = (point, lngLat) => {
       const map = mapRef.current;
       if (!map) return;
@@ -141,6 +183,13 @@ export function MapCanvas({
 
         // Tap a region to mark it visited (or, in drop mode, land a pin at e.lngLat).
         map.on("click", (e) => onTapRef.current([e.point.x, e.point.y], e.lngLat));
+
+        // Long-press (touch) / right-click (desktop) a visited region → "Remove this place"
+        // (Story 3.10). Suppress the browser context menu so only ours shows.
+        map.on("contextmenu", (e) => {
+          e.preventDefault();
+          onContextRef.current([e.point.x, e.point.y]);
+        });
 
         // Click a cluster → zoom to its expansion zoom so it splits toward individual pins
         // (Story 3.3). The general click handler above no-ops over a cluster (tap guard).
@@ -327,6 +376,22 @@ export function MapCanvas({
           onCancel={() => setPendingPin(null)}
         />
       )}
+      <RegionRemoveDialog
+        open={pendingUnmark !== null}
+        name={pendingUnmark?.name ?? ""}
+        pinCount={pendingUnmark?.pins.length ?? 0}
+        onConfirm={() => {
+          if (pendingUnmark) {
+            unmarkRegion.mutate({
+              regionCode: pendingUnmark.regionCode,
+              level: pendingUnmark.level,
+              pins: pendingUnmark.pins,
+            });
+          }
+          setPendingUnmark(null);
+        }}
+        onClose={() => setPendingUnmark(null)}
+      />
     </div>
   );
 }

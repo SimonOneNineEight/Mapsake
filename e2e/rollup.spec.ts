@@ -181,3 +181,104 @@ test("deleting the only pin returns the region to bare (Story 3.8 AC3 / 3.9 AC2)
     });
   }, { lng, lat }, { timeout: 15_000 });
 });
+
+// Story 3.10 — unmark a region ("Remove this place"). Long-press = contextmenu (fired via the
+// harness, mirroring how dropPin fires a synthetic click).
+const regionBareUnder = (c: { lng: number; lat: number }) => {
+  const m = window.__mapsakeMap;
+  if (!m) return false;
+  const pt = m.project([c.lng, c.lat]);
+  const feats = m.queryRenderedFeatures(pt, {
+    layers: ["regions-fill", "countries-fill-base", "countries-fill-world"],
+  });
+  return feats.length > 0 && feats.every((f) => {
+    if (f.id == null) return true;
+    const st = m.getFeatureState({ source: "boundaries", sourceLayer: f.sourceLayer, id: f.id });
+    return !(st && st.visited === true);
+  });
+};
+
+const longPress = (page: import("@playwright/test").Page, lng: number, lat: number) =>
+  page.evaluate((c) => {
+    const m = window.__mapsakeMap!;
+    m.fire("contextmenu", {
+      point: m.project([c.lng, c.lat]),
+      lngLat: { lng: c.lng, lat: c.lat },
+      preventDefault() {},
+    });
+  }, { lng, lat });
+
+// Mark a region by tapping its land (Story 1.5) — no pin involved.
+const markRegion = async (page: import("@playwright/test").Page, lng: number, lat: number) => {
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 7 }), { lng, lat });
+  await page.waitForFunction(featuresUnder, { lng, lat }, { timeout: 15_000 });
+  await page.evaluate((c) => {
+    const m = window.__mapsakeMap!;
+    m.fire("click", { point: m.project([c.lng, c.lat]), lngLat: { lng: c.lng, lat: c.lat } });
+  }, { lng, lat });
+  await page.waitForFunction(regionVisitedUnder, { lng, lat }, { timeout: 15_000 });
+};
+
+test("long-press a mark-only region removes it with no confirm (Story 3.10)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  const lng = 2.3, lat = 48.85; // Paris area — land, no pins → a bare mark
+  await markRegion(page, lng, lat);
+
+  await longPress(page, lng, lat);
+  await expect(page.getByRole("alertdialog")).toHaveCount(0); // bare mark → no friction
+  await page.waitForFunction(regionBareUnder, { lng, lat }, { timeout: 15_000 });
+});
+
+test("long-press a region with a pin → confirm → returns to bare (Story 3.10)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  // Western Australia — a large admin-1. Press ~70px from the pin in SCREEN space: same region
+  // for sure (tiny geo delta), but clear of the pin marker so the contextmenu isn't guarded.
+  const lng = 122, lat = -25;
+  await dropPin(page, "西澳", lng, lat);
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 7 }), { lng, lat });
+  await page.waitForFunction(featuresUnder, { lng, lat }, { timeout: 15_000 });
+  await page.waitForFunction(regionVisitedUnder, { lng, lat }, { timeout: 15_000 });
+
+  // Long-press the region next to (not on) the marker.
+  await page.evaluate((c) => {
+    const m = window.__mapsakeMap!;
+    const p = m.project([c.lng, c.lat]);
+    const point = { x: p.x + 70, y: p.y };
+    m.fire("contextmenu", { point, lngLat: m.unproject([point.x, point.y]), preventDefault() {} });
+  }, { lng, lat });
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "移除" }).click();
+
+  // Region returns to bare and the pin's marker is gone.
+  await page.waitForFunction(regionBareUnder, { lng, lat }, { timeout: 15_000 });
+  await expect
+    .poll(() => page.evaluate(() => window.__mapsakeMap!.queryRenderedFeatures({ layers: ["pins-marker"] }).length), {
+      timeout: 15_000,
+    })
+    .toBe(0);
+});
+
+test("long-press an unvisited region does nothing (Story 3.10)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  const lng = -99, lat = 39; // central USA — land, no mark, no pin
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 7 }), { lng, lat });
+  await page.waitForFunction(featuresUnder, { lng, lat }, { timeout: 15_000 });
+  expect(await page.evaluate(regionVisitedUnder, { lng, lat })).toBe(false);
+
+  await longPress(page, lng, lat);
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  expect(await page.evaluate(regionVisitedUnder, { lng, lat })).toBe(false); // still bare
+});
