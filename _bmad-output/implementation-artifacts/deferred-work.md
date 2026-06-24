@@ -81,6 +81,10 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 - **Viewer should key on photo `id`, not index** — `PhotoViewer` opens at a positional `initialIndex`; if `usePhotos` refetched a reordered/shortened list while the viewer was open, the index could point at the wrong photo. Benign in 3.7 (stable `sort_order, created_at`; no add/delete from inside the viewer), but capturing the photo `id` (and resolving index from it) is more robust — fold in when photo delete/reorder (3.8) lands. [features/memories/components/photo-uploader.tsx, photo-viewer.tsx]
 - **No focus trap in the full-screen viewer** — `role="dialog" aria-modal="true"` is declarative only; Tab can move focus to the sheet/panel behind the overlay. Acceptable v1 lightbox cut; add a real focus trap (and confirm focus-restore) in an accessibility polish pass (Epic 6 a11y floor). [features/memories/components/photo-viewer.tsx]
 
+## Deferred from: Story 4.2 scoping (2026-06-24)
+
+- **"Change the default view in Settings" (4.2 AC2) → Story 6.3** — 4.2 ships AC1 (land on the saved view on load). The in-app control to CHANGE the default view is deferred to Story 6.3 (the full Settings surface, which already lists "default view"); no Settings chrome exists yet and building it in 4.2 would be throwaway. Shared contract = the `mapsake.defaultView` localStorage value (6.3 writes it; 4.2's load path applies it next open). Trade-off: the view isn't changeable in-app until Epic 6. [features/onboarding/lib/onboarding-prefs.ts, Story 6.3]
+
 ## Deferred from: code review of story-4.1 (2026-06-24)
 
 - **Onboarding choice doesn't persist when localStorage is unavailable** — Safari private mode / disabled storage makes `writeDefaultView` a no-op, so the first-run default-view question re-shows on every load (the session works; the choice just never sticks). Acceptable v1 (local-first). Revisit when accounts (Epic 2) provide a server-side `profiles.default_view` fallback. [features/onboarding/lib/onboarding-prefs.ts]

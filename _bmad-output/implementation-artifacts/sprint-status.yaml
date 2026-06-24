@@ -89,7 +89,7 @@ development_status:
   # Epic 4 — First-run & make it yours (onboarding + PWA)
   epic-4: in-progress
   4-1-default-view-question: done
-  4-2-land-on-chosen-view-change-later: backlog
+  4-2-land-on-chosen-view-change-later: done  # AC1 (land on saved view) here; AC2 (change in Settings) → 6-3
   4-3-rapid-backfill-marking-rhythm: backlog
   4-4-onboarding-payoff-hand-off: backlog
   4-5-pwa-install-nudge-installable-shell: backlog

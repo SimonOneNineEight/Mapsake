@@ -4,7 +4,14 @@
 
 const KEY = "mapsake.defaultView";
 
-export type DefaultView = { kind: "world" } | { kind: "focus"; countryCode: string };
+// `center` (the tapped [lng, lat]) is captured at pick time (Story 4.2) so a later open can
+// frame the country with no lookup. Optional for back-compat with a 4.1 value (countryCode only).
+export type DefaultView =
+  | { kind: "world" }
+  | { kind: "focus"; countryCode: string; center?: [number, number] };
+
+const isLngLat = (v: unknown): v is [number, number] =>
+  Array.isArray(v) && v.length === 2 && Number.isFinite(v[0]) && Number.isFinite(v[1]);
 
 /** The stored default view, or null if the question hasn't been answered (or storage is off). */
 export function readDefaultView(): DefaultView | null {
@@ -15,7 +22,10 @@ export function readDefaultView(): DefaultView | null {
     const parsed = JSON.parse(raw) as DefaultView;
     if (parsed?.kind === "world") return { kind: "world" };
     if (parsed?.kind === "focus" && typeof parsed.countryCode === "string") {
-      return { kind: "focus", countryCode: parsed.countryCode };
+      // Keep a valid center; drop a malformed one (still a valid focus → world-framing fallback).
+      return isLngLat(parsed.center)
+        ? { kind: "focus", countryCode: parsed.countryCode, center: parsed.center }
+        : { kind: "focus", countryCode: parsed.countryCode };
     }
     return null; // malformed
   } catch {

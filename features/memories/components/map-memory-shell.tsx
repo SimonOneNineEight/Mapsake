@@ -20,6 +20,10 @@ export function MapMemoryShell() {
   // Onboarding step: null = not onboarding (returning user or finished). Set after mount so
   // there's no SSR/hydration flash (localStorage is client-only).
   const [onboarding, setOnboarding] = useState<"question" | "pick" | null>(null);
+  // The saved view read ONCE for the opening camera (Story 4.2 — land on it). Lazy initializer:
+  // SSR returns null (window guard); consumed only inside MapCanvas's client build effect, so no
+  // hydration mismatch. A returning focus user opens already framed on their country.
+  const [initialView] = useState(() => readDefaultView());
 
   useEffect(() => {
     // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
@@ -32,8 +36,9 @@ export function MapMemoryShell() {
     writeDefaultView({ kind: "world" }); // stays on the world view (the map's default framing)
     setOnboarding(null);
   };
-  const finishFocus = (countryCode: string) => {
-    writeDefaultView({ kind: "focus", countryCode });
+  const finishFocus = (countryCode: string, center: [number, number]) => {
+    // Store the tapped center so a later open can frame the country (Story 4.2).
+    writeDefaultView({ kind: "focus", countryCode, center });
     setOnboarding(null);
   };
 
@@ -43,8 +48,9 @@ export function MapMemoryShell() {
         <MapCanvas
           onOpenPin={setSelectedPinId}
           selectedPinId={selectedPinId}
+          initialView={initialView}
           pickCountry={onboarding === "pick"}
-          onCountryPick={({ countryCode }) => finishFocus(countryCode)}
+          onCountryPick={({ countryCode, lngLat }) => finishFocus(countryCode, [lngLat.lng, lngLat.lat])}
         />
         {onboarding && (
           <Onboarding

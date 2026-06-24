@@ -12,6 +12,7 @@ import {
 } from "@/features/regions/queries/region-marks-queries";
 import { useAddPin, usePins } from "@/features/pins/queries/pins-queries";
 import type { Pin } from "@/data/pins";
+import type { DefaultView } from "@/features/onboarding/lib/onboarding-prefs";
 import { AddPinButton } from "@/features/pins/components/add-pin-button";
 import { PinNameInput } from "@/features/pins/components/pin-name-input";
 import { RegionRemoveDialog } from "@/features/regions/components/region-remove-dialog";
@@ -32,14 +33,19 @@ export function MapCanvas({
   selectedPinId,
   pickCountry = false,
   onCountryPick,
+  initialView,
 }: {
   onOpenPin?: (pinId: string) => void; // tap an individual pin → open its memory (Story 3.4)
   selectedPinId?: string | null; // the opened pin → drives the accent glow layer
   pickCountry?: boolean; // onboarding focus-pick mode (Story 4.1): a tap selects a country, not a mark
   onCountryPick?: (info: { countryCode: string; lngLat: { lng: number; lat: number } }) => void;
+  initialView?: DefaultView | null; // saved view → opening camera (Story 4.2: land on it)
 } = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
+  // The opening camera is a mount-time value — capture it in a ref so the build-once effect
+  // reads it without making it a dependency (a later initialView change must not rebuild the map).
+  const initialViewRef = useRef(initialView);
   const [mapReady, setMapReady] = useState(false);
   const [offline, setOffline] = useState(false);
 
@@ -165,11 +171,16 @@ export function MapCanvas({
         }
 
         const pmtilesUrl = `${window.location.origin}/tiles/boundaries.pmtiles`;
+        // Open on the saved view (Story 4.2): a focus view with a stored center frames that
+        // country (zoom 4); otherwise the world default. A focus value without a center (a
+        // pre-4.2 stored value) falls back to world framing.
+        const view = initialViewRef.current;
+        const focusCenter = view?.kind === "focus" && view.center ? view.center : null;
         map = new maplibregl.Map({
           container: ref.current,
           style: buildStyle(pmtilesUrl),
-          center: [0, 20],
-          zoom: 1.5,
+          center: focusCenter ?? [0, 20],
+          zoom: focusCenter ? 4 : 1.5,
           renderWorldCopies: false,
           localIdeographFontFamily: "'Noto Sans TC','Noto Sans CJK TC',sans-serif",
         });

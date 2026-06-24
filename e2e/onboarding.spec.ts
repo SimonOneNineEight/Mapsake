@@ -67,7 +67,7 @@ test("focus pick mode can be escaped with 返回 (no ocean-tap dead-end)", async
   expect(await storedView(page)).toBeNull();
 });
 
-test("a returning user (stored view) does not see the question", async ({ page }) => {
+test("a returning 'world' user lands on the world view, no question (Story 4.2)", async ({ page }) => {
   await page.addInitScript(() =>
     localStorage.setItem("mapsake.defaultView", JSON.stringify({ kind: "world" })),
   );
@@ -77,4 +77,27 @@ test("a returning user (stored view) does not see the question", async ({ page }
 
   await expect(page.getByRole("button", { name: "看整個世界" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "先看一個國家" })).toHaveCount(0);
+  expect(await page.evaluate(getZoom)).toBeLessThan(3); // world framing
+});
+
+test("a returning 'focus' user opens framed on their country (Story 4.2)", async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "mapsake.defaultView",
+      JSON.stringify({ kind: "focus", countryCode: "IN", center: [78.9, 22.6] }),
+    ),
+  );
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  // No question, and the map opens at the focus zoom centered near the stored center.
+  await expect(page.getByRole("button", { name: "看整個世界" })).toHaveCount(0);
+  expect(await page.evaluate(getZoom)).toBeGreaterThan(3);
+  const c = await page.evaluate(() => {
+    const { lng, lat } = window.__mapsakeMap!.getCenter();
+    return { lng, lat };
+  });
+  expect(Math.abs(c.lng - 78.9)).toBeLessThan(1);
+  expect(Math.abs(c.lat - 22.6)).toBeLessThan(1);
 });
