@@ -135,3 +135,49 @@ test("dropping a pin rolls its region up to visited (Story 3.9 AC1)", async ({ p
   // After the pin acks + refetches, the region under it rolls up to visited.
   await page.waitForFunction(regionVisitedUnder, { lng, lat }, { timeout: 15_000 });
 });
+
+// Zoom in so the pin is an individual marker, then real-click it to open its memory.
+const clickPin = async (page: import("@playwright/test").Page, lng: number, lat: number) => {
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 15 }), { lng, lat });
+  await page.waitForFunction(() => window.__mapsakeMap!.queryRenderedFeatures({ layers: ["pins-marker"] }).length > 0);
+  const pt = await page.evaluate(() => {
+    const m = window.__mapsakeMap!;
+    const f = m.queryRenderedFeatures({ layers: ["pins-marker"] })[0];
+    const p = m.project((f.geometry as { coordinates: [number, number] }).coordinates);
+    return { x: p.x, y: p.y };
+  });
+  const box = (await page.getByTestId("map-canvas").boundingBox())!;
+  await page.mouse.click(box.x + pt.x, box.y + pt.y);
+};
+
+test("deleting the only pin returns the region to bare (Story 3.8 AC3 / 3.9 AC2)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  const lng = 139.7, lat = 35.68; // Tokyo — fresh anon user, no explicit mark
+  await dropPin(page, "東京", lng, lat); // name-only → no confirm dialog on delete
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 7 }), { lng, lat });
+  await page.waitForFunction(featuresUnder, { lng, lat }, { timeout: 15_000 });
+  await page.waitForFunction(regionVisitedUnder, { lng, lat }, { timeout: 15_000 }); // rolled up
+
+  // Open the pin and delete it (name-only → deletes with no dialog).
+  await clickPin(page, lng, lat);
+  await page.getByRole("button", { name: "刪除回憶" }).click();
+
+  // The pin was the only contributor → the region returns to bare.
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 7 }), { lng, lat });
+  await page.waitForFunction(featuresUnder, { lng, lat }, { timeout: 15_000 });
+  await page.waitForFunction((c) => {
+    const m = window.__mapsakeMap;
+    if (!m) return false;
+    const pt = m.project([c.lng, c.lat]);
+    const feats = m.queryRenderedFeatures(pt, { layers: ["regions-fill", "countries-fill-base", "countries-fill-world"] });
+    return feats.every((f) => {
+      if (f.id == null) return true;
+      const st = m.getFeatureState({ source: "boundaries", sourceLayer: f.sourceLayer, id: f.id });
+      return !(st && st.visited === true);
+    });
+  }, { lng, lat }, { timeout: 15_000 });
+});

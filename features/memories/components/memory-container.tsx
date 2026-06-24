@@ -63,7 +63,7 @@ export function MemoryContainer({
         >
           ×
         </button>
-        <MemoryCard key={pin.id} pin={pin} />
+        <MemoryCard key={pin.id} pin={pin} onDeleted={onClose} />
       </aside>
     );
   }
@@ -104,6 +104,7 @@ export function MemoryContainer({
                 setComposing(true);
               }}
               onNoteBlur={() => setComposing(false)}
+              onDeleted={handleClose}
             />
           </div>
         </Drawer.Content>

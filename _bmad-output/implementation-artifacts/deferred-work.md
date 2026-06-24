@@ -81,6 +81,10 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 - **Viewer should key on photo `id`, not index** — `PhotoViewer` opens at a positional `initialIndex`; if `usePhotos` refetched a reordered/shortened list while the viewer was open, the index could point at the wrong photo. Benign in 3.7 (stable `sort_order, created_at`; no add/delete from inside the viewer), but capturing the photo `id` (and resolving index from it) is more robust — fold in when photo delete/reorder (3.8) lands. [features/memories/components/photo-uploader.tsx, photo-viewer.tsx]
 - **No focus trap in the full-screen viewer** — `role="dialog" aria-modal="true"` is declarative only; Tab can move focus to the sheet/panel behind the overlay. Acceptable v1 lightbox cut; add a real focus trap (and confirm focus-restore) in an accessibility polish pass (Epic 6 a11y floor). [features/memories/components/photo-viewer.tsx]
 
+## Deferred from: code review of story-3.8 (2026-06-23)
+
+- **Photo viewer doesn't re-seek scroll after a mid-list delete** — `photo-viewer.tsx` consumes `initialIndex` only on mount; deleting a non-current photo shrinks `photos` so the scroll-snap track collapses that frame and the user silently advances to the neighbor (deleting the current-last frame may flash a blank before the parent's `photos.length > 0` guard unmounts the viewer). Single-photo delete is fine (viewer closes). Cosmetic; fix by tracking the viewer's live current index and re-seeking after a removal (or close the viewer on any delete and let the grid reopen). [features/memories/components/photo-viewer.tsx, photo-uploader.tsx]
+
 ## Deferred from: Story 3.7 dev (2026-06-23)
 
 - **Pinch-zoom INTO a photo** — the full-screen viewer pages between photos (scroll-snap) but doesn't support pinch-to-zoom on an individual image. Not in the 3.7 ACs; approved deferral. Add a zoom/pan layer (or adopt a lightbox lib) in a later polish pass if users want to inspect photo detail. [features/memories/components/photo-viewer.tsx]

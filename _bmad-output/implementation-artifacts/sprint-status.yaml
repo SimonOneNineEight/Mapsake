@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-23  # 3-9 pulled ahead of 3-8
+last_updated: 2026-06-23  # 3-9 ahead of 3-8; 3-8 split (region-unmark → 3-10)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -78,7 +78,11 @@ development_status:
   # Reordered 2026-06-23: 3-9 (pins roll-up) pulled AHEAD of 3-8 (edit/remove) — 3-8's AC3
   # (delete last pin → region bare) depends on pins rolling up into visited (this is 3-9).
   3-9-pins-roll-up-into-visited: done
-  3-8-edit-remove-quiet-states: backlog
+  # Split 2026-06-23: 3-8 scoped to photo-remove + pin-delete (covers AC1, AC2-for-pins, AC3).
+  # The unmark-a-region half of epic 3.8 AC2 needs a net-new long-press/region-menu surface,
+  # carved into 3-10-unmark-a-region for its own interaction-design pass.
+  3-8-edit-remove-quiet-states: done
+  3-10-unmark-a-region: backlog  # carved from 3-8: "Remove this place" via a region menu/long-press
   3-2-search-to-place-a-pin: backlog  # DEFERRED post-v1 (GeoNames search); do after the v1 epic stories
   epic-3-retrospective: optional
 

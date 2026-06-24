@@ -118,3 +118,15 @@ export async function updatePin(input: {
   if (error) throw error;
   return toDomain(data as PinRow);
 }
+
+/**
+ * Delete a pin (Story 3.8). RLS (`pins_owner_delete`) scopes the delete to the owner — never
+ * add a client `user_id` filter. The `photos.pin_id … ON DELETE CASCADE` FK removes the pin's
+ * photo ROWS automatically; the bucket OBJECTS are cleaned separately by the caller (the DB
+ * can't reach Storage). Resolves only on ack; throws on failure (caller retains + retries).
+ */
+export async function deletePin(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("pins").delete().eq("id", id);
+  if (error) throw error;
+}

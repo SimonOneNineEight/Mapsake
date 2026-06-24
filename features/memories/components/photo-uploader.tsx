@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { usePhotos, useUploadPhoto } from "@/features/memories/queries/photos-queries";
+import { useDeletePhoto, usePhotos, useUploadPhoto } from "@/features/memories/queries/photos-queries";
 import { PhotoGrid, type PhotoTile } from "./photo-grid";
 import { PhotoViewer } from "./photo-viewer";
 
@@ -27,6 +27,7 @@ interface PendingItem {
 export function PhotoUploader({ pinId }: { pinId: string }) {
   const { data: photos } = usePhotos(pinId);
   const uploadOne = useUploadPhoto(pinId);
+  const deletePhoto = useDeletePhoto(pinId);
   const [pending, setPending] = useState<PendingItem[]>([]);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -125,6 +126,10 @@ export function PhotoUploader({ pinId }: { pinId: string }) {
           photos={photos.map((p) => ({ id: p.id, url: p.url }))}
           initialIndex={Math.min(viewerIndex, photos.length - 1)}
           onClose={() => setViewerIndex(null)}
+          onDelete={(photoId) => {
+            const ph = photos.find((p) => p.id === photoId);
+            if (ph) deletePhoto.mutate({ id: ph.id, storagePath: ph.storagePath });
+          }}
         />
       )}
     </div>

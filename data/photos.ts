@@ -132,6 +132,34 @@ export async function removePhotoObject(storagePath: string): Promise<void> {
 }
 
 /**
+ * Best-effort bulk removal of bucket objects (Story 3.8 pin-delete cleanup). The pin-row
+ * delete cascades the photo ROWS via FK, but not the Storage OBJECTS — this removes them.
+ * Best-effort: a failed object delete must not block the row delete (orphan cleanup is
+ * opportunistic; the row is the source of truth).
+ */
+export async function removePhotoObjects(paths: string[]): Promise<void> {
+  if (paths.length === 0) return;
+  try {
+    const supabase = createClient();
+    await supabase.storage.from(BUCKET).remove(paths);
+  } catch {
+    // ignore — see removePhotoObject
+  }
+}
+
+/**
+ * Delete one photo (Story 3.8): remove its `photos` row (RLS-scoped) then its bucket object.
+ * Resolves only after the row delete acks (the durable part); the object removal is
+ * best-effort. Throws on the row-delete failure so the caller can retain + retry.
+ */
+export async function deletePhoto(input: { id: string; storagePath: string }): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("photos").delete().eq("id", input.id);
+  if (error) throw error;
+  await removePhotoObject(input.storagePath);
+}
+
+/**
  * Signed view URLs for private-bucket objects, mapped path → URL. Entries that error are
  * skipped (the grid shows a placeholder for a missing URL rather than breaking).
  */

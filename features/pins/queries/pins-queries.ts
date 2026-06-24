@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addPin, listPins, updatePin, type Pin } from "@/data/pins";
+import { addPin, deletePin, listPins, updatePin, type Pin } from "@/data/pins";
+import { listPhotos, removePhotoObjects } from "@/data/photos";
 import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
 
 const pinsKey = (userId: string | null) => ["pins", userId] as const;
@@ -110,6 +111,47 @@ export function useUpdatePin() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     // No onError rollback: retain the edit; the UI offers a calm retry.
+    retry: 1,
+  });
+}
+
+/**
+ * Delete a pin and its photos (Story 3.8). Cleans the pin's bucket objects, then deletes the
+ * row (its `photos` rows cascade via FK). Optimistic: the pin leaves the `['pins', userId]`
+ * cache immediately, so its marker disappears AND the Story 3.9 visited roll-up recomputes
+ * (a pin-only region clears — AC3). Unlike add/update, a DELETE ROLLS BACK on failure (a
+ * failed delete must not look successful — the pin reappears and the UI offers a calm retry).
+ */
+export function useDeletePin() {
+  const queryClient = useQueryClient();
+  const userId = useSessionUserId();
+  const key = pinsKey(userId);
+
+  return useMutation({
+    mutationFn: async (pin: Pin) => {
+      // Capture the object paths BEFORE the row delete (the FK cascade removes the photo rows).
+      // Delete the ROW first: if that fails, the pin stays fully intact with working photos —
+      // only the rarer reverse failure orphans objects (best-effort cleanup, acceptable).
+      const photos = await listPhotos(pin.id);
+      await deletePin(pin.id);
+      await removePhotoObjects(photos.map((p) => p.storagePath));
+    },
+    onMutate: async (pin: Pin) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<Pin[]>(key) ?? [];
+      queryClient.setQueryData<Pin[]>(
+        key,
+        prev.filter((p) => p.id !== pin.id),
+      );
+      return { prev };
+    },
+    onError: (_err, _pin, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData<Pin[]>(key, ctx.prev); // restore — delete didn't happen
+    },
+    onSuccess: (_data, pin) => {
+      queryClient.invalidateQueries({ queryKey: key });
+      queryClient.removeQueries({ queryKey: ["photos", pin.id] });
+    },
     retry: 1,
   });
 }

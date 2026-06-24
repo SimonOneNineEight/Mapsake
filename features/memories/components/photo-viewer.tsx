@@ -23,10 +23,12 @@ export function PhotoViewer({
   photos,
   initialIndex,
   onClose,
+  onDelete,
 }: {
   photos: ViewerPhoto[];
   initialIndex: number;
   onClose: () => void;
+  onDelete?: (photoId: string) => void; // Story 3.8: remove this photo (parent shrinks the list)
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -147,8 +149,20 @@ export function PhotoViewer({
         className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-contain [touch-action:pan-x]"
       >
         {photos.map((p) => (
-          <div key={p.id} className="grid h-full w-screen shrink-0 snap-center place-items-center p-4">
+          <div key={p.id} className="relative grid h-full w-screen shrink-0 snap-center place-items-center p-4">
             <Frame url={p.url} />
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation(); // don't close the viewer
+                  onDelete(p.id);
+                }}
+                className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-black/40 px-4 py-1.5 text-sm text-white"
+              >
+                刪除這張
+              </button>
+            )}
           </div>
         ))}
       </div>

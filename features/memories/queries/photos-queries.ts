@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createSignedUrls,
+  deletePhoto,
   insertPhoto,
   listPhotos,
   removePhotoObject,
@@ -79,4 +80,30 @@ export function useUploadPhoto(pinId: string) {
     },
     [userId, pinId, queryClient],
   );
+}
+
+/**
+ * Remove one photo (Story 3.8): deletes the row + bucket object. Optimistic: the photo leaves
+ * the `['photos', pinId]` cache immediately. A failed delete ROLLS BACK (the photo reappears)
+ * + the UI offers a calm retry — a destructive op must not look successful on failure.
+ */
+export function useDeletePhoto(pinId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (photo: { id: string; storagePath: string }) => deletePhoto(photo),
+    onMutate: async (photo) => {
+      await queryClient.cancelQueries({ queryKey: photosKey(pinId) });
+      const prev = queryClient.getQueryData<PhotoWithUrl[]>(photosKey(pinId)) ?? [];
+      queryClient.setQueryData<PhotoWithUrl[]>(
+        photosKey(pinId),
+        prev.filter((p) => p.id !== photo.id),
+      );
+      return { prev };
+    },
+    onError: (_err, _photo, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData<PhotoWithUrl[]>(photosKey(pinId), ctx.prev);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: photosKey(pinId) }),
+    retry: 1,
+  });
 }

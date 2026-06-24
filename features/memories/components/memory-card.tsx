@@ -2,7 +2,18 @@
 
 import { useState } from "react";
 import type { Pin } from "@/data/pins";
-import { useUpdatePin } from "@/features/pins/queries/pins-queries";
+import { useDeletePin, useUpdatePin } from "@/features/pins/queries/pins-queries";
+import { usePhotos } from "@/features/memories/queries/photos-queries";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PhotoUploader } from "./photo-uploader";
 
 // zh-TW date display for a YYYY-MM-DD `memory_date` (no "Date: —" when absent).
@@ -25,17 +36,31 @@ export function MemoryCard({
   pin,
   onNoteFocus,
   onNoteBlur,
+  onDeleted,
 }: {
   pin: Pin;
   onNoteFocus?: () => void;
   onNoteBlur?: () => void;
+  onDeleted?: () => void; // close the memory after a successful delete (Story 3.8)
 }) {
   const updatePin = useUpdatePin();
+  const deletePin = useDeletePin();
+  const { data: photos } = usePhotos(pin.id);
   const [editingNote, setEditingNote] = useState(false);
   const [showDate, setShowDate] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const showNoteField = Boolean(pin.note) || editingNote;
   const showDateField = Boolean(pin.memoryDate) || showDate;
+
+  // A name-only pin deletes with no friction; a pin holding a note, a date, or photos gets a
+  // gentle confirm (durability is sacred — never imply accidental loss). NOTE: this reads the
+  // loaded photo list; a photo-ONLY pin (no note/date) clicked within the brief usePhotos load
+  // window could delete without a confirm. Accepted as a low-risk edge (the grid renders above
+  // this link, so the list is usually warm) — treating loading as content was rejected because
+  // it breaks the "name-only deletes with no friction" AC during the load window.
+  const hasContent = Boolean(pin.note) || Boolean(pin.memoryDate) || (photos?.length ?? 0) > 0;
+  const runDelete = () => deletePin.mutate(pin, { onSuccess: () => onDeleted?.() });
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -111,6 +136,42 @@ export function MemoryCard({
           無法儲存，重試
         </button>
       )}
+
+      {/* Delete the memory. Name-only → no friction; content-bearing → gentle confirm. */}
+      <div className="mt-2 flex flex-col gap-1">
+        <button
+          type="button"
+          className="self-start text-sm text-muted-foreground hover:text-foreground"
+          onClick={() => (hasContent ? setConfirmOpen(true) : runDelete())}
+        >
+          刪除回憶
+        </button>
+        {deletePin.isPending && <p className="text-xs text-muted-foreground">刪除中…</p>}
+        {deletePin.isError && (
+          <button
+            type="button"
+            className="self-start text-xs text-[rgb(var(--terracotta-text))]"
+            onClick={runDelete}
+          >
+            無法刪除，重試
+          </button>
+        )}
+      </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除「{pin.name}」這個回憶？</AlertDialogTitle>
+            <AlertDialogDescription>
+              這個地方的筆記、日期和照片都會一起移除。此動作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={runDelete}>刪除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -213,3 +213,69 @@ test("tap a photo → full-screen viewer, arrow between photos, close (Story 3.7
   await expect(viewer).toBeHidden();
   await expect(page.getByRole("heading", { name: "相簿地" })).toBeVisible();
 });
+
+test("remove a photo → it's gone and stays gone after reload (Story 3.8)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "刪照地", 135.3, 34.5);
+  await clickPin(page, 135.3, 34.5);
+  await page.locator('input[type="file"]').setInputFiles("e2e/fixtures/sample.png");
+  await expect(page.locator('li img[src^="http"]')).toHaveCount(1, { timeout: 30_000 });
+
+  // Open the viewer and remove the photo (the only one → viewer closes, grid empties).
+  await page.getByRole("button", { name: "檢視照片" }).first().click();
+  await page.getByRole("button", { name: "刪除這張" }).click();
+  await expect(page.locator('li img[src^="http"]')).toHaveCount(0, { timeout: 15_000 });
+
+  await page.reload();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await clickPin(page, 135.3, 34.5);
+  await expect(page.locator('li img[src^="http"]')).toHaveCount(0);
+});
+
+test("delete a content-bearing pin → gentle confirm, then it's gone (Story 3.8)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "刪除地", 135.2, 34.4);
+  await clickPin(page, 135.2, 34.4);
+  // Give it content so a gentle confirm is required.
+  await page.getByRole("button", { name: "＋ 寫筆記" }).click();
+  const note = page.getByPlaceholder("寫下這個地方的回憶…");
+  await note.fill("要刪的筆記");
+  await note.blur();
+  await expect(page.getByText("已儲存")).toBeVisible({ timeout: 15_000 });
+
+  await page.getByRole("button", { name: "刪除回憶" }).click();
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "刪除" }).click();
+
+  // Memory closes and the pin marker is gone.
+  await expect(page.getByRole("heading", { name: "刪除地" })).toBeHidden();
+  await expect
+    .poll(() => page.evaluate(() => window.__mapsakeMap!.queryRenderedFeatures({ layers: ["pins-marker"] }).length), {
+      timeout: 15_000,
+    })
+    .toBe(0);
+});
+
+test("delete a name-only pin → no confirm dialog (Story 3.8)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await dropPin(page, "無內容地", 135.1, 34.3);
+  await clickPin(page, 135.1, 34.3);
+  await page.getByRole("button", { name: "刪除回憶" }).click();
+
+  // No dialog — a bare/name-only pin deletes with no friction; the memory just closes.
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "無內容地" })).toBeHidden();
+});
