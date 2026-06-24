@@ -1,5 +1,7 @@
 "use client";
 
+import type { InstallMode } from "@/features/onboarding/lib/use-install-prompt";
+
 /**
  * First-run default-view question (Story 4.1). Presentational: the shell owns the step + the
  * localStorage writes (the focus `countryCode` arrives at the shell from the map tap), so this
@@ -13,6 +15,8 @@ export function Onboarding({
   onBack,
   onDone,
   onDismiss,
+  installMode = "none",
+  onInstall,
 }: {
   step: "question" | "pick" | "backfill" | "handoff";
   onChooseWorld: () => void;
@@ -20,15 +24,32 @@ export function Onboarding({
   onBack: () => void; // leave pick mode → back to the question (escape an ocean/missed tap)
   onDone: () => void; // finish backfill → the hand-off line (Story 4.3 → 4.4)
   onDismiss: () => void; // dismiss the hand-off → drop into the filled map (Story 4.4)
+  installMode?: InstallMode; // PWA install affordance folded into the hand-off (Story 4.5)
+  onInstall?: () => void; // Chromium install prompt trigger (Story 4.5)
 }) {
   if (step === "handoff") {
     // The end-of-backfill payoff hand-off (Story 4.4): ONE gentle, skippable line inviting
     // depth later, then drop into the freshly colored map. No dimming backdrop — the filled
     // map IS the payoff and must show through. No meter/count/"incomplete" badge (banned list).
+    // Story 4.5 folds in a calm install affordance (omitted when there's no install path).
     return (
       <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center p-6">
         <div className="pointer-events-auto flex flex-col items-center gap-4 rounded-md bg-card/95 px-6 py-5 text-center shadow-[0_4px_16px_rgba(58,46,34,0.18)]">
           <p className="max-w-xs text-sm text-foreground">用 ＋ 新增回憶 加入圖釘、照片和回憶</p>
+          {installMode === "prompt" && (
+            <button
+              type="button"
+              onClick={onInstall}
+              className="rounded-full border border-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--terracotta-text))]"
+            >
+              安裝到主畫面
+            </button>
+          )}
+          {installMode === "ios" && (
+            <p className="max-w-xs text-xs text-muted-foreground">
+              安裝到主畫面：點一下分享，選「加入主畫面」
+            </p>
+          )}
           <button
             type="button"
             autoFocus

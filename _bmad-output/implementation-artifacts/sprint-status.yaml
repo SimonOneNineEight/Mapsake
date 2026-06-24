@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-24  # Epic 4 — 4-4 reviewed + done
+last_updated: 2026-06-24  # Epic 4 — 4-5 reviewed + done
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -92,7 +92,7 @@ development_status:
   4-2-land-on-chosen-view-change-later: done  # AC1 (land on saved view) here; AC2 (change in Settings) → 6-3
   4-3-rapid-backfill-marking-rhythm: done
   4-4-onboarding-payoff-hand-off: done
-  4-5-pwa-install-nudge-installable-shell: backlog
+  4-5-pwa-install-nudge-installable-shell: done
   4-6-offline-read-only-shell-write-banner: backlog
   4-7-places-visited-list-view: backlog
   epic-4-retrospective: optional

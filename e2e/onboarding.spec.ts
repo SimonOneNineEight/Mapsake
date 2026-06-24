@@ -190,3 +190,61 @@ test("a returning user sees no hand-off line (Story 4.4)", async ({ page }) => {
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   await expect(page.getByText(HANDOFF_LINE)).toHaveCount(0);
 });
+
+// Story 4.5 — PWA install affordance folded into the hand-off card. On installable Chromium a
+// beforeinstallprompt is captured and the card offers 安裝到主畫面; with no install path the card
+// still shows the line + 開始探索. (The iOS Share→Add-to-Home-Screen branch is UA-gated; the
+// chromium project covers prompt/none, the iOS branch is verified by inspection.)
+const INSTALL_BUTTON = "安裝到主畫面";
+
+const finishToHandoff = async (page: import("@playwright/test").Page) => {
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await page.getByRole("button", { name: "看整個世界" }).click();
+  await page.getByRole("button", { name: "完成" }).click();
+  await expect(page.getByText(HANDOFF_LINE)).toBeVisible();
+};
+
+test("hand-off folds in the install affordance when installable (Story 4.5)", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  // Simulate an installable Chromium: fire the deferred beforeinstallprompt the hook captures.
+  await page.evaluate(() => {
+    const e = new Event("beforeinstallprompt");
+    Object.assign(e, {
+      prompt: () => Promise.resolve(),
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+    window.dispatchEvent(e);
+  });
+
+  await page.getByRole("button", { name: "看整個世界" }).click();
+  await page.getByRole("button", { name: "完成" }).click();
+  await expect(page.getByText(HANDOFF_LINE)).toBeVisible();
+  await expect(page.getByRole("button", { name: INSTALL_BUTTON })).toBeVisible();
+
+  // 開始探索 still closes onboarding into the map.
+  await page.getByRole("button", { name: "開始探索" }).click();
+  await expect(page.getByText(HANDOFF_LINE)).toBeHidden();
+});
+
+test("hand-off shows no install affordance when not installable (Story 4.5)", async ({ page }) => {
+  await page.goto("/");
+  await finishToHandoff(page); // plain Chromium, no beforeinstallprompt fired → mode "none"
+  await expect(page.getByRole("button", { name: INSTALL_BUTTON })).toHaveCount(0);
+  // The card is still valid: gentle line + 開始探索.
+  await expect(page.getByRole("button", { name: "開始探索" })).toBeVisible();
+});
+
+test("the web manifest is served with the PWA fields (Story 4.5)", async ({ page }) => {
+  const res = await page.request.get("/manifest.webmanifest");
+  expect(res.ok()).toBeTruthy();
+  const m = await res.json();
+  expect(m.name).toBe("Mapsake");
+  expect(m.display).toBe("standalone");
+  const sizes = (m.icons ?? []).map((i: { sizes: string }) => i.sizes);
+  expect(sizes).toContain("192x192");
+  expect(sizes).toContain("512x512");
+  expect((m.icons ?? []).some((i: { purpose?: string }) => i.purpose === "maskable")).toBeTruthy();
+});

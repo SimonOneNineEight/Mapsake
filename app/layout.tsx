@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Newsreader,
   Nunito_Sans,
@@ -16,6 +16,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Mapsake",
   description: "A private travel keepsake — the map you keep, for the sake of memory.",
+  // PWA (Story 4.5): the manifest <link> is auto-injected by the app/manifest.ts file
+  // convention. iOS home-screen install (no beforeinstallprompt on iOS) needs apple meta + icon.
+  appleWebApp: { capable: true, title: "Mapsake", statusBarStyle: "default" },
+  icons: { apple: "/apple-touch-icon.png" },
+};
+
+// theme-color drives the PWA status-bar/toolbar tint — the parchment surface (light-only v1).
+export const viewport: Viewport = {
+  themeColor: "#F2E8D5",
 };
 
 // Latin: serif display + humanist sans

@@ -126,3 +126,11 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 
 - **Hand-off card accessibility** — `features/onboarding/components/onboarding.tsx` handoff step has no `role`/`aria-label`/Escape and uses `bg-card/95` (text contrast over a busy map). Same non-blocking pattern as the 4.1 pick hint and 4.3 backfill layer. Address all three coaching layers together in the Epic 6 6-2 accessibility floor pass.
 - **Hand-off card vs ＋ button on short viewports** — the centered handoff card could, on a very short (landscape-phone) viewport, approach the bottom-right ＋ 新增回憶 button. No overlap in normal portrait/desktop use. Re-check during 6-2/6-4 polish.
+
+## Deferred from: code review of story-4.5 (2026-06-24)
+
+- **SW update-prompt** — `app/sw.ts` uses `skipWaiting` + `clientsClaim` with no refresh UX; a new SW can take over an open page and 404 lazy chunks (version skew). Add an update/refresh prompt with the offline-shell work (Story 4.6).
+- **SW/cache e2e coverage** — Playwright runs against `pnpm dev` where the SW is `disable`d, so installable/precache behavior is untested. Add a production-build webServer (or a dedicated PWA spec) under CI/ops hardening (Story 6-5). Installability stays a manual Lighthouse check until icons land.
+- **beforeinstallprompt pre-mount race + render-time platform reads** — `use-install-prompt.ts` attaches the listener in an effect (Chromium may fire `beforeinstallprompt` before it attaches) and computes `mode` from `window`/`navigator` in render (fragile, not a bug today since the hand-off card isn't in the hydration tree). Hardening: capture the event in an inline head script and replay; gate the platform reads behind a mounted flag.
+- **iPadOS / in-app-browser detection** — `isIOSSafari()` misses iPadOS 13+ (desktop-class UA) and some in-app browsers. Refine in the 6-2/6-4 polish pass (iPhone, the retention target, is covered).
+- **PWA brand icons (Simon dependency)** — `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png`, `public/apple-touch-icon.png` must be supplied for the real install prompt + Lighthouse installability. Manifest/build/tests pass without them.

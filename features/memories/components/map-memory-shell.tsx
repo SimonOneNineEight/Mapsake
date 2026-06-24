@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MapCanvas } from "@/features/map/components/MapCanvas";
 import { Onboarding } from "@/features/onboarding/components/onboarding";
 import { readDefaultView, writeDefaultView } from "@/features/onboarding/lib/onboarding-prefs";
+import { useInstallPrompt } from "@/features/onboarding/lib/use-install-prompt";
 import { MemoryContainer } from "./memory-container";
 
 /**
@@ -24,6 +25,9 @@ export function MapMemoryShell() {
   // SSR returns null (window guard); consumed only inside MapCanvas's client build effect, so no
   // hydration mismatch. A returning focus user opens already framed on their country.
   const [initialView] = useState(() => readDefaultView());
+  // PWA install affordance (Story 4.5), folded into the hand-off card. Lives here (always mounted)
+  // so the Chromium beforeinstallprompt is caught even if it fires before the hand-off renders.
+  const { mode: installMode, promptInstall } = useInstallPrompt();
 
   useEffect(() => {
     // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
@@ -66,6 +70,8 @@ export function MapMemoryShell() {
             onBack={() => setOnboarding("question")}
             onDone={finishBackfill}
             onDismiss={finishHandoff}
+            installMode={installMode}
+            onInstall={promptInstall}
           />
         )}
       </div>
