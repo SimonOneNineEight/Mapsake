@@ -24,7 +24,7 @@ interface PendingItem {
  * real thumbnail only after the upload + row insert ack. Absent photos show only the quiet
  * "＋ 加照片" invitation (no "0 photos"). The full-screen viewer is Story 3.7.
  */
-export function PhotoUploader({ pinId }: { pinId: string }) {
+export function PhotoUploader({ pinId, readOnly = false }: { pinId: string; readOnly?: boolean }) {
   const { data: photos } = usePhotos(pinId);
   const uploadOne = useUploadPhoto(pinId);
   const deletePhoto = useDeletePhoto(pinId);
@@ -105,31 +105,41 @@ export function PhotoUploader({ pinId }: { pinId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <PhotoGrid tiles={tiles} />
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        aria-label="加照片"
-        onChange={onSelect}
-      />
-      {atCap ? (
-        <p className="self-start text-sm text-muted-foreground">已達每個地點 {MAX_PER_PIN} 張上限</p>
-      ) : (
-        <button type="button" className={linkQuiet} onClick={() => inputRef.current?.click()}>
-          ＋ 加照片
-        </button>
+      {/* Offline (Story 4.6): grid stays viewable, but the add affordance + input are hidden. */}
+      {!readOnly && (
+        <>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            aria-label="加照片"
+            onChange={onSelect}
+          />
+          {atCap ? (
+            <p className="self-start text-sm text-muted-foreground">已達每個地點 {MAX_PER_PIN} 張上限</p>
+          ) : (
+            <button type="button" className={linkQuiet} onClick={() => inputRef.current?.click()}>
+              ＋ 加照片
+            </button>
+          )}
+        </>
       )}
       {viewerIndex !== null && photos && photos.length > 0 && (
         <PhotoViewer
           photos={photos.map((p) => ({ id: p.id, url: p.url }))}
           initialIndex={Math.min(viewerIndex, photos.length - 1)}
           onClose={() => setViewerIndex(null)}
-          onDelete={(photoId) => {
-            const ph = photos.find((p) => p.id === photoId);
-            if (ph) deletePhoto.mutate({ id: ph.id, storagePath: ph.storagePath });
-          }}
+          // Offline → omit onDelete so the viewer hides "刪除這張" (read-only).
+          onDelete={
+            readOnly
+              ? undefined
+              : (photoId) => {
+                  const ph = photos.find((p) => p.id === photoId);
+                  if (ph) deletePhoto.mutate({ id: ph.id, storagePath: ph.storagePath });
+                }
+          }
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Pin } from "@/data/pins";
 import { useDeletePin, useUpdatePin } from "@/features/pins/queries/pins-queries";
 import { usePhotos } from "@/features/memories/queries/photos-queries";
+import { useOffline } from "@/features/pwa/use-offline";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +47,9 @@ export function MemoryCard({
   const updatePin = useUpdatePin();
   const deletePin = useDeletePin();
   const { data: photos } = usePhotos(pin.id);
+  // Offline = read-only (Story 4.6): writes need a connection, so the edit/add/delete affordances
+  // are replaced by read-only text + a calm line — never let a mutation fire offline and fail.
+  const offline = useOffline();
   const [editingNote, setEditingNote] = useState(false);
   const [showDate, setShowDate] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -66,8 +70,16 @@ export function MemoryCard({
     <div className="flex min-w-0 flex-col gap-3">
       <h2 className="font-serif text-2xl font-medium text-foreground">{pin.name}</h2>
 
+      {offline && (
+        <p className="text-xs text-muted-foreground">僅供瀏覽 — 重新連線後可編輯</p>
+      )}
+
       {/* Note */}
-      {showNoteField ? (
+      {offline ? (
+        pin.note ? (
+          <p className="whitespace-pre-wrap text-sm text-foreground">{pin.note}</p>
+        ) : null
+      ) : showNoteField ? (
         <textarea
           key={`note-${pin.id}`} // reset across pin swaps (no bleed)
           defaultValue={pin.note ?? ""}
@@ -91,7 +103,11 @@ export function MemoryCard({
       )}
 
       {/* Optional date — skipping is first-class */}
-      {showDateField ? (
+      {offline ? (
+        pin.memoryDate ? (
+          <p className="text-sm text-muted-foreground">{formatZhDate(pin.memoryDate)}</p>
+        ) : null
+      ) : showDateField ? (
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           {pin.memoryDate && <span>{formatZhDate(pin.memoryDate)}</span>}
           <input
@@ -121,8 +137,9 @@ export function MemoryCard({
         </button>
       )}
 
-      {/* Photos (Story 3.6) — quiet "＋ 加照片"; absent shows only the invitation, no "0 photos". */}
-      <PhotoUploader pinId={pin.id} />
+      {/* Photos (Story 3.6) — quiet "＋ 加照片"; absent shows only the invitation, no "0 photos".
+          Offline: read-only grid (no add/delete) per Story 4.6. */}
+      <PhotoUploader pinId={pin.id} readOnly={offline} />
 
       {/* Quiet durable-write status (ack-gated "saved"; calm retry on failure). */}
       {updatePin.isPending && <p className="text-xs text-muted-foreground">儲存中…</p>}
@@ -137,28 +154,31 @@ export function MemoryCard({
         </button>
       )}
 
-      {/* Delete the memory. Name-only → no friction; content-bearing → gentle confirm. */}
-      <div className="mt-2 flex flex-col gap-1">
-        <button
-          type="button"
-          className="self-start text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => (hasContent ? setConfirmOpen(true) : runDelete())}
-        >
-          刪除回憶
-        </button>
-        {deletePin.isPending && <p className="text-xs text-muted-foreground">刪除中…</p>}
-        {deletePin.isError && (
+      {/* Delete the memory. Name-only → no friction; content-bearing → gentle confirm.
+          Hidden offline (Story 4.6) — delete is a write and needs a connection. */}
+      {!offline && (
+        <div className="mt-2 flex flex-col gap-1">
           <button
             type="button"
-            className="self-start text-xs text-[rgb(var(--terracotta-text))]"
-            onClick={runDelete}
+            className="self-start text-sm text-muted-foreground hover:text-foreground"
+            onClick={() => (hasContent ? setConfirmOpen(true) : runDelete())}
           >
-            無法刪除，重試
+            刪除回憶
           </button>
-        )}
-      </div>
+          {deletePin.isPending && <p className="text-xs text-muted-foreground">刪除中…</p>}
+          {deletePin.isError && (
+            <button
+              type="button"
+              className="self-start text-xs text-[rgb(var(--terracotta-text))]"
+              onClick={runDelete}
+            >
+              無法刪除，重試
+            </button>
+          )}
+        </div>
+      )}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={confirmOpen && !offline} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>刪除「{pin.name}」這個回憶？</AlertDialogTitle>

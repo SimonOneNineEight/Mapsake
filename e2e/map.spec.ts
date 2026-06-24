@@ -102,3 +102,27 @@ test("marking an admin-1 region rolls its country up to visited", async ({ page 
   await page.waitForFunction(isVisited); // the region itself
   await page.waitForFunction(isCountryVisited); // and its rolled-up country
 });
+
+// Story 4.6 — offline read-only shell: writes are disabled with a calm banner, never a hard wall.
+// Asserts on the banner (depends only on connectivity, not the anon session) so it's rate-limit-safe.
+const OFFLINE_BANNER = "僅供瀏覽 — 重新連線後可標記";
+
+test("offline shows the read-only banner and disables the add affordance (Story 4.6)", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await expect(page.getByText(OFFLINE_BANNER)).toHaveCount(0); // online: no banner
+
+  // Go offline → calm read-only banner appears; the ＋ 新增回憶 affordance is disabled (never a
+  // silent/destructive failure). `disabled` holds regardless of session, so it's safe to assert.
+  await context.setOffline(true);
+  await expect(page.getByText(OFFLINE_BANNER)).toBeVisible();
+  await expect(page.getByRole("button", { name: "＋ 新增回憶" })).toBeDisabled();
+
+  // Reconnect → the banner clears with no reload (Story 4.5 set reloadOnOnline:false).
+  await context.setOffline(false);
+  await expect(page.getByText(OFFLINE_BANNER)).toBeHidden();
+});

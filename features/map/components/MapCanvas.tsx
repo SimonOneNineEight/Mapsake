@@ -86,6 +86,7 @@ export function MapCanvas({
     onContextRef.current = (point) => {
       const map = mapRef.current;
       if (!map || !userId) return;
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return; // offline: unmark is a write (Story 4.6)
       // Over a pin/cluster → not a region action (mirror the tap guard).
       if (map.queryRenderedFeatures(point, { layers: ["pins-marker", "pins-cluster"] }).length > 0)
         return;
@@ -402,11 +403,13 @@ export function MapCanvas({
         />
       )}
       <RegionRemoveDialog
-        open={pendingUnmark !== null}
+        // Gate on !offline (Story 4.6): if opened online then disconnected, close it — unmark is
+        // a destructive write and must not fire offline (never a silent failure).
+        open={pendingUnmark !== null && !offline}
         name={pendingUnmark?.name ?? ""}
         pinCount={pendingUnmark?.pins.length ?? 0}
         onConfirm={() => {
-          if (pendingUnmark) {
+          if (pendingUnmark && !offline) {
             unmarkRegion.mutate({
               regionCode: pendingUnmark.regionCode,
               level: pendingUnmark.level,
