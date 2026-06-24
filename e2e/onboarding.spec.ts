@@ -101,3 +101,56 @@ test("a returning 'focus' user opens framed on their country (Story 4.2)", async
   expect(Math.abs(c.lng - 78.9)).toBeLessThan(1);
   expect(Math.abs(c.lat - 22.6)).toBeLessThan(1);
 });
+
+// Story 4.3 — rapid backfill marking rhythm. After the view question, onboarding drops into a
+// backfill step: a non-blocking prompt while the user tap-marks; "完成" drops into the map.
+const BACKFILL_PROMPT = "輕觸你去過的地方來上色";
+
+// In-browser: is a boundary feature rendered under the point (tiles ready) / visited?
+const featuresUnder = (c: { lng: number; lat: number }) =>
+  Boolean(window.__mapsakeMap) &&
+  window.__mapsakeMap!.queryRenderedFeatures(window.__mapsakeMap!.project([c.lng, c.lat]), {
+    layers: ["regions-fill", "countries-fill-base", "countries-fill-world"],
+  }).length > 0;
+
+test("backfill: a land tap opens no panel; 完成 drops into the map (Story 4.3)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+
+  await page.getByRole("button", { name: "看整個世界" }).click();
+  await expect(page.getByText(BACKFILL_PROMPT)).toBeVisible(); // backfill step
+
+  // Tap a region during backfill (the existing 1.5 rhythm, reused — pickCountry is off here).
+  const lng = 78.9, lat = 22.6;
+  await page.evaluate((c) => window.__mapsakeMap!.jumpTo({ center: [c.lng, c.lat], zoom: 7 }), { lng, lat });
+  await page.waitForFunction(featuresUnder, { lng, lat }, { timeout: 15_000 });
+  await page.evaluate((c) => {
+    const m = window.__mapsakeMap!;
+    m.fire("click", { point: m.project([c.lng, c.lat]), lngLat: { lng: c.lng, lat: c.lat } });
+  }, { lng, lat });
+
+  // AC2: marks-only — a region tap never opens the memory panel/sheet (no "add details" push).
+  // (The fill/persist of the mark itself is the 1.5/3.9 path, covered by rollup/map specs;
+  // it's session-gated, so it's not re-asserted here to keep this test session-free.)
+  // The phone sheet is role="dialog"; the ≥840px panel is an <aside> (no dialog role) whose only
+  // marker is its 關閉 close button — assert both so the guard has signal at this viewport.
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "關閉" })).toHaveCount(0);
+  await expect(page.getByText(BACKFILL_PROMPT)).toBeVisible(); // still in backfill, no nav away
+
+  // Finish backfill → drop into the filled map.
+  await page.getByRole("button", { name: "完成" }).click();
+  await expect(page.getByText(BACKFILL_PROMPT)).toBeHidden();
+});
+
+test("a returning user sees no backfill prompt (Story 4.3)", async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("mapsake.defaultView", JSON.stringify({ kind: "world" })),
+  );
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await expect(page.getByText(BACKFILL_PROMPT)).toHaveCount(0);
+});

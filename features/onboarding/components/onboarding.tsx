@@ -11,12 +11,33 @@ export function Onboarding({
   onChooseWorld,
   onChooseFocus,
   onBack,
+  onDone,
 }: {
-  step: "question" | "pick";
+  step: "question" | "pick" | "backfill";
   onChooseWorld: () => void;
   onChooseFocus: () => void;
   onBack: () => void; // leave pick mode → back to the question (escape an ocean/missed tap)
+  onDone: () => void; // finish backfill → drop into the filled map (Story 4.3)
 }) {
+  if (step === "backfill") {
+    // Non-blocking coaching layer (Story 4.3): map taps must pass through to MARK. A soft top
+    // invitation + a "完成" to drop into the filled map. No count/meter/nag; never pushes memory.
+    return (
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex flex-col items-center gap-2">
+        <p className="rounded-full bg-card/95 px-4 py-1.5 text-sm text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]">
+          輕觸你去過的地方來上色
+        </p>
+        <button
+          type="button"
+          onClick={onDone}
+          className="pointer-events-auto rounded-full bg-[rgb(var(--terracotta-text))] px-4 py-1.5 text-sm text-[rgb(var(--surface))]"
+        >
+          完成
+        </button>
+      </div>
+    );
+  }
+
   if (step === "pick") {
     // Non-blocking row — the map tap that picks a country must pass through. The hint +
     // the "back" escape opt back into pointer events so an ocean/missed tap isn't a dead-end.

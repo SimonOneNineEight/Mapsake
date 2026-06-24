@@ -115,3 +115,9 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 ## Deferred from: code review of story-3.5 (2026-06-23)
 
 - **`clickPin`-after-reload flakes under 2-worker concurrency** — the date-persist test (`memory.spec.ts:116`) fails ~50% in a full 2-worker run at the post-`reload()` `clickPin` (line 135), but passes deterministically in isolation (`-g`). The date saves + acks + displays correctly pre-reload every run, and persistence is real — this is a map-render timing race: after a fresh reload the pins source/marker may not be hit-testable yet when `clickPin` fires. The note-persist test uses the same pattern and is stable, so it's variance, not a categorical helper bug. **Fix:** make `clickPin` wait for the target pin feature to exist in the `pins` source (`querySourceFeatures`) or for the marker to be rendered before issuing the map click, instead of relying on map-settle timing. Fold in with the storageState test-infra work above. [e2e/memory.spec.ts, e2e/ helpers]
+
+## Deferred from: code review of story-4.3 (2026-06-24)
+
+- **Backfill overlay accessibility** — `features/onboarding/components/onboarding.tsx` backfill step is a bare non-blocking layer (no `aria-live`, no focus move) — same pattern as the 4.1 `pick` hint. Fold into the Epic 6 6-2 accessibility floor pass (announce the prompt / manage focus for both non-blocking coaching layers).
+- **focus→backfill e2e coverage** — only the world→backfill entry is exercised (`e2e/onboarding.spec.ts`). The focus path enters backfill at zoom 4 via the same `setOnboarding("backfill")`; add a focus-entry backfill assertion if the path ever diverges.
+- **Backfill mark-persists assertion** — the backfill test deliberately omits asserting the tap actually marks (session-gated; blocked by the anon-signin rate-limit). Re-add a positive fill assertion once the shared anon `storageState` test-session reuse lands (Epic 6 6-5).

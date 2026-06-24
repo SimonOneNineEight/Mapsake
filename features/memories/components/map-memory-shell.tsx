@@ -19,7 +19,7 @@ export function MapMemoryShell() {
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   // Onboarding step: null = not onboarding (returning user or finished). Set after mount so
   // there's no SSR/hydration flash (localStorage is client-only).
-  const [onboarding, setOnboarding] = useState<"question" | "pick" | null>(null);
+  const [onboarding, setOnboarding] = useState<"question" | "pick" | "backfill" | null>(null);
   // The saved view read ONCE for the opening camera (Story 4.2 — land on it). Lazy initializer:
   // SSR returns null (window guard); consumed only inside MapCanvas's client build effect, so no
   // hydration mismatch. A returning focus user opens already framed on their country.
@@ -32,15 +32,18 @@ export function MapMemoryShell() {
     if (readDefaultView() === null) setOnboarding("question");
   }, []);
 
+  // After the view question, drop into backfill (Story 4.3) — the user marks rapidly before
+  // the map is "theirs". finishBackfill closes onboarding into the filled map.
   const finishWorld = () => {
     writeDefaultView({ kind: "world" }); // stays on the world view (the map's default framing)
-    setOnboarding(null);
+    setOnboarding("backfill");
   };
   const finishFocus = (countryCode: string, center: [number, number]) => {
     // Store the tapped center so a later open can frame the country (Story 4.2).
     writeDefaultView({ kind: "focus", countryCode, center });
-    setOnboarding(null);
+    setOnboarding("backfill");
   };
+  const finishBackfill = () => setOnboarding(null);
 
   return (
     <div className="flex h-full w-full">
@@ -58,6 +61,7 @@ export function MapMemoryShell() {
             onChooseWorld={finishWorld}
             onChooseFocus={() => setOnboarding("pick")}
             onBack={() => setOnboarding("question")}
+            onDone={finishBackfill}
           />
         )}
       </div>
