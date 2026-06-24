@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { computeVisitedKeys, pinsToVisitedMarks } from "../features/map/lib/visited";
+import { bypassOnboarding } from "./onboarding-bypass";
+
+// Skip the Story 4.1 first-run onboarding overlay (the browser tests here drop/mark on the map).
+test.beforeEach(({ page }) => bypassOnboarding(page));
 
 // Story 1.6 — visited roll-up. These exercise the pure key-derivation in Node (no browser):
 // a marked admin-1 region lights its parent country; a country mark never cascades down.

@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-23  # 3-9 ahead of 3-8; 3-8 split (region-unmark → 3-10)
+last_updated: 2026-06-24  # Epic 3 v1 done + pushed; Epic 4 started (4-1)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -87,8 +87,8 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4 — First-run & make it yours (onboarding + PWA)
-  epic-4: backlog
-  4-1-default-view-question: backlog
+  epic-4: in-progress
+  4-1-default-view-question: done
   4-2-land-on-chosen-view-change-later: backlog
   4-3-rapid-backfill-marking-rhythm: backlog
   4-4-onboarding-payoff-hand-off: backlog

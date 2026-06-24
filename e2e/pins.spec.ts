@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { pinsToGeoJSON } from "../features/map/lib/pins";
 import type { Pin } from "../data/pins";
+import { bypassOnboarding } from "./onboarding-bypass";
+
+// Skip the Story 4.1 first-run onboarding overlay (these tests exercise the post-onboarding app).
+test.beforeEach(({ page }) => bypassOnboarding(page));
 
 // Story 3.1 — pins. Pure tests for the pins→GeoJSON builder run in Node (no browser).
 // The browser drop-a-pin e2e is skipped until the `pins` migration is applied to the

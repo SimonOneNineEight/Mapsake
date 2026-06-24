@@ -1,4 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { bypassOnboarding } from "./onboarding-bypass";
+
+// Skip the Story 4.1 first-run onboarding overlay (these tests exercise the post-onboarding app).
+test.beforeEach(({ page }) => bypassOnboarding(page));
 
 // Story 3.4 — open a pin → memory panel (desktop ≥840) / sheet (phone <840).
 // Pins are per-anon-user under RLS, so each test seeds its own pin.

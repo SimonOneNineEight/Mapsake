@@ -30,9 +30,13 @@ let protocolRegistered = false;
 export function MapCanvas({
   onOpenPin,
   selectedPinId,
+  pickCountry = false,
+  onCountryPick,
 }: {
   onOpenPin?: (pinId: string) => void; // tap an individual pin → open its memory (Story 3.4)
   selectedPinId?: string | null; // the opened pin → drives the accent glow layer
+  pickCountry?: boolean; // onboarding focus-pick mode (Story 4.1): a tap selects a country, not a mark
+  onCountryPick?: (info: { countryCode: string; lngLat: { lng: number; lat: number } }) => void;
 } = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
@@ -106,6 +110,16 @@ export function MapCanvas({
     onTapRef.current = (point, lngLat) => {
       const map = mapRef.current;
       if (!map) return;
+      // Onboarding focus-pick (Story 4.1): a tap selects a country and flies into its regions,
+      // and never marks. At the world zoom regionFromPoint resolves a country.
+      if (pickCountry) {
+        const region = regionFromPoint(map, point);
+        if (region) {
+          map.easeTo({ center: [lngLat.lng, lngLat.lat], zoom: 4 });
+          onCountryPick?.({ countryCode: region.countryCode, lngLat });
+        }
+        return;
+      }
       // Drop mode → land a pin at the tapped coords. Capture the region/country under the
       // tap (regionFromPoint) so Story 3.9 can later roll the region up to visited. The
       // name is captured next (pendingPin → PinNameInput). Exit drop mode after placing.

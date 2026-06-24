@@ -1,4 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { bypassOnboarding } from "./onboarding-bypass";
+
+// Skip the Story 4.1 first-run onboarding overlay (these tests exercise the post-onboarding map).
+test.beforeEach(({ page }) => bypassOnboarding(page));
 
 // Story 1.3 — the map renders the Story 1.2 PMTiles with zh-TW admin-1 labels.
 // Run: pnpm exec playwright install chromium && pnpm test:e2e
