@@ -5,6 +5,7 @@ import { UserRound } from "lucide-react";
 import { Drawer } from "vaul";
 import { createClient } from "@/lib/supabase/client";
 import { useExport } from "@/features/settings/hooks/use-export";
+import { EnableNotifications } from "@/features/notifications/components/enable-notifications";
 import { useAccount } from "../hooks/use-account";
 
 // "Keep your map" sign-in (Story 2.1). A calm, local-first surface: an anonymous user enters their
@@ -203,6 +204,9 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
       {exportData.isError && (
         <p className="text-xs text-[rgb(var(--terracotta-text))]">這次沒能整理好，稍後再試一次</p>
       )}
+      {/* Enable memory notifications (Story 5.1) — a quiet rider, capability-gated; self-contained
+          so Settings (6-3) re-mounts it. Signed-in only (a subscription needs a durable account). */}
+      <EnableNotifications />
       <button
         type="button"
         onClick={signOut}

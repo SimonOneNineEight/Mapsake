@@ -48,3 +48,30 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// Memory notifications (Story 5.1). Serwist owns fetch/install/activate; push + notificationclick
+// are independent native events added alongside. The send job (Story 5.3) POSTs a JSON payload
+// { title, body, url }; we show it as a native OS notification. The real deep-link landing
+// (fly-to + glow + open-memory) is Story 5.4 — here notificationclick just opens/focuses the url.
+self.addEventListener("push", (event) => {
+  let payload: { title?: string; body?: string; url?: string } = {};
+  try {
+    payload = event.data?.json() ?? {};
+  } catch {
+    payload = { body: event.data?.text() };
+  }
+  event.waitUntil(
+    self.registration.showNotification(payload.title ?? "Mapsake", {
+      body: payload.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: payload.url ?? "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const data = event.notification.data as { url?: string } | undefined;
+  event.waitUntil(self.clients.openWindow(data?.url ?? "/"));
+});
