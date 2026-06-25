@@ -241,12 +241,19 @@ As a user, I want to export everything I've created, so that my memories are min
 **Given** Settings **When** I request an export **Then** I see "preparing your keepsake," then a downloadable file of my marks, pins, notes, dates, and photo references.
 **Given** the export **Then** it contains only my data (RLS-scoped).
 
-### Story 2.7: Merge an anonymous map into an existing account (returning user / second device)
-_Carved from Story 2.3 (2026-06-25): the cross-account merge was split out so 2.3 could ship the post-payoff prompt + the already-working in-place claim without introducing a service-role/RLS-bypass surface for a rare edge._
-As a returning user signing in on a second device, I want the marks/pins I made on this device to be added to my existing account, so that nothing is lost when my local map meets my account's map.
+### Story 2.7: Sign in to an existing account (returning user / second device)
+_Carved from Story 2.3 (2026-06-25), then split from the merge (2026-06-25, Simon's call): the returning-user SIGN-IN is the modest, unblocking half (it enables 2-4 cross-device); the risky service-role MERGE is Story 2.8. 2.7 ships the sign-in; the on-device anon map is left in place (orphaned, not destroyed) until 2.8._
+As a returning user (typically a second device) whose email/Google already has an account, I want to actually sign INTO that account, so that I reach my existing map instead of hitting a dead-end message.
 **Acceptance Criteria:**
-**Given** an anonymous session with local marks/pins **When** I sign into an account that already exists (email/Google, `email_exists`/`identity_already_exists`) **Then** I am signed into that existing account (real sign-in, not link-in-place) and its map loads.
-**Given** I have local data on this device **When** I sign into the existing account **Then** I am offered a calm, one-time "add this device's map to your account?" choice; accepting merges the local marks/pins (and photos) into the account with conflict-safe rules, and declining leaves the account untouched — never silent loss, never a nag.
+**Given** I enter an email/Google that already belongs to an account (`email_exists` / `identity_already_exists`) **When** I choose to sign in **Then** I am signed into that EXISTING account (real sign-in — `signInWithOtp` / `signInWithOAuth`, NOT link-in-place) and land on its map, cookie SSR session.
+**Given** the calm "已用此信箱註冊…" notice (Story 2.2) **Then** it leads to an actual sign-in action (not just informational); never a hard wall.
+**Given** this device had local anonymous marks/pins **When** I sign into the existing account **Then** the on-device anon data is left in place (orphaned under the anon uid, NOT destroyed) — the explicit merge of it into the account is Story 2.8 (a calm, deferred follow-up).
+
+### Story 2.8: Merge an anonymous map into an existing account (the claim merge)
+_Split from 2.7 (2026-06-25): the cross-account MERGE — the app's first SECURITY DEFINER/service-role surface — deferred so 2.7 could ship the unblocking sign-in without that risk._
+As a returning user who built something on this device before signing into my existing account, I want my local marks/pins added to my account, so that nothing I made is lost.
+**Acceptance Criteria:**
+**Given** I have on-device anon data AND I've signed into an existing account **When** the app offers a calm, one-time "add this device's map to your account?" choice **Then** accepting merges the local marks/pins (and photos) with conflict-safe rules, and declining leaves the account untouched — never silent loss, never a nag.
 **Given** the merge runs **Then** it executes server-side only (a SECURITY DEFINER RPC or service-role route, `SUPABASE_SERVICE_ROLE_KEY` never on the client), re-parents `region_marks`/`pins`/`photos` to the target uid, moves the `pin-photos` storage objects, and resets the userId-keyed caches (or forces a reload).
 
 ## Epic 3: Pin your memories (the core unit)

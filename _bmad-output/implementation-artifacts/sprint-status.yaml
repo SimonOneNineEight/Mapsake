@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 2-6 done (reviewed) — export my data
+last_updated: 2026-06-25  # 2-7 story created (ready-for-dev); 2-7 split into sign-in (2-7) + merge (2-8)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -62,9 +62,11 @@ development_status:
   2-4-cross-device-sync: backlog
   2-5-save-sync-status-durable-write-posture: done
   2-6-export-my-data: done
-  # Carved from 2-3 (2026-06-25): cross-account merge for the returning-user/second-device case —
-  # the app's first SECURITY DEFINER/service-role surface. 2-3 ships prompt + in-place claim only.
-  2-7-merge-anon-map-into-existing-account: backlog
+  # Carved from 2-3 (2026-06-25), then split (2026-06-25, Simon): 2-7 = the returning-user SIGN-IN
+  # (modest; unblocks 2-4 cross-device). 2-8 = the cross-account MERGE (the app's first SECURITY
+  # DEFINER/service-role surface) — deferred. 2-7 leaves the on-device anon map orphaned (not destroyed).
+  2-7-returning-user-sign-in-to-existing-account: ready-for-dev
+  2-8-merge-anon-map-into-existing-account: backlog
   epic-2-retrospective: optional
 
   # Epic 3 — Pin your memories (the core unit)
