@@ -42,3 +42,27 @@ export function writeDefaultView(view: DefaultView): void {
     // ignore — onboarding still proceeds for this session even if persistence fails
   }
 }
+
+// Post-payoff "keep your map" prompt (Story 2.3). Shown once, right after the onboarding payoff,
+// then suppressed forever so it never nags. Its presence marks "already prompted".
+const PROMPT_KEY = "mapsake.accountPromptSeen";
+
+/** Whether the post-payoff "keep your map" prompt has already been shown (Story 2.3). */
+export function readAccountPromptSeen(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(PROMPT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Mark the post-payoff prompt as shown so it never re-nags. Best-effort. */
+export function writeAccountPromptSeen(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PROMPT_KEY, "1");
+  } catch {
+    // ignore — a storage failure must not break the flow
+  }
+}

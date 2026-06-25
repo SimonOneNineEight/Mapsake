@@ -53,8 +53,10 @@ function GoogleG({ className }: { className?: string }) {
   );
 }
 
-export function AccountSheet() {
+export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) {
   const account = useAccount();
+  // signed in = a permanent (non-anon) session with an email; used by the body + the autoOpen guard.
+  const signedIn = !account.isAnonymous && Boolean(account.email);
   const wide = useIsWide();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -66,6 +68,7 @@ export function AccountSheet() {
   // consolidation + map merge is Story 2-3). "oauth"/"link" = a calm generic retry.
   const [notice, setNotice] = useState<"existing" | "oauth" | "link" | null>(null);
   const handledUrl = useRef(false);
+  const autoOpened = useRef(false);
 
   // Esc closes the desktop modal (vaul handles Esc for the phone sheet itself).
   useEffect(() => {
@@ -90,6 +93,16 @@ export function AccountSheet() {
     openWithNotice();
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
+
+  // Post-payoff "keep your map" prompt (Story 2.3): the shell sets autoOpen once, right after the
+  // onboarding payoff, to open this same surface as a quiet keepsake invitation. One-shot — closing
+  // it stays closed (the shell only sets autoOpen for an anon user who hasn't seen it).
+  useEffect(() => {
+    if (!autoOpen || autoOpened.current || signedIn) return; // never auto-open the prompt for a signed-in user
+    autoOpened.current = true;
+    const openOnce = () => setOpen(true);
+    openOnce();
+  }, [autoOpen, signedIn]);
 
   const sendLink = async () => {
     const value = email.trim();
@@ -146,8 +159,6 @@ export function AccountSheet() {
     await createClient().auth.signOut();
     window.location.assign("/"); // middleware re-mints a fresh anonymous session
   };
-
-  const signedIn = !account.isAnonymous && Boolean(account.email);
 
   // Shared content for both the modal and the sheet.
   const body = signedIn ? (

@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 2-3 story created (ready-for-dev); 2-7 merge carved out
+last_updated: 2026-06-25  # 2-3 done (reviewed) — post-payoff keep-your-map prompt
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -58,7 +58,7 @@ development_status:
   epic-2: in-progress  # started 2026-06-25 (after Epic 4); auth = magic-link + Google
   2-1-sign-in-with-email-magic-link: done
   2-2-sign-in-with-google: done
-  2-3-claim-your-map-link-anon-session-to-account: ready-for-dev
+  2-3-claim-your-map-link-anon-session-to-account: done
   2-4-cross-device-sync: backlog
   2-5-save-sync-status-durable-write-posture: backlog
   2-6-export-my-data: backlog

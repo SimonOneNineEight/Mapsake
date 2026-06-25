@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/features/map/components/MapCanvas";
 import { Onboarding } from "@/features/onboarding/components/onboarding";
-import { readDefaultView, writeDefaultView } from "@/features/onboarding/lib/onboarding-prefs";
+import {
+  readAccountPromptSeen,
+  readDefaultView,
+  writeAccountPromptSeen,
+  writeDefaultView,
+} from "@/features/onboarding/lib/onboarding-prefs";
+import { useAccount } from "@/features/auth/hooks/use-account";
 import { useInstallPrompt } from "@/features/onboarding/lib/use-install-prompt";
 import { PlacesPanel } from "@/features/places/components/places-panel";
 import { AccountSheet } from "@/features/auth/components/account-sheet";
@@ -33,6 +39,11 @@ export function MapMemoryShell() {
   // Imperative camera handle for the "Places visited" list (Story 4.7) — fly to a pin without
   // importing MapLibre here (it stays in features/map). MapCanvas assigns it once ready.
   const cameraRef = useRef<{ flyToPin: (lat: number, lng: number) => void } | null>(null);
+  // Post-payoff "keep your map" prompt (Story 2.3): opens the account sheet ONCE right after the
+  // onboarding payoff. Only for an anon user who hasn't seen it — never a returning/signed-in user.
+  const account = useAccount();
+  const signedIn = !account.isAnonymous && Boolean(account.email);
+  const [promptAccount, setPromptAccount] = useState(false);
 
   useEffect(() => {
     // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
@@ -55,7 +66,14 @@ export function MapMemoryShell() {
   // Backfill's 完成 advances to the gentle hand-off line (Story 4.4); dismissing it drops the
   // user into the freshly colored map. The map is the payoff — no account nudge here (Epic 2).
   const finishBackfill = () => setOnboarding("handoff");
-  const finishHandoff = () => setOnboarding(null);
+  const finishHandoff = () => {
+    setOnboarding(null);
+    // The payoff has landed — invite the anon user to keep their map (Story 2.3), once, never a nag.
+    if (!signedIn && !readAccountPromptSeen()) {
+      writeAccountPromptSeen();
+      setPromptAccount(true);
+    }
+  };
 
   return (
     <div className="flex h-full w-full">
@@ -78,7 +96,7 @@ export function MapMemoryShell() {
         )}
         {/* "Keep your map" sign-in (Story 2.1) — a quiet account affordance, never a gate;
             hidden during onboarding so the first-run payoff stays clean. */}
-        {!onboarding && <AccountSheet />}
+        {!onboarding && <AccountSheet autoOpen={promptAccount} />}
         {onboarding && (
           <Onboarding
             step={onboarding}

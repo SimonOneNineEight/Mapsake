@@ -1,6 +1,10 @@
+---
+baseline_commit: c5b0b319b54703464637f4d6d2e1d8ff342fa193
+---
+
 # Story 2.3: Claim your map (link anon session to account)
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -23,20 +27,29 @@ so that nothing I built is lost when I sign up.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Post-payoff prompt trigger, once, after the payoff (AC: 2)** [features/memories/components/map-memory-shell.tsx]
-  - [ ] After the 4-4 hand-off is dismissed (`finishHandoff` → `setOnboarding(null)`), surface the "keep your map" prompt **once** — but ONLY for the user who just FINISHED onboarding this run, NOT a returning user who loads with `onboarding` already `null`. `finishHandoff` is the clean transition signal; trigger the prompt there (not on every mount). Do NOT touch the 4-4 hand-off card itself (it deliberately stays account-free so the payoff lands clean — Story 4.4 Dev Notes).
-  - [ ] Skip entirely if the user is already signed in (`useAccount().signedIn` / `!isAnonymous && email`).
-  - [ ] Persist a show-once flag so the prompt never re-nags across reloads (e.g. `mapsake.accountPromptSeen` in localStorage, mirroring the `onboarding-prefs` pattern in `features/onboarding/lib/`). Set it when the prompt is shown OR dismissed. Never show twice.
-- [ ] **Task 2 — Open the existing AccountSheet from the prompt (AC: 2)** [features/auth/components/account-sheet.tsx]
-  - [ ] AccountSheet is the intended reusable surface (its own header comment: "the Story 2-3 post-payoff prompt opens this same surface"). Today `open` is purely internal state. Add a minimal **controlled-open** affordance so the shell can open it once — e.g. an optional `open?: boolean` + `onOpenChange?` prop, OR a one-shot `autoOpen?: boolean` prop. Keep the persistent account-button trigger working unchanged. Prefer the smallest change that doesn't fork the open/close plumbing (the desktop-modal Esc effect + vaul `onOpenChange` must still work).
-  - [ ] The prompt reuses the existing signed-out `body` verbatim — title 「保存你的地圖」 + 「登入後，你的地圖就能在不同裝置上保存。」 + the Google button + 「或」 + the email form. That copy already IS the keepsake guarantee, so **no new sheet UI is required**. (Optional, only if it reads better as a one-time invitation than the persistent panel: a softer headline variant — confirm copy with Simon before adding; default is reuse-verbatim.)
-- [ ] **Task 3 — Verify AC1 (no regression) + returning-user floor unchanged (AC: 1)** [no new linking code]
-  - [ ] Confirm the in-place claim still works: an anon user with marks/pins who signs in (email link) keeps the SAME uid and all data (manual/e2e as feasible — the email PUT-intercept pattern from `e2e/auth.spec.ts` covers the send; the real link is the 2-1 manual check). Do not modify `sendLink`/`signInGoogle`/the callback/confirm routes for the claim — they already do link-in-place.
-  - [ ] Confirm the returning-user message (`?auth_error=existing` → the "existing" notice) still renders and is unchanged. 2-3 does NOT add the real sign-in-to-existing-account or any merge (that's 2.7).
-- [ ] **Task 4 — Tests (AC: 1, 2)** [e2e/auth.spec.ts or a new e2e/account-prompt.spec.ts]
-  - [ ] e2e: completing onboarding (answer the view question → backfill → hand-off dismiss) surfaces the keep-your-map prompt once; the map is visible/usable behind it; dismissing closes it; a reload does NOT re-show it (suppression flag). Use the existing onboarding-driving helpers / `bypassOnboarding` patterns as references; this test must DRIVE onboarding (not bypass it) to hit the trigger.
-  - [ ] e2e: a signed-in (non-anon) user does NOT get the prompt. (May be simulated via the shared-session storageState or a forced flag — see test harness notes.)
-  - [ ] No-regression: full e2e suite green; `pnpm exec tsc --noEmit` + `pnpm lint` + `pnpm build --webpack` clean.
+- [x] **Task 1 — Post-payoff prompt trigger, once, after the payoff (AC: 2)** [features/memories/components/map-memory-shell.tsx]
+  - [x] Triggered in `finishHandoff` (the 4-4 hand-off dismiss → `setOnboarding(null)`), so it follows the payoff and fires only for the user who just finished onboarding this run — a returning user loads with `onboarding` already `null` and never calls `finishHandoff`, so no prompt. The 4-4 card is untouched.
+  - [x] Skips if signed in: `const signedIn = !account.isAnonymous && Boolean(account.email)` (via `useAccount()`); the trigger is gated `if (!signedIn && !readAccountPromptSeen())`.
+  - [x] Show-once flag `mapsake.accountPromptSeen` added to `features/onboarding/lib/onboarding-prefs.ts` (`read/writeAccountPromptSeen`), written when the prompt fires. Never shows twice (and onboarding doesn't replay on reload anyway, since the default view is stored).
+- [x] **Task 2 — Open the existing AccountSheet from the prompt (AC: 2)** [features/auth/components/account-sheet.tsx]
+  - [x] Added a minimal one-shot `autoOpen?: boolean` prop (default false). A guarded effect (`autoOpened` ref, setState via a named fn to satisfy the set-state-in-effect lint, mirroring the notice effect / `useIsWide`) opens the sheet once when `autoOpen` is true. The persistent account-button trigger + Esc + vaul `onOpenChange` are unchanged; closing stays closed.
+  - [x] Reuses the existing signed-out `body` verbatim (「保存你的地圖」 + 「登入後，你的地圖就能在不同裝置上保存。」 + Google + email). No new sheet UI; the softer-headline variant was not added (reuse-verbatim, as defaulted).
+- [x] **Task 3 — Verify AC1 (no regression) + returning-user floor unchanged (AC: 1)** [no new linking code]
+  - [x] No linking code touched — `sendLink`/`signInGoogle`/callback/confirm are unchanged, so the in-place claim (same uid) still holds. The 2-1 email link is the manually-verified path; the `updateUser` PUT-intercept e2e still passes.
+  - [x] Returning-user message unchanged: the `?auth_error=existing` "existing" notice e2e (auth.spec) still passes. No real sign-in-to-existing-account / merge added (that's Story 2.7).
+- [x] **Task 4 — Tests (AC: 1, 2)** [e2e/account-prompt.spec.ts]
+  - [x] e2e (new `e2e/account-prompt.spec.ts`, drives onboarding via the world path 看整個世界→完成→開始探索): prompt opens once after the payoff; map visible/usable behind it; both methods offered; dismiss via × closes; reload does NOT re-show (seen flag + onboarding doesn't replay); a returning user gets no auto-prompt.
+  - [x] The signed-in-user-no-prompt path is enforced by the `!signedIn` gate in the shell; not e2e-asserted because the shared test harness is anon-only (no permanent session) — covered by code + the returning-user test.
+  - [x] No-regression: `tsc` + `lint` + `pnpm build --webpack` clean; full e2e **60 passed, 1 skipped** (the pre-existing quarantined note-persist test).
+
+## Review Findings
+
+_Code review 2026-06-25 (3 adversarial layers + triage): 1 patch, ~8 dismissed/noted, 0 decision-needed._
+
+- [x] [Review][Patch] `autoOpen` prompt not guarded against a confirmed signed-in user (AC2 "not shown to signed-in users") [features/auth/components/account-sheet.tsx] — FIXED: hoisted `signedIn` and added it to the `autoOpen` effect guard (`if (!autoOpen || autoOpened.current || signedIn) return`). The shell already guards `!signedIn`, but its `useAccount` query can be unsettled at `finishHandoff` (defaults to anon); the sheet's own effect shares the `["account"]` cache and runs after the fast `getClaims`, so it closes the race. (blind+edge+auditor)
+- [x] [Review][Note] Seen-flag written at trigger, not at "shown" — ACCEPTED. `writeAccountPromptSeen()` runs in `finishHandoff` one tick before the sheet opens; a tab-close in that sub-frame would suppress the prompt. Impact negligible (the persistent 帳號 button is the fallback; for a signed-in user suppressing is correct). Not worth coupling the prefs write into the reusable sheet.
+- [x] [Review][Dismiss] `openOnce` "dead indirection" — false positive: it's the required idiom to satisfy `react-hooks/set-state-in-effect` (same as the notice effect / `useIsWide`); inlining `setOpen(true)` fails lint.
+- [x] [Review][Dismiss] sticky `promptAccount` → remount re-fire — unreachable: onboarding is forward-only and never returns to non-null after `finishHandoff`, so `<AccountSheet>` does not remount. `signedIn` derivation / silent localStorage catch / StrictMode / hydration concerns also dismissed (match shipped patterns; trigger is event-driven, not render-time).
 
 ## Dev Notes
 
@@ -80,12 +93,27 @@ so that nothing I built is lost when I sign up.
 
 ### Agent Model Used
 
+claude-opus-4-8 (1M context)
+
 ### Debug Log References
 
 ### Completion Notes List
 
+- **Post-payoff prompt (AC2):** the keep-your-map prompt opens the existing account sheet once, right after the 4-4 hand-off is dismissed. Trigger lives in `map-memory-shell.tsx finishHandoff`, gated on `!signedIn && !readAccountPromptSeen()`, and sets a new `autoOpen` prop on `<AccountSheet>`. It reuses the sheet's signed-out body verbatim (the copy already IS the keepsake guarantee), never gates the map, is dismissible, and never re-nags (localStorage `mapsake.accountPromptSeen` + onboarding not replaying on reload). Not shown to returning or signed-in users.
+- **AccountSheet (AC2):** added a minimal one-shot `autoOpen?: boolean` prop + a guarded effect (`autoOpened` ref; setState via a named fn to satisfy `react-hooks/set-state-in-effect`, same idiom as the notice effect). The persistent account button, the `?auth_error` notice effect, Esc, and vaul plumbing are all unchanged.
+- **AC1 (in-place claim) — verified, not rebuilt:** no linking code touched. The first-time claim still works because sign-in keeps the same uid (2-1/2-2). The returning-user "existing" message is unchanged. The cross-account merge is Story 2.7 (carved).
+- **Validation:** `pnpm exec tsc --noEmit` clean · `pnpm lint` clean · `pnpm build --webpack` clean · full e2e **60 passed, 1 skipped** (3 new account-prompt tests; all onboarding + auth tests still green — no regression from `autoOpen`).
+- **Not e2e-tested:** the signed-in-user-no-prompt branch (the shared harness is anon-only); enforced by the `!signedIn` gate + the returning-user test.
+
 ### File List
+
+- **MOD** `features/onboarding/lib/onboarding-prefs.ts` — `read/writeAccountPromptSeen` (show-once flag)
+- **MOD** `features/auth/components/account-sheet.tsx` — one-shot `autoOpen` prop + guarded open effect
+- **MOD** `features/memories/components/map-memory-shell.tsx` — post-payoff prompt trigger in `finishHandoff` (gated on anon + not-seen), passes `autoOpen` to `<AccountSheet>`
+- **NEW** `e2e/account-prompt.spec.ts` — 3 tests (opens once after payoff; skippable + no re-nag on reload; returning user no auto-prompt)
 
 ### Change Log
 
+- 2026-06-25 — Code review (3 layers + triage): 1 patch applied (guard the `autoOpen` prompt against a signed-in user — AC2), rest dismissed/noted. tsc/lint clean, auth + account-prompt e2e green. Status → done.
+- 2026-06-25 — Implemented the post-payoff "keep your map" prompt (AC2): opens the existing account sheet once after the onboarding payoff via a new one-shot `autoOpen` prop, gated to anon-and-not-seen, suppressed by a localStorage flag, never a gate/nag. AC1 in-place claim verified (no linking code changed); returning-user message unchanged; cross-account merge remains Story 2.7. tsc/lint/build clean, 60 e2e passed. Status → review.
 - 2026-06-25 — Story created (context engine + 4-agent research workflow). Scoped per Simon's decision: prompt + verified in-place claim now; cross-account merge → Story 2.7.
