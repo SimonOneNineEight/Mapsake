@@ -58,6 +58,26 @@ test("a valid email links the account and shows the sent state (Story 2.1)", asy
   expect(sawRedirect).toBeTruthy();
 });
 
+test("both Google and email sign-in are offered — no single-OAuth lock-in (Story 2.2 AC2)", async ({ page }) => {
+  await openAccountSheet(page);
+  await expect(page.getByRole("button", { name: "用 Google 登入" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();
+});
+
+test("Google sign-in initiates the OAuth redirect to /auth/callback (Story 2.2)", async ({ page }) => {
+  // Don't actually go to Google — capture the authorize navigation and abort it.
+  let authorizeUrl = "";
+  // linkIdentity navigates to .../auth/v1/user/identities/authorize?provider=google&redirect_to=…
+  await page.route("**/authorize**", async (route) => {
+    authorizeUrl = route.request().url();
+    await route.abort();
+  });
+  await openAccountSheet(page);
+  await page.getByRole("button", { name: "用 Google 登入" }).click();
+  await expect.poll(() => authorizeUrl).toContain("provider=google");
+  expect(decodeURIComponent(authorizeUrl)).toContain("/auth/callback");
+});
+
 test("an already-registered email shows the calm 'taken' message (Story 2.1)", async ({ page }) => {
   await page.route("**/auth/v1/user**", async (route) => {
     if (route.request().method() !== "PUT") return route.continue(); // only intercept updateUser

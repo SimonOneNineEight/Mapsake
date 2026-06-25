@@ -35,6 +35,8 @@ export function AccountSheet() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<SendStatus>("idle");
+  const [googleError, setGoogleError] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   // Esc closes the desktop modal (vaul handles Esc for the phone sheet itself).
   useEffect(() => {
@@ -71,6 +73,30 @@ export function AccountSheet() {
     setStatus(taken ? "error-taken" : "error"); // returning/cross-device path is Story 2-3/2-4
   };
 
+  // Google sign-in (Story 2.2): link the Google identity to the CURRENT anon user (anon→permanent,
+  // map preserved — parallel to the email link). On success supabase-js redirects the browser to
+  // Google, so no code runs after; only an error (e.g. identity already linked) returns here.
+  const signInGoogle = async () => {
+    if (googleBusy) return; // ignore double-clicks — one in-flight link at a time
+    setGoogleError(false);
+    setGoogleBusy(true);
+    try {
+      const { error } = await createClient().auth.linkIdentity({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      // On success supabase-js redirects the browser to Google — no code runs after, and we keep
+      // the button disabled through that navigation. Only an error returns here.
+      if (error) {
+        setGoogleError(true); // returning/already-linked path is Story 2-3/2-4
+        setGoogleBusy(false);
+      }
+    } catch {
+      setGoogleError(true); // network/unexpected failure — calm message, let them retry
+      setGoogleBusy(false);
+    }
+  };
+
   const signOut = async () => {
     await createClient().auth.signOut();
     window.location.assign("/"); // middleware re-mints a fresh anonymous session
@@ -101,7 +127,22 @@ export function AccountSheet() {
   ) : (
     <div className="flex flex-col gap-3">
       <h2 className="font-serif text-xl font-medium text-foreground">保存你的地圖</h2>
-      <p className="text-sm text-muted-foreground">用 email 登入，你的地圖就能在不同裝置上保存。</p>
+      <p className="text-sm text-muted-foreground">登入後，你的地圖就能在不同裝置上保存。</p>
+      {/* Google (Story 2.2) — alongside email so neither is the only path (no single-OAuth lock-in). */}
+      <button
+        type="button"
+        onClick={signInGoogle}
+        disabled={googleBusy}
+        className="rounded-md border border-border bg-background px-4 py-2 text-sm text-foreground hover:bg-accent disabled:opacity-60"
+      >
+        {googleBusy ? "前往 Google…" : "用 Google 登入"}
+      </button>
+      {googleError && (
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">Google 登入暫時無法使用，請稍後再試</p>
+      )}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />或<span className="h-px flex-1 bg-border" />
+      </div>
       <input
         type="email"
         inputMode="email"
@@ -138,7 +179,10 @@ export function AccountSheet() {
       <button
         type="button"
         aria-label="帳號"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setGoogleError(false); // don't carry a stale Google error into a fresh open
+          setOpen(true);
+        }}
         className="absolute left-4 top-16 z-20 grid h-10 w-10 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
       >
         <UserRound className="h-5 w-5" aria-hidden />

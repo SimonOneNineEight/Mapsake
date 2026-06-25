@@ -161,3 +161,7 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 1. Supabase dashboard: enable the **Email** auth provider; add `http://localhost:3000/auth/confirm` and the deploy URL to the **Redirect URLs** allowlist; set **Site URL**; confirm **anonymous sign-ins** stay enabled; check the **"Secure email change"** toggle (single-confirm expected — see deferred item above).
 2. Local prod (`pnpm build && pnpm start`): open the account sheet → enter your email → 寄送登入連結 → receive the email → click the link → confirm you land signed in (the sheet shows 「你的地圖已保存」 + your email) and the map/marks you made anonymously are still there (anon→permanent kept the uid).
 3. Reload the page → still signed in (AC2 cookie SSR persistence).
+
+## Deferred from: code review of story-2.2 (2026-06-25)
+
+- **OAuth error feedback unconsumed + already-linked copy is generic** — `app/auth/callback/route.ts` redirects failures to `/?auth_error=oauth` but nothing reads/renders that param (identical to 2-1's accepted `/?auth_error=link`), so an OAuth failure lands the user calmly on the map with no message. Separately, `account-sheet.tsx` collapses every `linkIdentity` error into one "Google 登入暫時無法使用，請稍後再試" — misleading for the *permanent* already-linked / cross-device case (it's not transient). Per spec the already-linked resolution is explicitly Story 2-3/2-4; surface a real auth_error message (covers both `=link` and `=oauth`) together with that work.
