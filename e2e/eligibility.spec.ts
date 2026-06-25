@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import {
   selectMemoryForDay,
+  memoriesSharingDay,
   type MemoryCandidate,
 } from "../features/notifications/lib/eligibility";
 
@@ -152,6 +153,48 @@ test.describe("selectMemoryForDay — tier 4 (monthly rediscovery)", () => {
       lastRediscoveryAt: null,
     });
     expect(r).toBeNull();
+  });
+});
+
+test.describe("memoriesSharingDay (Story 5.5 cohort)", () => {
+  test("includes another pin with the same anniversary month-day (any year)", () => {
+    const out = memoriesSharingDay(
+      [
+        cand({ id: "target", memoryDate: "2024-06-25" }),
+        cand({ id: "sibling", memoryDate: "2019-06-25" }),
+      ],
+      "target",
+    );
+    expect(out.map((c) => c.id)).toEqual(["sibling"]);
+  });
+
+  test("excludes the target itself, different-month, and muted pins", () => {
+    const out = memoriesSharingDay(
+      [
+        cand({ id: "target", memoryDate: "2024-06-25" }),
+        cand({ id: "other-month", memoryDate: "2024-07-25" }),
+        cand({ id: "muted-same-day", memoryDate: "2024-06-25", muted: true }),
+      ],
+      "target",
+    );
+    expect(out).toEqual([]);
+  });
+
+  test("matches on the effective date across tiers (EXIF/created), oldest first", () => {
+    const out = memoriesSharingDay(
+      [
+        cand({ id: "target", memoryDate: "2024-06-25" }),
+        cand({ id: "by-exif", exifTakenAt: "2021-06-25T10:00:00Z" }), // 2021
+        cand({ id: "by-created", createdAt: "2018-06-25T10:00:00Z" }), // 2018 — oldest
+      ],
+      "target",
+    );
+    expect(out.map((c) => c.id)).toEqual(["by-created", "by-exif"]);
+  });
+
+  test("no siblings → empty; unknown target → empty", () => {
+    expect(memoriesSharingDay([cand({ id: "lonely", memoryDate: "2024-06-25" })], "lonely")).toEqual([]);
+    expect(memoriesSharingDay([cand({ id: "a" })], "missing")).toEqual([]);
   });
 });
 

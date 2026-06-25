@@ -14,6 +14,7 @@ import { useInstallPrompt } from "@/features/onboarding/lib/use-install-prompt";
 import { PlacesPanel } from "@/features/places/components/places-panel";
 import { AccountSheet } from "@/features/auth/components/account-sheet";
 import { usePin, usePins } from "@/features/pins/queries/pins-queries";
+import { memoriesSharingDay } from "@/features/notifications/lib/eligibility";
 import { MemoryContainer } from "./memory-container";
 
 /**
@@ -57,6 +58,11 @@ export function MapMemoryShell() {
   const deepLinkPin = usePin(deepLinkPinId);
   const pinsQuery = usePins();
   const landedRef = useRef(false);
+  // Re-live cohort (Story 5.5): the landed pin + its same-anniversary siblings, in order. Drives the
+  // "N more from this day" chip + cycling. Empty for normal (non-landing) browsing. flyTarget is the
+  // currently re-lived pin's coords — set on landing AND on each cohort advance so the map re-flies.
+  const [reliveCohort, setReliveCohort] = useState<string[]>([]);
+  const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
@@ -73,18 +79,54 @@ export function MapMemoryShell() {
   }, [deepLinkPinId]);
 
   // Land the deep-link: once the pin RESOLVES from the loaded list, open its memory (+ glow, via
-  // selectedPinId). The fly is driven by MapCanvas's flyToMemoryTarget prop below. If the pins have
-  // loaded and the pin is still absent (deleted/foreign), give up calmly — nothing opens (AC4).
+  // selectedPinId), set the fly target, and build the same-day cohort for "N more from this day"
+  // (Story 5.5). If the pins have loaded and the pin is still absent (deleted/foreign), give up
+  // calmly — nothing opens (AC4). A named fn keeps the multi-setState out of the effect body.
   useEffect(() => {
     if (!deepLinkPinId || landedRef.current) return;
-    if (deepLinkPin) {
-      landedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedPinId(deepLinkPin.id);
-    } else if (pinsQuery.isSuccess) {
-      landedRef.current = true; // loaded, pin not found → land on the map, no open
-    }
-  }, [deepLinkPinId, deepLinkPin, pinsQuery.isSuccess]);
+    const land = () => {
+      if (deepLinkPin) {
+        landedRef.current = true;
+        const siblings = memoriesSharingDay(pinsQuery.data ?? [], deepLinkPin.id);
+        setReliveCohort([deepLinkPin.id, ...siblings.map((s) => s.id)]);
+        setSelectedPinId(deepLinkPin.id);
+        setFlyTarget({ lat: deepLinkPin.lat, lng: deepLinkPin.lng });
+      } else if (pinsQuery.isSuccess) {
+        landedRef.current = true; // loaded, pin not found → land on the map, no open
+      }
+    };
+    land();
+  }, [deepLinkPinId, deepLinkPin, pinsQuery.isSuccess, pinsQuery.data]);
+
+  // Advance to the next same-day memory (Story 5.5): move selection + re-fly. Cyclic over the cohort.
+  const advanceReliveCohort = () => {
+    if (selectedPinId == null || reliveCohort.length < 2) return;
+    const idx = reliveCohort.indexOf(selectedPinId);
+    if (idx === -1) return;
+    const nextId = reliveCohort[(idx + 1) % reliveCohort.length];
+    const next = (pinsQuery.data ?? []).find((p) => p.id === nextId);
+    if (!next) return;
+    setSelectedPinId(nextId);
+    setFlyTarget({ lat: next.lat, lng: next.lng });
+  };
+
+  // Closing clears the cohort so a later normal open of any pin shows no "N more" chip.
+  const closeMemory = () => {
+    setSelectedPinId(null);
+    setReliveCohort([]);
+  };
+
+  // A normal map/Places tap leaves the re-live flow → clear the cohort, so the "N more" chip stays
+  // landing-only and can't resurface when a later tap lands on a stale same-day sibling (Story 5.5).
+  // The cohort advance + the deep-link landing set selection directly, preserving the cohort.
+  const openPin = (id: string) => {
+    setReliveCohort([]);
+    setSelectedPinId(id);
+  };
+
+  // "N more from this day": shown only while the open pin is part of the re-live cohort.
+  const reliveMore =
+    selectedPinId != null && reliveCohort.includes(selectedPinId) ? reliveCohort.length - 1 : 0;
 
   // After the view question, drop into backfill (Story 4.3) — the user marks rapidly before
   // the map is "theirs". finishBackfill closes onboarding into the filled map.
@@ -113,19 +155,19 @@ export function MapMemoryShell() {
     <div className="flex h-full w-full">
       <div className="relative min-w-0 flex-1">
         <MapCanvas
-          onOpenPin={setSelectedPinId}
+          onOpenPin={openPin}
           selectedPinId={selectedPinId}
           initialView={initialView}
           pickCountry={onboarding === "pick"}
           onCountryPick={({ countryCode, lngLat }) => finishFocus(countryCode, [lngLat.lng, lngLat.lat])}
           cameraRef={cameraRef}
-          flyToMemoryTarget={deepLinkPin ? { lat: deepLinkPin.lat, lng: deepLinkPin.lng } : null}
+          flyToMemoryTarget={flyTarget}
         />
         {/* "Places visited" list (Story 4.7) — the accessible browse path. Hidden during the
             first-run onboarding so the payoff stays clean; available once the map is the user's. */}
         {!onboarding && (
           <PlacesPanel
-            onOpenPin={setSelectedPinId}
+            onOpenPin={openPin}
             onFlyToPin={(lat, lng) => cameraRef.current?.flyToPin(lat, lng)}
           />
         )}
@@ -145,7 +187,12 @@ export function MapMemoryShell() {
           />
         )}
       </div>
-      <MemoryContainer pinId={selectedPinId} onClose={() => setSelectedPinId(null)} />
+      <MemoryContainer
+        pinId={selectedPinId}
+        onClose={closeMemory}
+        reliveMore={reliveMore}
+        onReliveNext={advanceReliveCohort}
+      />
     </div>
   );
 }

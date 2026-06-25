@@ -31,9 +31,14 @@ function useIsWide() {
 export function MemoryContainer({
   pinId,
   onClose,
+  reliveMore = 0,
+  onReliveNext,
 }: {
   pinId: string | null;
   onClose: () => void;
+  // "N more from this day" (Story 5.5) — forwarded to the card; 0 hides the chip.
+  reliveMore?: number;
+  onReliveNext?: () => void;
 }) {
   const pin = usePin(pinId);
   const wide = useIsWide();
@@ -76,7 +81,13 @@ export function MemoryContainer({
         >
           ×
         </button>
-        <MemoryCard key={pin.id} pin={pin} onDeleted={onClose} />
+        <MemoryCard
+          key={pin.id}
+          pin={pin}
+          onDeleted={onClose}
+          reliveMore={reliveMore}
+          onReliveNext={onReliveNext}
+        />
       </aside>
     );
   }
@@ -118,6 +129,8 @@ export function MemoryContainer({
               }}
               onNoteBlur={() => setComposing(false)}
               onDeleted={handleClose}
+              reliveMore={reliveMore}
+              onReliveNext={onReliveNext}
             />
           </div>
         </Drawer.Content>

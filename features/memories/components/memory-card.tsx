@@ -39,11 +39,17 @@ export function MemoryCard({
   onNoteFocus,
   onNoteBlur,
   onDeleted,
+  reliveMore = 0,
+  onReliveNext,
 }: {
   pin: Pin;
   onNoteFocus?: () => void;
   onNoteBlur?: () => void;
   onDeleted?: () => void; // close the memory after a successful delete (Story 3.8)
+  // "N more from this day" (Story 5.5): on a re-live landing, the count of other same-day memories
+  // and a tap to cycle to the next one. 0 → no chip (normal browsing).
+  reliveMore?: number;
+  onReliveNext?: () => void;
 }) {
   const updatePin = useUpdatePin();
   const deletePin = useDeletePin();
@@ -156,6 +162,14 @@ export function MemoryCard({
         variant="inline"
         onRetry={() => updatePin.variables && updatePin.mutate(updatePin.variables)}
       />
+
+      {/* "N more from this day" (Story 5.5) — only on a re-live landing with same-day siblings.
+          Tapping cycles to the next same-day memory (fly + glow + open). zh-TW draft (6-1 pass). */}
+      {reliveMore > 0 && (
+        <button type="button" className={linkQuiet} onClick={onReliveNext}>
+          這天還有 {reliveMore} 個回憶 →
+        </button>
+      )}
 
       {/* Delete the memory. Name-only → no friction; content-bearing → gentle confirm.
           Hidden offline (Story 4.6) — delete is a write and needs a connection. */}

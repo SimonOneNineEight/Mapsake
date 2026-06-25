@@ -393,18 +393,22 @@ export function MapCanvas({
   // marker fade-in at 6.5), then, if the pin is still swallowed by a cluster there, zoom by the
   // cluster's expansion amount so it splits into the individual, glowing pin. A region zoom alone
   // can't guarantee declustering (clusterMaxZoom is 14), so we reuse the cluster-tap expansion.
-  // Reduced-motion → instant placement (no flying), the glow/memory still fade. Fires once.
-  const flewToMemoryRef = useRef(false);
+  // Reduced-motion → instant placement (no flying), the glow/memory still fade. Flies once per NEW
+  // target (Story 5.5 cohort cycling re-flies; an unrelated re-render with the same target does not).
+  const lastFlownRef = useRef<string | null>(null);
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || !flyToMemoryTarget || flewToMemoryRef.current) return;
-    flewToMemoryRef.current = true;
+    if (!map || !mapReady || !flyToMemoryTarget) return;
     const { lat, lng } = flyToMemoryTarget;
+    const key = `${lat},${lng}`;
+    if (lastFlownRef.current === key) return;
+    lastFlownRef.current = key;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
     // After arriving, if a cluster sits over the target, expand it so the individual pin (and its
     // glow) shows. queryRenderedFeatures needs the move to have settled, so run it on moveend.
     const declusterIfNeeded = () => {
+      if (lastFlownRef.current !== key) return; // a newer target superseded this fly → skip stale work
       const pt = map.project([lng, lat]);
       const near: [[number, number], [number, number]] = [
         [pt.x - 30, pt.y - 30],
@@ -422,10 +426,23 @@ export function MapCanvas({
         .catch((err) => console.error("[mapsake] re-live decluster failed:", err));
     };
 
-    map.once("moveend", declusterIfNeeded);
     const camera = { center: [lng, lat] as [number, number], zoom: 7.5 };
-    if (reduced) map.jumpTo(camera);
-    else map.flyTo(camera);
+    if (reduced) {
+      // Instant placement: register first so jumpTo's moveend triggers the decluster.
+      map.once("moveend", declusterIfNeeded);
+      map.jumpTo(camera);
+    } else {
+      // Register AFTER flyTo: starting a fly aborts any in-flight one and fires a synchronous
+      // moveend for the aborted move — registering after means that abort isn't mistaken for THIS
+      // fly settling (rapid cohort advances); the real moveend on completion still fires.
+      map.flyTo(camera);
+      map.once("moveend", declusterIfNeeded);
+    }
+    // Drop a not-yet-fired listener before the next target's fly so a stale decluster (closed over
+    // the previous pin) can never recentre the camera mid-advance.
+    return () => {
+      map.off("moveend", declusterIfNeeded);
+    };
   }, [flyToMemoryTarget, mapReady]);
 
   // One quiet save indicator (Story 2.5) covers marks, the pin write, AND the unmark — through the

@@ -166,3 +166,26 @@ export function selectMemoryForDay(
   const chosen = (ctx.pick ?? defaultPick)(pool);
   return toEligible(chosen, "rediscovery", null, 0);
 }
+
+/**
+ * Other memories sharing the target's anniversary day — the "N more from this day" cohort for the
+ * re-live landing (Story 5.5). Same effective-date MONTH-DAY as the target (reusing the same
+ * priority as the engine, so it matches what the sender grouped), excluding the target itself and
+ * muted pins. Stable order (oldest effective date first, then id) so cohort cycling is deterministic.
+ * Pure — no clock, no DB.
+ */
+export function memoriesSharingDay(
+  candidates: MemoryCandidate[],
+  targetId: string,
+): MemoryCandidate[] {
+  const target = candidates.find((c) => c.id === targetId);
+  if (!target) return [];
+  const t = dateParts(effectiveDate(target).iso);
+  return candidates
+    .filter((c) => c.id !== targetId && !c.muted)
+    .filter((c) => {
+      const e = dateParts(effectiveDate(c).iso);
+      return e.m === t.m && e.d === t.d;
+    })
+    .sort((a, b) => byString(effectiveDate(a).iso, effectiveDate(b).iso) || byString(a.id, b.id));
+}
