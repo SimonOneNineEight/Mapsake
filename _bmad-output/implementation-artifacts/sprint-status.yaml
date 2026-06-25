@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 2-7 done (reviewed) — returning-user sign-in
+last_updated: 2026-06-25  # 2-4 story created (ready-for-dev) — cross-device sync (verify-and-document)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -59,7 +59,7 @@ development_status:
   2-1-sign-in-with-email-magic-link: done
   2-2-sign-in-with-google: done
   2-3-claim-your-map-link-anon-session-to-account: done
-  2-4-cross-device-sync: backlog
+  2-4-cross-device-sync: ready-for-dev
   2-5-save-sync-status-durable-write-posture: done
   2-6-export-my-data: done
   # Carved from 2-3 (2026-06-25), then split (2026-06-25, Simon): 2-7 = the returning-user SIGN-IN
