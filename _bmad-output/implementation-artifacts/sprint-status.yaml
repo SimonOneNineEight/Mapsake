@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # Epic 5 started; 5-1 story created (ready-for-dev)
+last_updated: 2026-06-25  # 5-1 done (53839ed); 5-2 done (eligibility engine)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -105,7 +105,7 @@ development_status:
   # Epic 5 — The re-live loop (retention)
   epic-5: in-progress  # started 2026-06-25 (after Epic 2 v1 complete)
   5-1-push-subscription-permission: done
-  5-2-on-this-day-detection-eligibility: backlog
+  5-2-on-this-day-detection-eligibility: done
   5-3-daily-scheduler-send-notification: backlog
   5-4-deep-link-re-live-landing: backlog
   5-5-free-wandering-from-the-landing: backlog
