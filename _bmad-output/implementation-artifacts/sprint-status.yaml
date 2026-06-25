@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 2-4 done — Epic 2 v1 scope COMPLETE (only 2-8 merge deferred)
+last_updated: 2026-06-25  # Epic 2 v1 complete + retrospective done
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -67,7 +67,7 @@ development_status:
   # DEFINER/service-role surface) — deferred. 2-7 leaves the on-device anon map orphaned (not destroyed).
   2-7-returning-user-sign-in-to-existing-account: done
   2-8-merge-anon-map-into-existing-account: backlog
-  epic-2-retrospective: optional
+  epic-2-retrospective: done  # 2026-06-25 — short retro; carry-forwards logged in deferred-work.md (manual auth-config debt is the top open risk; 2-8 merge deferred)
 
   # Epic 3 — Pin your memories (the core unit)
   epic-3: in-progress
