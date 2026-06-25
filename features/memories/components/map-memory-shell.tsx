@@ -13,6 +13,7 @@ import { useAccount } from "@/features/auth/hooks/use-account";
 import { useInstallPrompt } from "@/features/onboarding/lib/use-install-prompt";
 import { PlacesPanel } from "@/features/places/components/places-panel";
 import { AccountSheet } from "@/features/auth/components/account-sheet";
+import { usePin, usePins } from "@/features/pins/queries/pins-queries";
 import { MemoryContainer } from "./memory-container";
 
 /**
@@ -45,12 +46,45 @@ export function MapMemoryShell() {
   const signedIn = !account.isAnonymous && Boolean(account.email);
   const [promptAccount, setPromptAccount] = useState(false);
 
+  // Re-live deep-link (Story 5.4): a notification opens /?pin={id}. Read it ONCE (lazy init; SSR
+  // returns null via the window guard, and it's consumed only in effects/props so there's no
+  // hydration mismatch — same approach as initialView). Used to open the memory, fly to the pin,
+  // and skip first-run onboarding.
+  const [deepLinkPinId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("pin") || null;
+  });
+  const deepLinkPin = usePin(deepLinkPinId);
+  const pinsQuery = usePins();
+  const landedRef = useRef(false);
+
   useEffect(() => {
     // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
     // hydration mismatch / overlay flash for returning users — the legitimate effect-setState.
+    // A deep-link arrival (?pin=) skips the first-run question: the tap is intentful and the pin
+    // is the user's own, so don't interrupt with onboarding (Story 5.4).
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (readDefaultView() === null) setOnboarding("question");
-  }, []);
+    if (readDefaultView() === null && !deepLinkPinId) setOnboarding("question");
+  }, [deepLinkPinId]);
+
+  // Scrub ?pin= from the URL once handled so a refresh/back won't re-trigger the landing.
+  useEffect(() => {
+    if (deepLinkPinId) window.history.replaceState(null, "", window.location.pathname);
+  }, [deepLinkPinId]);
+
+  // Land the deep-link: once the pin RESOLVES from the loaded list, open its memory (+ glow, via
+  // selectedPinId). The fly is driven by MapCanvas's flyToMemoryTarget prop below. If the pins have
+  // loaded and the pin is still absent (deleted/foreign), give up calmly — nothing opens (AC4).
+  useEffect(() => {
+    if (!deepLinkPinId || landedRef.current) return;
+    if (deepLinkPin) {
+      landedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedPinId(deepLinkPin.id);
+    } else if (pinsQuery.isSuccess) {
+      landedRef.current = true; // loaded, pin not found → land on the map, no open
+    }
+  }, [deepLinkPinId, deepLinkPin, pinsQuery.isSuccess]);
 
   // After the view question, drop into backfill (Story 4.3) — the user marks rapidly before
   // the map is "theirs". finishBackfill closes onboarding into the filled map.
@@ -85,6 +119,7 @@ export function MapMemoryShell() {
           pickCountry={onboarding === "pick"}
           onCountryPick={({ countryCode, lngLat }) => finishFocus(countryCode, [lngLat.lng, lngLat.lat])}
           cameraRef={cameraRef}
+          flyToMemoryTarget={deepLinkPin ? { lat: deepLinkPin.lat, lng: deepLinkPin.lng } : null}
         />
         {/* "Places visited" list (Story 4.7) — the accessible browse path. Hidden during the
             first-run onboarding so the payoff stays clean; available once the map is the user's. */}

@@ -271,6 +271,9 @@ export function buildStyle(pmtilesUrl: string): StyleSpecification {
           "circle-radius": 11,
           "circle-color": MAP_COLORS.accent,
           "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 6.5, 0.35],
+          // Gentle fade as the glow appears on selection / a re-live landing (Story 5.4) — an
+          // opacity fade is reduced-motion-safe (only the camera fly degrades to a jump).
+          "circle-opacity-transition": { duration: 280, delay: 0 },
         },
       },
       {

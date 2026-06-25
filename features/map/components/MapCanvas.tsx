@@ -38,6 +38,7 @@ export function MapCanvas({
   onCountryPick,
   initialView,
   cameraRef,
+  flyToMemoryTarget,
 }: {
   onOpenPin?: (pinId: string) => void; // tap an individual pin → open its memory (Story 3.4)
   selectedPinId?: string | null; // the opened pin → drives the accent glow layer
@@ -47,6 +48,9 @@ export function MapCanvas({
   // Imperative camera handle (Story 4.7): the Places list flies to a pin without importing MapLibre
   // (kept confined to features/map). Assigned once the map is ready, cleared on teardown.
   cameraRef?: React.MutableRefObject<{ flyToPin: (lat: number, lng: number) => void } | null>;
+  // Re-live deep-link target (Story 5.4): the landed pin's coords. The map flies to it once IT is
+  // ready (so there's no race with the cameraRef being assigned at load), then once only.
+  flyToMemoryTarget?: { lat: number; lng: number } | null;
 } = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
@@ -384,6 +388,45 @@ export function MapCanvas({
       ["==", ["get", "id"], selectedPinId ?? ""],
     ]);
   }, [selectedPinId, mapReady]);
+
+  // Re-live deep-link landing (Story 5.4): fly to the target pin's region (zoom 7.5 — past the
+  // marker fade-in at 6.5), then, if the pin is still swallowed by a cluster there, zoom by the
+  // cluster's expansion amount so it splits into the individual, glowing pin. A region zoom alone
+  // can't guarantee declustering (clusterMaxZoom is 14), so we reuse the cluster-tap expansion.
+  // Reduced-motion → instant placement (no flying), the glow/memory still fade. Fires once.
+  const flewToMemoryRef = useRef(false);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !flyToMemoryTarget || flewToMemoryRef.current) return;
+    flewToMemoryRef.current = true;
+    const { lat, lng } = flyToMemoryTarget;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
+    // After arriving, if a cluster sits over the target, expand it so the individual pin (and its
+    // glow) shows. queryRenderedFeatures needs the move to have settled, so run it on moveend.
+    const declusterIfNeeded = () => {
+      const pt = map.project([lng, lat]);
+      const near: [[number, number], [number, number]] = [
+        [pt.x - 30, pt.y - 30],
+        [pt.x + 30, pt.y + 30],
+      ];
+      const clusterId = map.queryRenderedFeatures(near, { layers: ["pins-cluster"] })[0]?.properties
+        ?.cluster_id;
+      if (clusterId == null) return; // target renders individually → its glow already shows
+      const src = map.getSource("pins") as import("maplibre-gl").GeoJSONSource | undefined;
+      src
+        ?.getClusterExpansionZoom(clusterId)
+        .then((z) =>
+          map.easeTo({ center: [lng, lat], zoom: Math.max(z, 7.5), duration: reduced ? 0 : 600 }),
+        )
+        .catch((err) => console.error("[mapsake] re-live decluster failed:", err));
+    };
+
+    map.once("moveend", declusterIfNeeded);
+    const camera = { center: [lng, lat] as [number, number], zoom: 7.5 };
+    if (reduced) map.jumpTo(camera);
+    else map.flyTo(camera);
+  }, [flyToMemoryTarget, mapReady]);
 
   // One quiet save indicator (Story 2.5) covers marks, the pin write, AND the unmark — through the
   // shared SaveStatus. Unmark (destructive, rare) takes display priority; otherwise marks + pins
