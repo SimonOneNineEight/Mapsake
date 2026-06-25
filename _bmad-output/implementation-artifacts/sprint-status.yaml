@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-24  # Epic 4 COMPLETE (4-1..4-7 done)
+last_updated: 2026-06-25  # Epic 4 complete + retrospective done
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -95,7 +95,7 @@ development_status:
   4-5-pwa-install-nudge-installable-shell: done
   4-6-offline-read-only-shell-write-banner: done
   4-7-places-visited-list-view: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done  # 2026-06-25 — short retro; carry-forwards logged
 
   # Epic 5 — The re-live loop (retention)
   epic-5: backlog
