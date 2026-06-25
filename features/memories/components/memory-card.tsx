@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { SaveStatus } from "@/components/save-status";
 import { PhotoUploader } from "./photo-uploader";
 
 // zh-TW date display for a YYYY-MM-DD `memory_date` (no "Date: —" when absent).
@@ -141,18 +142,20 @@ export function MemoryCard({
           Offline: read-only grid (no add/delete) per Story 4.6. */}
       <PhotoUploader pinId={pin.id} readOnly={offline} />
 
-      {/* Quiet durable-write status (ack-gated "saved"; calm retry on failure). */}
-      {updatePin.isPending && <p className="text-xs text-muted-foreground">儲存中…</p>}
-      {updatePin.isSuccess && <p className="text-xs text-muted-foreground">已儲存</p>}
-      {updatePin.isError && (
-        <button
-          type="button"
-          className="self-start text-xs text-[rgb(var(--terracotta-text))]"
-          onClick={() => updatePin.variables && updatePin.mutate(updatePin.variables)}
-        >
-          無法儲存，重試
-        </button>
-      )}
+      {/* Quiet durable-write status (ack-gated "saved"; calm retry on failure) — shared surface. */}
+      <SaveStatus
+        phase={
+          updatePin.isPending
+            ? "pending"
+            : updatePin.isError
+              ? "error"
+              : updatePin.isSuccess
+                ? "success"
+                : "idle"
+        }
+        variant="inline"
+        onRetry={() => updatePin.variables && updatePin.mutate(updatePin.variables)}
+      />
 
       {/* Delete the memory. Name-only → no friction; content-bearing → gentle confirm.
           Hidden offline (Story 4.6) — delete is a write and needs a connection. */}
@@ -165,16 +168,13 @@ export function MemoryCard({
           >
             刪除回憶
           </button>
-          {deletePin.isPending && <p className="text-xs text-muted-foreground">刪除中…</p>}
-          {deletePin.isError && (
-            <button
-              type="button"
-              className="self-start text-xs text-[rgb(var(--terracotta-text))]"
-              onClick={runDelete}
-            >
-              無法刪除，重試
-            </button>
-          )}
+          {/* Delete status — no "saved" success (the card closes on a successful delete). */}
+          <SaveStatus
+            phase={deletePin.isPending ? "pending" : deletePin.isError ? "error" : "idle"}
+            kind="delete"
+            variant="inline"
+            onRetry={runDelete}
+          />
         </div>
       )}
 

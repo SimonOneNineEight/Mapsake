@@ -9,6 +9,8 @@ import {
   useAddRegionMark,
   useRegionMarks,
   useUnmarkRegion,
+  type AddRegionMarkInput,
+  type UnmarkRegionInput,
 } from "@/features/regions/queries/region-marks-queries";
 import { useAddPin, usePins } from "@/features/pins/queries/pins-queries";
 import type { Pin } from "@/data/pins";
@@ -16,7 +18,8 @@ import type { DefaultView } from "@/features/onboarding/lib/onboarding-prefs";
 import { AddPinButton } from "@/features/pins/components/add-pin-button";
 import { PinNameInput } from "@/features/pins/components/pin-name-input";
 import { RegionRemoveDialog } from "@/features/regions/components/region-remove-dialog";
-import { MarkStatus, type MarkPhase } from "@/features/regions/components/mark-status";
+import { SaveStatus, type SavePhase } from "@/components/save-status";
+import { useOffline } from "@/features/pwa/use-offline";
 import { useSessionUserId } from "@/features/auth/hooks/use-session-user";
 
 // pmtiles protocol is a global singleton on the maplibre instance — register once.
@@ -51,7 +54,9 @@ export function MapCanvas({
   // reads it without making it a dependency (a later initialView change must not rebuild the map).
   const initialViewRef = useRef(initialView);
   const [mapReady, setMapReady] = useState(false);
-  const [offline, setOffline] = useState(false);
+  // One connectivity signal (Story 2.5) — was a duplicate local listener; now the shared hook
+  // that also gates the memory-card/photo writes. Starts false on SSR/first paint (no flash).
+  const offline = useOffline();
 
   const { data: marks } = useRegionMarks();
   const addMark = useAddRegionMark();
@@ -64,6 +69,36 @@ export function MapCanvas({
   const [pendingUnmark, setPendingUnmark] = useState<
     { regionCode: string; level: "country" | "admin1"; name: string; pins: Pin[] } | null
   >(null);
+  // Durable-write retain+retry (Story 2.5). Region-mark writes are keyed by regionCode|level so a
+  // NON-latest failed tap during rapid backfill is still retained + retryable (the single mutation
+  // instance only tracks the latest — the Story 1.5 silent-loss gap). A failed unmark is likewise
+  // retained for a calm retry (the Story 3.10 gap, which had no error surface before).
+  const [failedMarks, setFailedMarks] = useState<AddRegionMarkInput[]>([]);
+  const [failedUnmark, setFailedUnmark] = useState<UnmarkRegionInput | null>(null);
+  const markKey = (m: { regionCode: string; level: string }) => `${m.regionCode}|${m.level}`;
+
+  // Fire a region-mark write, tracking failure BY REGION KEY so a non-latest failed tap is
+  // retained + retryable (the optimistic fill already stays; this adds the missing retry signal).
+  const runMark = (region: AddRegionMarkInput) => {
+    addMark
+      .mutateAsync(region)
+      .then(() => setFailedMarks((f) => f.filter((x) => markKey(x) !== markKey(region))))
+      .catch(() =>
+        setFailedMarks((f) =>
+          f.some((x) => markKey(x) === markKey(region)) ? f : [...f, region],
+        ),
+      );
+  };
+  const retryMarks = () => {
+    const queued = failedMarks;
+    setFailedMarks([]);
+    queued.forEach(runMark);
+  };
+  // Fire an unmark, retaining its input for a calm retry on failure (Story 3.10 gap).
+  const runUnmark = (input: UnmarkRegionInput) => {
+    setFailedUnmark(null);
+    unmarkRegion.mutateAsync(input).catch(() => setFailedUnmark(input));
+  };
   // Drop mode (Story 3.1): while ON, the next map tap lands a pin instead of marking.
   const [dropMode, setDropMode] = useState(false);
   // Ref mirror so the once-attached pins-cluster click listener can read the latest dropMode.
@@ -107,7 +142,7 @@ export function MapCanvas({
       if (!hasMark && inRegion.length === 0) return; // not visited → no-op
       if (inRegion.length === 0) {
         // Bare mark → remove with no friction.
-        unmarkRegion.mutate({ regionCode: region.regionCode, level: region.level, pins: [] });
+        runUnmark({ regionCode: region.regionCode, level: region.level, pins: [] });
         return;
       }
       // Holds pins → confirm, naming the loss. Pull a zh-TW label off the fill feature.
@@ -153,7 +188,7 @@ export function MapCanvas({
       if (map.queryRenderedFeatures(point, { layers: ["pins-marker", "pins-cluster"] }).length > 0)
         return;
       const region = regionFromPoint(map, point);
-      if (region) addMark.mutate(region);
+      if (region) runMark(region);
     };
   });
 
@@ -305,18 +340,6 @@ export function MapCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Track connectivity for the write-disabled banner.
-  useEffect(() => {
-    const update = () => setOffline(typeof navigator !== "undefined" && !navigator.onLine);
-    update();
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
-  }, []);
-
   // Apply visited feature-state (drives the terracotta fill + hatch) from BOTH explicit marks
   // AND pins (Story 3.9 roll-up). The derived set is recomputed on every marks/pins change, so
   // dropping a pin lights its region+country and removing the last contributing pin clears it.
@@ -362,21 +385,35 @@ export function MapCanvas({
     ]);
   }, [selectedPinId, mapReady]);
 
-  const toPhase = (m: { isPending: boolean; isError: boolean; isSuccess: boolean }): MarkPhase =>
-    m.isPending ? "pending" : m.isError ? "error" : m.isSuccess ? "success" : "idle";
-  // One quiet save indicator covers both writes (they're sequential user actions). Show the
-  // pin write when it's in flight/recent, else the region-mark write. Retry targets whichever
-  // is showing — so a failed pin write gets the same calm retry as a mark (durable-write, AC4).
-  const pinPhase = toPhase(addPin);
-  const showingPin = pinPhase !== "idle";
-  const phase: MarkPhase = showingPin ? pinPhase : toPhase(addMark);
-  const onRetry = () => {
-    if (showingPin) {
-      if (addPin.variables) addPin.mutate(addPin.variables);
-    } else if (addMark.variables) {
-      addMark.mutate(addMark.variables);
-    }
-  };
+  // One quiet save indicator (Story 2.5) covers marks, the pin write, AND the unmark — through the
+  // shared SaveStatus. Unmark (destructive, rare) takes display priority; otherwise marks + pins
+  // share the "save" pill. Errors come from the KEYED failure state (failedMarks/failedUnmark) so a
+  // non-latest failed write is represented, not just the latest mutation instance.
+  let savePhase: SavePhase;
+  let saveKind: "save" | "remove";
+  let onRetry: () => void;
+  if (unmarkRegion.isPending || failedUnmark) {
+    saveKind = "remove";
+    savePhase = unmarkRegion.isPending ? "pending" : "error";
+    onRetry = () => {
+      if (failedUnmark) runUnmark(failedUnmark);
+    };
+  } else {
+    saveKind = "save";
+    const saving = addMark.isPending || addPin.isPending;
+    const errored = failedMarks.length > 0 || addPin.isError;
+    savePhase = saving
+      ? "pending"
+      : errored
+        ? "error"
+        : addMark.isSuccess || addPin.isSuccess
+          ? "success"
+          : "idle";
+    onRetry = () => {
+      if (addPin.isError && addPin.variables) addPin.mutate(addPin.variables);
+      if (failedMarks.length > 0) retryMarks();
+    };
+  }
 
   return (
     <div className="relative h-full w-full">
@@ -390,7 +427,7 @@ export function MapCanvas({
           僅供瀏覽 — 重新連線後可標記
         </div>
       )}
-      <MarkStatus phase={phase} onRetry={onRetry} />
+      <SaveStatus phase={savePhase} kind={saveKind} onRetry={onRetry} />
       {/* "+ add memory" affordance — the deliberate entry into drop mode (Story 3.1).
           Bottom-right so it clears the bottom-center save indicator. */}
       <div className="absolute bottom-6 right-4">
@@ -423,7 +460,7 @@ export function MapCanvas({
         pinCount={pendingUnmark?.pins.length ?? 0}
         onConfirm={() => {
           if (pendingUnmark && !offline) {
-            unmarkRegion.mutate({
+            runUnmark({
               regionCode: pendingUnmark.regionCode,
               level: pendingUnmark.level,
               pins: pendingUnmark.pins,

@@ -34,7 +34,10 @@ export interface AddRegionMarkInput {
  * Mark a region visited. Optimistic: the mark lands in the cache immediately so the
  * fill animates in before the server acks. Durable-write contract: on failure we
  * KEEP the optimistic edit (no rollback) and surface a calm retry — never flash the
- * region back to unvisited. Invalidate only on success (ack) to reconcile with truth.
+ * region back to unvisited. We do NOT invalidate-and-refetch on success: the optimistic
+ * row already matches the server (the write is an idempotent upsert keyed by region+level),
+ * and a per-tap refetch would briefly drop a concurrent in-flight tap's optimistic mark —
+ * the transient-unvisited flash (Story 1.5/2.5 fix). Reads reconcile on mount/refocus.
  */
 export function useAddRegionMark() {
   const queryClient = useQueryClient();
@@ -62,9 +65,8 @@ export function useAddRegionMark() {
       }
       return { prev };
     },
-    // Reconcile with the server only after a confirmed write (ack).
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
-    // No onError rollback: retain the optimistic mark; the UI offers a calm retry.
+    // No onSuccess invalidate (flash fix) and no onError rollback: the optimistic mark is the
+    // durable truth on ack; on failure it's retained and the UI (MapCanvas) offers a calm retry.
     retry: 1,
   });
 }
@@ -80,8 +82,8 @@ export interface UnmarkRegionInput {
  * the region (rows cascade their photo rows; bucket objects cleaned). The land returns to bare
  * via the Story 3.9 derive once both caches drop their contributors. Optimistic, and — like
  * the other deletes (Story 3.8) — ROLLS BACK on failure (a failed removal must not look
- * successful). NOTE: there is no retry UI for unmark yet — the rollback is the only signal;
- * a calm error/retry surface is deferred to the offline/error-state work (deferred-work.md).
+ * successful). A failed unmark now surfaces a calm retry (Story 2.5): MapCanvas retains the input
+ * in `failedUnmark` and SaveStatus renders a tappable 「無法移除，重試」 (closing the Story 3.10 gap).
  * `onSettled` invalidates both caches so a PARTIAL multi-delete failure reconciles to server
  * truth (a deleted pin's marker can't linger after the optimistic rollback over-restores).
  */

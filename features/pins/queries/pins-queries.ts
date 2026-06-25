@@ -39,7 +39,9 @@ export interface AddPinInput {
  * Drop a named pin. Optimistic: the pin lands in the cache immediately (with a temp
  * client id) so it renders before the server acks. Durable-write contract: on failure
  * we KEEP the optimistic pin (no rollback) and surface a calm retry — never silently
- * drop it. Invalidate on success (ack) to swap the temp pin for the real server row.
+ * drop it. On ack we SWAP the temp pin for the server row in place via setQueryData (not
+ * invalidate-and-refetch), reconciling the temp id → real id with no double-render flash
+ * (Story 3.1/2.5 fix).
  */
 export function useAddPin() {
   const queryClient = useQueryClient();
@@ -51,10 +53,11 @@ export function useAddPin() {
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: key });
       const prev = queryClient.getQueryData<Pin[]>(key) ?? [];
+      const tempId = crypto.randomUUID(); // replaced by the server row's id on ack
       if (userId) {
         const now = new Date().toISOString();
         const optimistic: Pin = {
-          id: crypto.randomUUID(), // temp; replaced by the server row on ack (invalidate)
+          id: tempId,
           userId,
           name: input.name,
           lat: input.lat,
@@ -70,10 +73,17 @@ export function useAddPin() {
         };
         queryClient.setQueryData<Pin[]>(key, [...prev, optimistic]);
       }
-      return { prev };
+      return { prev, tempId };
     },
-    // Reconcile with the server only after a confirmed write (ack) — swaps temp id for real.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    // Swap the temp pin for the server row in place — reconciles the temp→real id with no
+    // refetch flash. Idempotent: drop the temp entry AND any existing server row (a window-focus
+    // refetch during the add could already have landed it) before appending, so we never duplicate.
+    onSuccess: (serverPin, _input, ctx) => {
+      queryClient.setQueryData<Pin[]>(key, (cur) => {
+        const list = (cur ?? []).filter((p) => p.id !== ctx?.tempId && p.id !== serverPin.id);
+        return [...list, serverPin];
+      });
+    },
     // No onError rollback: retain the optimistic pin; the UI offers a calm retry.
     retry: 1,
   });
