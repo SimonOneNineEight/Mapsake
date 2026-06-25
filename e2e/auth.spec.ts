@@ -84,7 +84,7 @@ test("returning from Google with an already-registered email opens a calm sign-i
   await expect(page.getByTestId("map-canvas")).toBeVisible();
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   // The sheet auto-opens with the calm "you already have an account" message…
-  await expect(page.getByText("這個信箱已經有帳號了，用原本的方式登入就能回到你的地圖。")).toBeVisible();
+  await expect(page.getByText("已用此信箱註冊，使用信箱登入回到你的地圖。")).toBeVisible();
   // …and both sign-in methods stay available (never a hard wall).
   await expect(page.getByRole("button", { name: "用 Google 登入" })).toBeVisible();
   await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();

@@ -153,7 +153,7 @@ export function AccountSheet() {
           their original method; the actual sign-in + map merge is Story 2-3. */}
       {notice === "existing" && (
         <p className="text-sm text-[rgb(var(--terracotta-text))]">
-          這個信箱已經有帳號了，用原本的方式登入就能回到你的地圖。
+          已用此信箱註冊，使用信箱登入回到你的地圖。
         </p>
       )}
       {notice === "oauth" && (
