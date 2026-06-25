@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { UserRound } from "lucide-react";
 import { Drawer } from "vaul";
 import { createClient } from "@/lib/supabase/client";
+import { useExport } from "@/features/settings/hooks/use-export";
 import { useAccount } from "../hooks/use-account";
 
 // "Keep your map" sign-in (Story 2.1). A calm, local-first surface: an anonymous user enters their
@@ -69,6 +70,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
   const [notice, setNotice] = useState<"existing" | "oauth" | "link" | null>(null);
   const handledUrl = useRef(false);
   const autoOpened = useRef(false);
+  const exportData = useExport(); // "export my data" (Story 2.6) — signed-in only
 
   // Esc closes the desktop modal (vaul handles Esc for the phone sheet itself).
   useEffect(() => {
@@ -165,6 +167,19 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
     <div className="flex flex-col gap-3">
       <h2 className="font-serif text-xl font-medium text-foreground">你的地圖已保存</h2>
       <p className="text-sm text-muted-foreground">已登入：{account.email}</p>
+      {/* Export my data (Story 2.6) — the keepsake trust guarantee: your memories are yours to take.
+          A client-side, RLS-scoped JSON of marks/pins/notes/dates/photo refs. */}
+      <button
+        type="button"
+        onClick={() => exportData.mutate()}
+        disabled={exportData.isPending}
+        className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
+      >
+        {exportData.isPending ? "正在為你整理回憶…" : "匯出我的回憶"}
+      </button>
+      {exportData.isError && (
+        <p className="text-xs text-[rgb(var(--terracotta-text))]">這次沒能整理好，稍後再試一次</p>
+      )}
       <button
         type="button"
         onClick={signOut}

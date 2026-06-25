@@ -1,6 +1,10 @@
+---
+baseline_commit: 236c00a
+---
+
 # Story 2.6: Export my data
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -25,17 +29,27 @@ so that my memories are mine to take.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Export gather + payload builder (AC: 2, 3)** [data/export.ts (NEW)]
-  - [ ] Add `data/export.ts` composing the existing data-boundary fns (no new `createClient` import — preserve the data-boundary rule). A **pure** `buildExportPayload(marks, pins, photos, meta)` → the versioned envelope (testable in isolation), and `gatherExport()` that calls `listRegionMarks()` + `listPins()` (from `@/data/region-marks`, `@/data/pins`), fans out `listPhotos(pin.id)` over the pins via `Promise.all` (bounded — there is NO list-all-photos helper; `listPhotos` requires a pinId), then `buildExportPayload(...)`.
-  - [ ] Envelope: `{ mapsakeExportVersion: 1, exportedAt: <ISO>, userId, regionMarks, pins, photos }`. Photos carry `{ id, pinId, storagePath, width, height, takenAt, sortOrder }` (refs, no binaries, no signed URLs). Preserve nulls faithfully (note/memoryDate/exifTakenAt/country/region can be null) so a future re-import round-trips.
-- [ ] **Task 2 — Export hook (state + download side-effect) (AC: 1)** [features/settings/hooks/use-export.ts (NEW)]
-  - [ ] Thin `"use client"` hook: an idle→preparing→done/error state (a `useMutation` or a small busy flag) wrapping `gatherExport()`, then the browser download (`Blob([JSON.stringify(payload, null, 2)], {type:"application/json"})` → `URL.createObjectURL` → transient `<a download=...>` click → `revokeObjectURL`). The DOM/download side-effect lives ONLY here (never in `data/`). Mirror the hook conventions in `features/pins/queries`.
-- [ ] **Task 3 — Trigger in the account sheet (AC: 1)** [features/auth/components/account-sheet.tsx]
-  - [ ] In the `signedIn` body (the 你的地圖已保存 block with 已登入 + 登出), add a calm export button wired to `use-export`, with the preparing/done/error states reflected in its label. Match the existing quiet button styling (terracotta link / the 登出 treatment). zh-TW drafts (native pass pre-launch, per EXPERIENCE.md line 43): trigger 「匯出我的回憶」; preparing 「正在為你整理回憶…」; done 「你的回憶準備好了」; error (calm, never imply loss) 「這次沒能整理好，稍後再試一次」. Reuse the shared `SaveStatus`-style calm error tone if it fits, else inline.
-- [ ] **Task 4 — Tests (AC: 2, 3)** [e2e/export.spec.ts (NEW) + in-browser pure test]
-  - [ ] In-browser pure test (the rollup/pins `page.evaluate` pattern): `buildExportPayload(marks, pins, photos, meta)` → assert the envelope shape (version, ISO `exportedAt`, the three arrays present), nulls preserved, photos carry `storagePath` and NOT a binary/blob, and an empty input → empty arrays (the "only what's passed / only my data" property). Import the pure fn into the test page.
-  - [ ] Note: the signed-in trigger + the actual download are a manual check (the e2e harness is anon-only — no permanent session — the same limitation noted for the 2-3 signed-in path). Assert via code review that the button is gated to the `signedIn` branch.
-  - [ ] No-regression: `pnpm exec tsc --noEmit` + `pnpm lint` + `pnpm build --webpack` clean; full e2e suite green.
+- [x] **Task 1 — Export gather + payload builder (AC: 2, 3)** [data/export.ts (NEW), data/gather-export.ts (NEW)]
+  - [x] Split into a PURE builder + a gather: `data/export.ts` holds `buildExportPayload(marks, pins, photos, meta)` + `ExportPayload` with **type-only** domain imports (no Supabase/runtime load → unit-testable in Node). `data/gather-export.ts` holds `gatherExport(userId, meta?)` composing `listRegionMarks()` + `listPins()` + `Promise.all(pins.map(p => listPhotos(p.id)))` (no list-all helper exists) → `buildExportPayload`. No new `createClient` import in either (boundary preserved).
+  - [x] Envelope: `{ mapsakeExportVersion: 1, exportedAt: <ISO>, userId, regionMarks, pins, photos }`. Per-row `userId` stripped (envelope-level). Photos = `{ id, pinId, storagePath, width, height, takenAt, sortOrder }` (refs, no binaries, no signed URLs). Nulls preserved (note/memoryDate/exifTakenAt/country/region) for round-trip.
+- [x] **Task 2 — Export hook (state + download side-effect) (AC: 1)** [features/settings/hooks/use-export.ts (NEW)]
+  - [x] `useExport()`: a `useMutation` (idle→isPending→isSuccess/isError) wrapping `gatherExport(userId)` (userId from `useSessionUserId`), then the browser download (`Blob` → `URL.createObjectURL` → transient `<a download="mapsake-export-YYYY-MM-DD.json">` → `revokeObjectURL`). The DOM side-effect lives only here. Under `features/settings/` so Story 6-3 re-mounts it unchanged.
+- [x] **Task 3 — Trigger in the account sheet (AC: 1)** [features/auth/components/account-sheet.tsx]
+  - [x] Added 「匯出我的回憶」 to the `signedIn` body (between 已登入 and 登出), wired to `useExport`; the label shows 「正在為你整理回憶…」 while pending (disabled), and a calm inline 「這次沒能整理好，稍後再試一次」 on error (never implies loss). Quiet terracotta-link styling matching 登出. Signed-in-only by placement.
+- [x] **Task 4 — Tests (AC: 2, 3)** [e2e/export.spec.ts (NEW)]
+  - [x] Node-side pure test (the rollup-derivation pattern, importing `buildExportPayload` from `../data/export`): the versioned envelope shape, per-row `userId` stripped, notes/dates + nulls preserved, photos are `storagePath` refs (no `url`/`blob`), and empty input → empty arrays (the "only what's passed / only my data" property).
+  - [x] The signed-in trigger + the actual download are a manual check (the e2e harness is anon-only — no permanent session — the same limitation as the 2-3 signed-in path); the button is gated to the `signedIn` branch (verified).
+  - [x] No-regression: `tsc` + `lint` + `pnpm build --webpack` clean; full e2e **65 passed, 1 skipped** (one known timing flake passed on retry; confirmed clean in isolation).
+
+## Review Findings
+
+_Code review 2026-06-25 (3 adversarial layers + triage): 2 patches, rest accept/dismiss; auditor verified all 3 ACs clean (RLS-scoped, no service role, no server route, calm tone)._
+
+- [x] [Review][Patch] N+1 photo fan-out in `gatherExport` (one `listPhotos` per pin) [data/gather-export.ts, data/photos.ts] — FIXED: added `listAllPhotos()` (ONE RLS-scoped query for all the user's photos, ordered pin→sort) and switched the gather to it; the three reads now run as one `Promise.all`. (blind+edge, the most-cited finding)
+- [x] [Review][Patch] Object URL leak if a download step throws [features/settings/hooks/use-export.ts] — FIXED: wrapped the anchor lifecycle in `try/finally` so `URL.revokeObjectURL` always runs. (blind+edge, Low)
+- [x] [Review][Dismiss] Top-level `userId` in the envelope — intentional: it's the user's OWN id in their OWN export (aids a future re-import), not a leak; the per-row strip was to avoid redundancy, not privacy. (blind, Low)
+- [x] [Review][Dismiss] Region-marks "completeness" — the export carries the raw `region_marks` AND the raw `pins`; the visited roll-up is a pure derivation of those, so nothing is lost (it re-derives from the file). (auditor)
+- [x] [Review][Accept] No success toast (the browser download is the signal — within AC1's request→preparing→download); UTC filename date (cosmetic; the precise `exportedAt` is in the file); non-atomic read snapshot (benign for a single-user export, and the one-query photos read narrows the window). (auditor/blind, Low/informational)
 
 ## Dev Notes
 
@@ -73,12 +87,28 @@ so that my memories are mine to take.
 
 ### Agent Model Used
 
+claude-opus-4-8 (1M context)
+
 ### Debug Log References
 
 ### Completion Notes List
 
+- **Client-side, RLS-scoped, no new infra:** the export reads the user's own rows through the existing `data/*` boundary under their session, so "only my data" holds for free — no service role, no server route. Photos are references (`storage_path` + metadata), not binaries.
+- **Pure builder split out for testability:** `data/export.ts` (`buildExportPayload` + `ExportPayload`, type-only imports → Node-importable with no Supabase load) vs `data/gather-export.ts` (`gatherExport`, the runtime reads). This is what let the envelope logic be unit-tested in Node.
+- **Trigger:** 「匯出我的回憶」 in the account sheet's signed-in body (no dependency on the unbuilt Settings 6-3); preparing/error states inline; the download is a `Blob` + transient `<a download>`.
+- **Deferred (documented):** photo binaries / zip (a complete takeaway), in-file signed URLs (they expire), and relocating the control into the real Settings home (Story 6-3). The v1 export is a faithful refs manifest.
+- **Validation:** `tsc` clean · `pnpm lint` clean · `pnpm build --webpack` clean · full e2e **65 passed, 1 skipped** (the date-persist flake passed on retry; memory.spec re-run clean in isolation). 3 new pure export tests.
+
 ### File List
+
+- **NEW** `data/export.ts` — pure `buildExportPayload` + `ExportPayload` (type-only imports)
+- **NEW** `data/gather-export.ts` — `gatherExport(userId)` (RLS-scoped reads → builder)
+- **NEW** `features/settings/hooks/use-export.ts` — `useExport()` state + Blob/anchor download
+- **MOD** `features/auth/components/account-sheet.tsx` — 「匯出我的回憶」 trigger in the signed-in body
+- **NEW** `e2e/export.spec.ts` — 3 pure `buildExportPayload` tests
 
 ### Change Log
 
+- 2026-06-25 — Code review (3 layers + triage): 2 patches (one-query `listAllPhotos` to kill the N+1; try/finally around the download), rest accepted/dismissed; all 3 ACs verified clean. tsc/lint clean, e2e green. Status → done.
+- 2026-06-25 — Implemented export my data (AC1-3): a signed-in user exports a single versioned JSON of their marks/pins/notes/dates/photo-refs from the account sheet; client-side under RLS (no server route, no service role), photos as references. Pure builder split for Node unit tests. Binaries/zip + signed-URLs-in-file + Settings relocation deferred. tsc/lint/build clean, 65 e2e passed. Status → review.
 - 2026-06-25 — Story created (context engine + 4-agent research workflow). Scope: client-side RLS-scoped JSON export (refs, not binaries) triggered from the account sheet; binaries + Settings-relocation deferred.

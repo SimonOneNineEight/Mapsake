@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 2-6 story created (ready-for-dev) — export my data
+last_updated: 2026-06-25  # 2-6 done (reviewed) — export my data
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -61,7 +61,7 @@ development_status:
   2-3-claim-your-map-link-anon-session-to-account: done
   2-4-cross-device-sync: backlog
   2-5-save-sync-status-durable-write-posture: done
-  2-6-export-my-data: ready-for-dev
+  2-6-export-my-data: done
   # Carved from 2-3 (2026-06-25): cross-account merge for the returning-user/second-device case —
   # the app's first SECURITY DEFINER/service-role surface. 2-3 ships prompt + in-place claim only.
   2-7-merge-anon-map-into-existing-account: backlog

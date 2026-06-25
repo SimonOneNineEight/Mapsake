@@ -55,6 +55,19 @@ export async function listPhotos(pinId: string): Promise<Photo[]> {
   return ((data ?? []) as PhotoRow[]).map(toDomain);
 }
 
+/** ALL of the current user's photos in ONE RLS-scoped query (for the Story 2.6 data export —
+ * avoids an N+1 fan-out of per-pin listPhotos). Ordered by pin then sort order for a stable file. */
+export async function listAllPhotos(): Promise<Photo[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("photos")
+    .select(COLUMNS)
+    .order("pin_id", { ascending: true })
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as PhotoRow[]).map(toDomain);
+}
+
 /** Storage path for a photo object. First segment = owner uid (object RLS enforces it). */
 export function photoStoragePath(userId: string, pinId: string, photoId: string): string {
   return `${userId}/${pinId}/${photoId}.webp`;
