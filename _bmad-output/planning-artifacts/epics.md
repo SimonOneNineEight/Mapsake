@@ -241,6 +241,14 @@ As a user, I want to export everything I've created, so that my memories are min
 **Given** Settings **When** I request an export **Then** I see "preparing your keepsake," then a downloadable file of my marks, pins, notes, dates, and photo references.
 **Given** the export **Then** it contains only my data (RLS-scoped).
 
+### Story 2.7: Merge an anonymous map into an existing account (returning user / second device)
+_Carved from Story 2.3 (2026-06-25): the cross-account merge was split out so 2.3 could ship the post-payoff prompt + the already-working in-place claim without introducing a service-role/RLS-bypass surface for a rare edge._
+As a returning user signing in on a second device, I want the marks/pins I made on this device to be added to my existing account, so that nothing is lost when my local map meets my account's map.
+**Acceptance Criteria:**
+**Given** an anonymous session with local marks/pins **When** I sign into an account that already exists (email/Google, `email_exists`/`identity_already_exists`) **Then** I am signed into that existing account (real sign-in, not link-in-place) and its map loads.
+**Given** I have local data on this device **When** I sign into the existing account **Then** I am offered a calm, one-time "add this device's map to your account?" choice; accepting merges the local marks/pins (and photos) into the account with conflict-safe rules, and declining leaves the account untouched — never silent loss, never a nag.
+**Given** the merge runs **Then** it executes server-side only (a SECURITY DEFINER RPC or service-role route, `SUPABASE_SERVICE_ROLE_KEY` never on the client), re-parents `region_marks`/`pins`/`photos` to the target uid, moves the `pin-photos` storage objects, and resets the userId-keyed caches (or forces a reload).
+
 ## Epic 3: Pin your memories (the core unit)
 
 Drop named pins (tap or search), multiple per region, with photos, note, and optional date; the memory panel/sheet, upload, and viewer.
