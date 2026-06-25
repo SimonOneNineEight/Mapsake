@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 2-7 story created (ready-for-dev); 2-7 split into sign-in (2-7) + merge (2-8)
+last_updated: 2026-06-25  # 2-7 done (reviewed) — returning-user sign-in
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -65,7 +65,7 @@ development_status:
   # Carved from 2-3 (2026-06-25), then split (2026-06-25, Simon): 2-7 = the returning-user SIGN-IN
   # (modest; unblocks 2-4 cross-device). 2-8 = the cross-account MERGE (the app's first SECURITY
   # DEFINER/service-role surface) — deferred. 2-7 leaves the on-device anon map orphaned (not destroyed).
-  2-7-returning-user-sign-in-to-existing-account: ready-for-dev
+  2-7-returning-user-sign-in-to-existing-account: done
   2-8-merge-anon-map-into-existing-account: backlog
   epic-2-retrospective: optional
 

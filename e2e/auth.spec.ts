@@ -106,3 +106,32 @@ test("an already-registered email shows the calm 'taken' message (Story 2.1)", a
   await page.getByRole("button", { name: "寄送登入連結" }).click();
   await expect(page.getByText("此信箱已有帳號")).toBeVisible();
 });
+
+test("a taken email offers signing IN to the existing account via signInWithOtp (Story 2.2/2.7)", async ({ page }) => {
+  // updateUser (link) returns taken → the returning-user sign-in action appears; clicking it must
+  // call signInWithOtp (POST /auth/v1/otp), NOT updateUser again — that's the 2-7 returning sign-in.
+  let sawOtpForEmail = false;
+  await page.route("**/auth/v1/user**", async (route) => {
+    if (route.request().method() !== "PUT") return route.continue();
+    await route.fulfill({
+      status: 422,
+      contentType: "application/json",
+      body: JSON.stringify({ msg: "Email address already registered by another user" }),
+    });
+  });
+  await page.route("**/auth/v1/otp**", async (route) => {
+    if (decodeURIComponent(route.request().url() + (route.request().postData() ?? "")).includes("returning@example.com"))
+      sawOtpForEmail = true;
+    await route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+  });
+
+  await openAccountSheet(page);
+  await page.getByLabel("email").fill("returning@example.com");
+  await page.getByRole("button", { name: "寄送登入連結" }).click();
+  // Taken → the dead-end becomes an action.
+  await expect(page.getByRole("button", { name: "登入你的帳號" })).toBeVisible();
+  await page.getByRole("button", { name: "登入你的帳號" }).click();
+  // It fired signInWithOtp (the sign-in OTP endpoint) and shows the shared "check your inbox" state.
+  await expect(page.getByText("查收你的信箱")).toBeVisible();
+  expect(sawOtpForEmail).toBeTruthy();
+});

@@ -130,7 +130,30 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
       code === "email_exists" ||
       code === "user_already_exists" ||
       /already|registered|exists|in use/i.test(error.message);
-    setStatus(taken ? "error-taken" : "error"); // returning/cross-device path is Story 2-3/2-4
+    setStatus(taken ? "error-taken" : "error"); // → the returning-user sign-in below (Story 2.7)
+  };
+
+  // Returning-user sign-in (Story 2.7): the entered email already has an account, so sign INTO it
+  // with a magic link — signInWithOtp({shouldCreateUser:false}), NOT updateUser (which links to the
+  // anon user and is exactly what hit email_exists). This is the UNIVERSAL recovery: a magic link to
+  // the email signs into that account whether it was created via email OR Google (both carry the
+  // email). The link lands on /auth/confirm → cookie session for the existing account (a full reload,
+  // so the uid-keyed caches reset). The on-device anon map is left in place — its merge is Story 2-8.
+  // For an unknown email Supabase sends nothing (anti-enumeration); we still show the calm sent state
+  // so we leak nothing.
+  const signInExisting = async () => {
+    if (status === "sending") return; // ignore a double-click while a send is in flight (one OTP)
+    const value = email.trim();
+    if (!looksLikeEmail(value)) {
+      setStatus("error");
+      return;
+    }
+    setStatus("sending");
+    const { error } = await createClient().auth.signInWithOtp({
+      email: value,
+      options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/confirm` },
+    });
+    setStatus(error ? "error" : "sent");
   };
 
   // Google sign-in (Story 2.2): link the Google identity to the CURRENT anon user (anon→permanent,
@@ -246,7 +269,18 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
       />
       {status === "error-taken" && (
-        <p className="text-sm text-[rgb(var(--terracotta-text))]">此信箱已有帳號</p>
+        <>
+          <p className="text-sm text-[rgb(var(--terracotta-text))]">此信箱已有帳號</p>
+          {/* Returning user (Story 2.7): sign INTO the existing account via a magic link (universal —
+              works whether it was made with email or Google). The anon-map merge is Story 2-8. */}
+          <button
+            type="button"
+            onClick={signInExisting}
+            className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline"
+          >
+            登入你的帳號
+          </button>
+        </>
       )}
       {status === "error" && (
         <p className="text-sm text-[rgb(var(--terracotta-text))]">無法寄送，請確認 email 後再試一次</p>

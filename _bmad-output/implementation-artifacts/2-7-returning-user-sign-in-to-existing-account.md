@@ -1,6 +1,10 @@
+---
+baseline_commit: ed2da4e
+---
+
 # Story 2.7: Sign in to an existing account (returning user / second device)
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,20 +34,27 @@ so that I reach my existing map instead of hitting a dead-end message.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Email sign-in into the existing account (AC: 1, 2)** [features/auth/components/account-sheet.tsx]
-  - [ ] Add a `signInExisting` handler: `createClient().auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: false, emailRedirectTo: \`${window.location.origin}/auth/confirm\` } })`. Reuse the `looksLikeEmail` guard + the existing `email` state. On the call firing, transition to the existing `status:"sent"` state (the 「查收你的信箱」 surface — its copy 「我們寄了登入連結到 {email}，點開就完成登入」 fits sign-in verbatim). NOTE: this is a DIFFERENT API than `sendLink`'s `updateUser` — both end in the "sent" UI, so distinguish the two intents at call time (a separate handler; the shared "sent" UI is fine).
-  - [ ] Surface a calm 「登入你的帳號」 action in the `status === "error-taken"` block (under 「此信箱已有帳號」) wired to `signInExisting`. (The email onChange already clears `status`, so editing the email correctly retracts the action — that's fine.)
-  - [ ] `shouldCreateUser:false` for an UNKNOWN email: Supabase sends no mail (anti-enumeration). Keep showing the same 「查收你的信箱」 (leak nothing) — do NOT branch to a "no such account" message (enumeration). Confirm the actual response against the live project.
-- [ ] **Task 2 — Google sign-in into the existing account (AC: 1, 2)** [features/auth/components/account-sheet.tsx]
-  - [ ] Add a `signInGoogleExisting` handler: `createClient().auth.signInWithOAuth({ provider: "google", options: { redirectTo: \`${window.location.origin}/auth/callback\` } })` (NOT `linkIdentity`). On error, reuse the calm `googleError` treatment.
-  - [ ] Surface a 「用 Google 登入」 action in the `notice === "existing"` block (under the existing 「已用此信箱註冊…」 line — KEEP that copy, it's Simon's choice; just add the action) wired to `signInGoogleExisting`. This is the OAuth-bounce returning path; `signInWithOAuth` signs into the account that owns the Google identity (where `linkIdentity` failed).
-- [ ] **Task 3 — Verify the routes + cache reset (AC: 1, 3)** [no change expected]
-  - [ ] Confirm `app/auth/confirm/route.ts` handles the magic-link `type` (reads `type` from the URL generically → `verifyOtp` accepts `magiclink`/`email`); no change. The server redirect = a full document load, so the userId-keyed caches (`["pins",uid]`, `["regionMarks",uid]`, `["account"]`, `["sessionUserId"]`, staleTime Infinity) re-read for the new uid automatically — do NOT add an in-page uid swap. Confirm `/auth/callback` (exchangeCodeForSession) works unchanged for a fresh OAuth sign-in.
-  - [ ] Confirm the anon data is untouched by the sign-in path (no cleanup/delete) — orphaned-not-destroyed (AC3). No merge code, no service role, no migration in 2-7.
-- [ ] **Task 4 — Tests (AC: 1, 2)** [e2e/auth.spec.ts]
-  - [ ] e2e (email returning path, intercepts — no real mail): type a taken email → 寄送登入連結 → intercept `PUT /auth/v1/user` → 422 → assert 「此信箱已有帳號」 + the 「登入你的帳號」 action appears; click it → intercept the `signInWithOtp` request (`**/auth/v1/otp**`) → assert it fired (email present) → the 「查收你的信箱」 sent state shows. (Mirror the 2-1 valid-email/taken-email intercept pattern.)
-  - [ ] e2e (Google returning path): land on `/?auth_error=existing` (the notice) → click the existing-account 「用 Google 登入」 → intercept `**/authorize**` (aborted) → assert it initiates the OAuth navigation (`provider=google`, `/auth/callback`). (Mirror the 2-2 OAuth-initiate test; `signInWithOAuth` hits `/auth/v1/authorize`.)
-  - [ ] No-regression: full e2e suite green; `tsc` + `lint` + `pnpm build --webpack` clean.
+- [x] **Task 1 — Email sign-in into the existing account (AC: 1, 2)** [features/auth/components/account-sheet.tsx]
+  - [x] Added `signInExisting`: `signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: <origin>/auth/confirm } })`, reusing `looksLikeEmail` + the existing `email` state, transitioning to the shared `status:"sent"` (「查收你的信箱」). Distinct handler from `sendLink`'s `updateUser`; the shared sent UI is fine.
+  - [x] Surfaced 「登入你的帳號」 in the `status === "error-taken"` block (under 「此信箱已有帳號」). The email onChange clears `status`, so editing the email retracts the action — correct.
+  - [x] Unknown-email anti-enumeration: `signInWithOtp` sends nothing for an unknown email and returns no error → we still show 「查收你的信箱」 (leak nothing). On a transient error → the calm 「無法寄送…」. (Verify the exact response against the live project — manual.)
+- [x] **Task 2 — Google returning path (AC: 2) — RESCOPED: email is the universal recovery; Google one-click fast-path DEFERRED** [features/auth/components/account-sheet.tsx]
+  - [x] Did NOT add a `signInWithOAuth` button under `notice === "existing"`. Reason (a subtlety the research under-weighted): `signInWithOAuth(google)` only works if the account was CREATED via Google (has a Google identity). If the account is email-created (the common `email_exists` case), a Google sign-in would try to provision a new user for that email and **loop** back to `email_exists`. `signInWithOtp` (Task 1) is the UNIVERSAL recovery — a magic link to the email signs into the account whether it was made with email OR Google (both carry the email). So `notice === "existing"` keeps Simon's copy 「已用此信箱註冊，使用信箱登入回到你的地圖。」 (which already steers to the email form), and the email error-taken → 「登入你的帳號」 path is the action. A Google one-click fast-path (for Google-created accounts) is a documented follow-up: it needs `/auth/callback` to distinguish `identity_already_exists` (→ offer Google) from `email_exists` (→ email), which it doesn't today (both → `?auth_error=existing`).
+- [x] **Task 3 — Verify the routes + cache reset (AC: 1, 3)** [no change — verified]
+  - [x] `/auth/confirm` reads `type` from the URL generically and `verifyOtp`s — accepts the magic-link `type` with no change; its server redirect = a full document load → the userId-keyed caches reset for the new uid (no in-page swap added). `/auth/callback` unchanged. Anon data untouched by the sign-in path (no cleanup/delete) — orphaned-not-destroyed. No merge code, no service role, no migration.
+- [x] **Task 4 — Tests (AC: 1, 2)** [e2e/auth.spec.ts]
+  - [x] e2e (intercepts, no real mail): type a taken email → 寄送登入連結 → `PUT /auth/v1/user` 422 → 「登入你的帳號」 appears → click → intercepts `**/auth/v1/otp**` (proves `signInWithOtp` fired, not `updateUser`, with the email) → 「查收你的信箱」 shows.
+  - [x] The Google-returning e2e was dropped with Task 2 (no Google button added). The Google fast-path is the documented follow-up.
+  - [x] No-regression: `tsc` + `lint` + `pnpm build --webpack` clean; full e2e **67 passed, 1 skipped**.
+
+## Review Findings
+
+_Code review 2026-06-25 (3 adversarial layers + triage): 1 patch, rest dismissed/accepted; auditor verified all 3 ACs + scope clean._
+
+- [x] [Review][Patch] No double-fire guard on 「登入你的帳號」 [features/auth/components/account-sheet.tsx] — FIXED: added `if (status === "sending") return` at the top of `signInExisting`, so a sub-frame double-click can't fire two OTP sends (which would trip Supabase's per-email OTP rate limit). The `disabled` approach didn't apply (the button unmounts when status→sending); the function guard is robust. (blind+edge)
+- [x] [Review][Dismiss] Unknown-email anti-enumeration (rated HIGH) — NOT reachable: 「登入你的帳號」 renders only in `status==="error-taken"`, which `sendLink` sets ONLY on `updateUser` `email_exists` (the email is provably registered). So `signInExisting` always fires on a known account → success; the unknown-email error branch can't be hit through the UI. (The enumeration leak the agent described requires invoking it on an unknown email, which the flow prevents.)
+- [x] [Review][Accept] `notice==="existing"` (Google-return) has no one-click action — it steers to the email form, where the universal `signInWithOtp` path lives. Auditor confirmed this is NOT a dead-end / not an AC2 violation; the Google one-click fast-path is the documented deferral (needs `/auth/callback` to distinguish `email_exists` vs `identity_already_exists`). (edge+auditor, advisory)
+- [x] [Review][Accept] Orphaned anon map + a possible dangling `email_change` on the abandoned anon user (from the prior `updateUser` 422) — cosmetic/deferred residue; the cache reset via the `/auth/confirm` full reload holds (confirmed). Both are 2-8 territory. (edge, Low)
 
 ## Dev Notes
 
@@ -77,12 +88,24 @@ so that I reach my existing map instead of hitting a dead-end message.
 
 ### Agent Model Used
 
+claude-opus-4-8 (1M context)
+
 ### Debug Log References
 
 ### Completion Notes List
 
+- **Returning-user sign-in = `signInWithOtp({shouldCreateUser:false})` (universal):** the email error-taken state now offers 「登入你的帳號」, which signs INTO the existing account via a magic link (lands on the unchanged `/auth/confirm` → cookie session → full-reload uid switch). Works whether the account was created via email or Google, since both carry the email. This is what unblocks Story 2-4 (you can now be your existing account on device 2).
+- **Google one-click fast-path deferred (deliberate):** a `signInWithOAuth(google)` button under the existing-account notice would loop for email-created accounts (`email_exists` → new-user attempt → `email_exists`). Email-OTP is universal, so I shipped that and deferred the Google fast-path (it needs `/auth/callback` to distinguish `email_exists` vs `identity_already_exists`). Documented in Task 2 + deferred-work.
+- **No new infra:** routes/session/proxy/cache-reset all unchanged; the merge stays Story 2-8; anon data orphaned-not-destroyed. The real email round-trip needs Simon's **"Magic Link" email template** config (gated to him; see the story's Config dependency).
+- **Validation:** `tsc` clean · `pnpm lint` clean · `pnpm build --webpack` clean · full e2e **67 passed, 1 skipped** (1 new returning-sign-in test).
+
 ### File List
+
+- **MOD** `features/auth/components/account-sheet.tsx` — `signInExisting` (signInWithOtp shouldCreateUser:false) + 「登入你的帳號」 action in the error-taken state
+- **MOD** `e2e/auth.spec.ts` — returning-user sign-in test (taken email → 登入你的帳號 → signInWithOtp → sent)
 
 ### Change Log
 
-- 2026-06-25 — Story created (context engine + 4-agent research workflow). Split from the old 2-7 (merge → now 2-8). Scope: returning-user sign-in (signInWithOtp/signInWithOAuth) into an existing account; unblocks 2-4; orphaned anon map left for 2-8; Magic-Link email template is a Simon-gated config dependency.
+- 2026-06-25 — Code review (3 layers + triage): 1 patch (double-fire guard on the sign-in action), rest dismissed/accepted (the HIGH anti-enumeration finding is unreachable — the action only appears for a known-registered email). tsc/lint clean, auth e2e green. Status → done.
+- 2026-06-25 — Implemented the returning-user sign-in (Story 2.7): the existing-account email state offers 「登入你的帳號」 → `signInWithOtp({shouldCreateUser:false})` into the existing account (universal — email or Google-created), unblocking 2-4. Google one-click fast-path + the anon-map merge stay deferred (2-8). Routes/session unchanged; real email round-trip pending Simon's Magic-Link template config. tsc/lint/build clean, 67 e2e passed. Status → review.
+- 2026-06-25 — Story created (context engine + 4-agent research workflow). Split from the old 2-7 (merge → now 2-8). Scope: returning-user sign-in into an existing account; unblocks 2-4; orphaned anon map left for 2-8; Magic-Link email template is a Simon-gated config dependency.
