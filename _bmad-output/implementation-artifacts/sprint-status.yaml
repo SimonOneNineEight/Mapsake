@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # 5-1..5-5 done; 5-6 (notification controls) is the last Epic 5 story
+last_updated: 2026-06-25  # Epic 5 COMPLETE (5-1..5-6 done); re-live loop built, prod deploy gated to Simon
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -103,13 +103,13 @@ development_status:
   epic-4-retrospective: done  # 2026-06-25 — short retro; carry-forwards logged
 
   # Epic 5 — The re-live loop (retention)
-  epic-5: in-progress  # started 2026-06-25 (after Epic 2 v1 complete)
+  epic-5: done  # all 6 stories done 2026-06-25 (re-live loop; prod deploy gated to Simon)
   5-1-push-subscription-permission: done
   5-2-on-this-day-detection-eligibility: done
   5-3-daily-scheduler-send-notification: done
   5-4-deep-link-re-live-landing: done
   5-5-free-wandering-from-the-landing: done
-  5-6-notification-controls: backlog
+  5-6-notification-controls: done
   epic-5-retrospective: optional
 
   # Epic 6 — Launch-ready (localization, accessibility, settings, ops)

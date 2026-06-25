@@ -91,3 +91,20 @@ test.describe("deep-link re-live landing (Story 5.4)", () => {
     await expect(page.getByRole("heading", { name: first })).toHaveCount(0);
   });
 });
+
+test.describe("notification controls (Story 5.6)", () => {
+  test("muting a memory persists and keeps the pin on the map", async ({ page }) => {
+    await bypassOnboarding(page);
+    const id = await dropNamedPin(page, "靜音測試標記", 135.6, 35.1);
+    await page.goto(`/?pin=${id}`);
+    await expect(page.getByRole("heading", { name: "靜音測試標記" })).toBeVisible({ timeout: 15_000 });
+    // Mute → the toggle flips; the pin stays on the map (mute only affects notifications).
+    await page.getByRole("button", { name: /讓這個地方少出現/ }).click();
+    await expect(page.getByRole("button", { name: /已靜音/ })).toBeVisible({ timeout: 15_000 });
+    const stillThere = await page.evaluate(
+      (pid) => (window.__mapsakeMap!.querySourceFeatures("pins") ?? []).some((f) => f.properties?.id === pid),
+      id,
+    );
+    expect(stillThere).toBe(true);
+  });
+});

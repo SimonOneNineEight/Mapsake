@@ -171,6 +171,18 @@ export function MemoryCard({
         </button>
       )}
 
+      {/* Per-memory mute (Story 5.6) — a muted place never resurfaces via notification but stays on
+          the map. Calm + reversible, no warning chrome. A write, so hidden offline (Story 4.6). */}
+      {!offline && (
+        <button
+          type="button"
+          className="self-start text-sm text-muted-foreground hover:text-foreground"
+          onClick={() => updatePin.mutate({ id: pin.id, muted: !pin.muted })}
+        >
+          {pin.muted ? "已靜音 · 點選恢復通知" : "讓這個地方少出現在通知"}
+        </button>
+      )}
+
       {/* Delete the memory. Name-only → no friction; content-bearing → gentle confirm.
           Hidden offline (Story 4.6) — delete is a write and needs a connection. */}
       {!offline && (

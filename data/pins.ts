@@ -101,6 +101,7 @@ export async function updatePin(input: {
   id: string;
   note?: string | null;
   memoryDate?: string | null;
+  muted?: boolean;
 }): Promise<Pin> {
   const supabase = createClient();
   const patch: Database["public"]["Tables"]["pins"]["Update"] = {
@@ -108,6 +109,7 @@ export async function updatePin(input: {
   };
   if ("note" in input) patch.note = input.note;
   if ("memoryDate" in input) patch.memory_date = input.memoryDate;
+  if ("muted" in input) patch.muted = input.muted; // per-memory mute (Story 5.6) — excludes it from re-live notifications
 
   const { data, error } = await supabase
     .from("pins")

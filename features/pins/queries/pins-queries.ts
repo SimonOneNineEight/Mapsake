@@ -93,6 +93,7 @@ export interface UpdatePinInput {
   id: string;
   note?: string | null;
   memoryDate?: string | null;
+  muted?: boolean;
 }
 
 /**
@@ -113,6 +114,7 @@ export function useUpdatePin() {
       const patch: Partial<Pin> = { updatedAt: new Date().toISOString() };
       if ("note" in input) patch.note = input.note;
       if ("memoryDate" in input) patch.memoryDate = input.memoryDate;
+      if ("muted" in input) patch.muted = input.muted;
       queryClient.setQueryData<Pin[]>(
         key,
         prev.map((p) => (p.id === input.id ? { ...p, ...patch } : p)),
