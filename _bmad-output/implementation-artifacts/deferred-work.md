@@ -150,3 +150,14 @@ At z9 the visited fill exposes a COARSE, blocky coastline that juts into the oce
 
 - **Re-enable the quarantined note-persist test** — `e2e/memory.spec.ts` "write a note → it saves and persists across reload" is `test.fixme` (quarantined). It passes in isolation but flakes in a full-suite run: the post-reload coordinate click on the pin (`clickPin`) gets eaten by Next's dev-overlay portal under load. Same root cause that forced `dispatchEvent` on the 4.7 list-pin click. Harden `clickPin` against the dev overlay (or disable the dev indicator in test), then drop the `.fixme`. Reload-persistence is still covered by the stable date-persist test. Fold into 6-5 CI hardening.
 - **Dev-overlay vs coordinate clicks (general)** — Next 16's `data-nextjs-dev-overlay` portal intermittently intercepts coordinate clicks in dev e2e (hit on the Places drawer pin and the note test). Consider disabling the dev indicator under test, or standardize on `dispatchEvent`/harness `fire` for clicks that land near it. 6-5.
+
+## Deferred from: code review of story-2.1 (2026-06-25)
+
+- **Secure-email-change double-token (manual verify)** — `app/auth/confirm/route.ts` does a single `verifyOtp({type, token_hash})`. If the Supabase project's "Secure email change" (double-confirm) toggle is ON, the anon→permanent email link needs BOTH token hashes and won't complete. Verify against the live auth settings when Simon configures Supabase; keep single-confirm or revisit the route.
+- **Surface the expired-link message** — the confirm route redirects to `/?auth_error=link` on a bad/expired link, but no UI reads it (lands calmly on the map, no message). Wire a reader (toast / auto-open the account sheet with a calm note) when the auth surface expands (2-3 / Settings 6-3).
+
+## Manual verification checklist — Story 2.1 (needs Simon's Supabase config, then a real device)
+
+1. Supabase dashboard: enable the **Email** auth provider; add `http://localhost:3000/auth/confirm` and the deploy URL to the **Redirect URLs** allowlist; set **Site URL**; confirm **anonymous sign-ins** stay enabled; check the **"Secure email change"** toggle (single-confirm expected — see deferred item above).
+2. Local prod (`pnpm build && pnpm start`): open the account sheet → enter your email → 寄送登入連結 → receive the email → click the link → confirm you land signed in (the sheet shows 「你的地圖已保存」 + your email) and the map/marks you made anonymously are still there (anon→permanent kept the uid).
+3. Reload the page → still signed in (AC2 cookie SSR persistence).

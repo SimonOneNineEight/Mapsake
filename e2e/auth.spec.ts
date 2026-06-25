@@ -1,0 +1,67 @@
+import { test, expect } from "./fixtures";
+import { bypassOnboarding } from "./onboarding-bypass";
+
+// Story 2.1 — email magic-link sign-in. We can't click a real magic link in e2e (needs an inbox),
+// so we cover the SURFACE + the send call: intercept Supabase's updateUser (PUT /auth/v1/user) to
+// assert it fires with the email + redirect, and to drive the sent / error / taken states without
+// sending real mail or hitting the rate limit. The confirm route's token exchange is verified
+// manually (documented in the story). Onboarding is bypassed so the account button is mounted.
+test.beforeEach(({ page }) => bypassOnboarding(page));
+
+const openAccountSheet = async (page: import("@playwright/test").Page) => {
+  await page.goto("/");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  await page.getByRole("button", { name: "帳號" }).click();
+  await expect(page.getByText("保存你的地圖")).toBeVisible();
+};
+
+test("the account button opens the calm sign-in sheet (Story 2.1)", async ({ page }) => {
+  await openAccountSheet(page);
+  await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();
+});
+
+test("an invalid email shows a calm error, no send (Story 2.1)", async ({ page }) => {
+  await openAccountSheet(page);
+  await page.getByLabel("email").fill("not-an-email");
+  await page.getByRole("button", { name: "寄送登入連結" }).click();
+  await expect(page.getByText("無法寄送，請確認 email 後再試一次")).toBeVisible();
+});
+
+test("a valid email links the account and shows the sent state (Story 2.1)", async ({ page }) => {
+  // Intercept the anon→permanent link call so no real email is sent and it's deterministic.
+  let sawEmail = false;
+  let sawRedirect = false;
+  await page.route("**/auth/v1/user**", async (route) => {
+    if (route.request().method() !== "PUT") return route.continue(); // only intercept updateUser
+    const req = route.request();
+    const body = req.postData() ?? "";
+    if (body.includes("kyoto@example.com")) sawEmail = true;
+    // emailRedirectTo rides as `redirect_to` (query param or body, depending on supabase-js).
+    if (decodeURIComponent(req.url() + body).includes("/auth/confirm")) sawRedirect = true;
+    await route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+  });
+  await openAccountSheet(page);
+  await page.getByLabel("email").fill("kyoto@example.com");
+  await page.getByRole("button", { name: "寄送登入連結" }).click();
+
+  await expect(page.getByText("查收你的信箱")).toBeVisible();
+  await expect(page.getByText(/kyoto@example\.com/)).toBeVisible();
+  expect(sawEmail).toBeTruthy();
+  expect(sawRedirect).toBeTruthy();
+});
+
+test("an already-registered email shows the calm 'taken' message (Story 2.1)", async ({ page }) => {
+  await page.route("**/auth/v1/user**", async (route) => {
+    if (route.request().method() !== "PUT") return route.continue(); // only intercept updateUser
+    await route.fulfill({
+      status: 422,
+      contentType: "application/json",
+      body: JSON.stringify({ msg: "Email address already registered by another user" }),
+    });
+  });
+  await openAccountSheet(page);
+  await page.getByLabel("email").fill("taken@example.com");
+  await page.getByRole("button", { name: "寄送登入連結" }).click();
+  await expect(page.getByText("此信箱已有帳號")).toBeVisible();
+});

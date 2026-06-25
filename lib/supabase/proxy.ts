@@ -64,7 +64,10 @@ export async function updateSession(request: NextRequest) {
   const dest = request.headers.get("sec-fetch-dest");
   const isDocNavigation =
     request.method === "GET" && !isPrefetch && (!dest || dest === "document");
-  if (!user && isDocNavigation) {
+  // Skip the anon bootstrap on /auth routes (Story 2.1 review): minting a throwaway anonymous
+  // user on the magic-link confirm navigation would orphan rows and race the verifyOtp exchange.
+  const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
+  if (!user && isDocNavigation && !isAuthRoute) {
     try {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) console.error("[mapsake] anonymous sign-in failed:", error.message);

@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # test-infra: shared anon session harness (rate-limit fixed); full e2e green
+last_updated: 2026-06-25  # 2-1 magic-link sign-in done (reviewed)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -55,8 +55,8 @@ development_status:
   # old "continuous zoom + world landing" folded into 1-3. Epic 1 stays 6 stories.
 
   # Epic 2 — Keep your map (accounts & durability)
-  epic-2: backlog
-  2-1-sign-in-with-email-magic-link: backlog
+  epic-2: in-progress  # started 2026-06-25 (after Epic 4); auth = magic-link + Google
+  2-1-sign-in-with-email-magic-link: done
   2-2-sign-in-with-google: backlog
   2-3-claim-your-map-link-anon-session-to-account: backlog
   2-4-cross-device-sync: backlog

@@ -6,6 +6,7 @@ import { Onboarding } from "@/features/onboarding/components/onboarding";
 import { readDefaultView, writeDefaultView } from "@/features/onboarding/lib/onboarding-prefs";
 import { useInstallPrompt } from "@/features/onboarding/lib/use-install-prompt";
 import { PlacesPanel } from "@/features/places/components/places-panel";
+import { AccountSheet } from "@/features/auth/components/account-sheet";
 import { MemoryContainer } from "./memory-container";
 
 /**
@@ -75,6 +76,9 @@ export function MapMemoryShell() {
             onFlyToPin={(lat, lng) => cameraRef.current?.flyToPin(lat, lng)}
           />
         )}
+        {/* "Keep your map" sign-in (Story 2.1) — a quiet account affordance, never a gate;
+            hidden during onboarding so the first-run payoff stays clean. */}
+        {!onboarding && <AccountSheet />}
         {onboarding && (
           <Onboarding
             step={onboarding}
