@@ -16,7 +16,14 @@ const openAccountSheet = async (page: import("@playwright/test").Page) => {
   await expect(page.getByText("保存你的地圖")).toBeVisible();
 };
 
-test("the account button opens the calm sign-in sheet (Story 2.1)", async ({ page }) => {
+test("the account button opens the sign-in surface — desktop modal (Story 2.1)", async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 800 }); // ≥840 → centered modal
+  await openAccountSheet(page);
+  await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();
+});
+
+test("the account button opens the sign-in surface — phone sheet (Story 2.1)", async ({ page }) => {
+  await page.setViewportSize({ width: 400, height: 800 }); // <840 → bottom sheet
   await openAccountSheet(page);
   await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();
 });
