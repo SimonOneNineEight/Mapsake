@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { computeVisitedKeys, pinsToVisitedMarks } from "../features/map/lib/visited";
 import { bypassOnboarding } from "./onboarding-bypass";
 

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 // Story 4.1 — first-run default-view question. The choice lives in localStorage
 // (`mapsake.defaultView`); a fresh Playwright context starts with clean storage, so the

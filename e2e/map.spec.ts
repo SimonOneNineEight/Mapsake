@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { bypassOnboarding } from "./onboarding-bypass";
 
 // Skip the Story 4.1 first-run onboarding overlay (these tests exercise the post-onboarding map).

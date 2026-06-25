@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { pinsToGeoJSON } from "../features/map/lib/pins";
 import type { Pin } from "../data/pins";
 import { bypassOnboarding } from "./onboarding-bypass";

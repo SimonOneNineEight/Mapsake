@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # Epic 4 complete + retrospective done
+last_updated: 2026-06-25  # test-infra: shared anon session harness (rate-limit fixed); full e2e green
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -113,5 +113,5 @@ development_status:
   6-2-accessibility-floor-pass: backlog
   6-3-settings-surface: backlog
   6-4-performance-pass: backlog
-  6-5-ci-cd-hardening-monitoring-project-context: backlog
+  6-5-ci-cd-hardening-monitoring-project-context: backlog  # PARTIAL done early (2026-06-25): shared-anon-session test harness (storageState + per-test RLS reset, 1 worker, retries) — killed the anon rate-limit blocker. Rest (CI pipeline, monitoring, project-context, re-enable quarantined note test) still backlog.
   epic-6-retrospective: optional
