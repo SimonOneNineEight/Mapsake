@@ -6,7 +6,8 @@ import { Drawer } from "vaul";
 import type { Pin } from "@/data/pins";
 import { usePins } from "@/features/pins/queries/pins-queries";
 import { useRegionMarks } from "@/features/regions/queries/region-marks-queries";
-import { buildPlaces } from "../lib/build-places";
+import { buildPlaces, type PlacesRegion } from "../lib/build-places";
+import { regionCentroid } from "../lib/region-centroids";
 
 /**
  * "Places visited" (去過的地方) — Story 4.7. The canonical keyboard/screen-reader path for
@@ -32,9 +33,15 @@ export function PlacesPanel({
     onOpenPin(pin.id);
     setOpen(false);
   };
-  // A region row: fly to one of its pins if it has any; either way close (bare marks have no coord).
-  const selectRegion = (regionPins: Pin[]) => {
-    if (regionPins[0]) onFlyToPin(regionPins[0].lat, regionPins[0].lng);
+  // A region row navigates the map: to one of its pins if it has any, else to the region's
+  // centroid (so a bare backfill mark is navigable too). Either way, close the list.
+  const selectRegion = (region: PlacesRegion) => {
+    if (region.pins[0]) {
+      onFlyToPin(region.pins[0].lat, region.pins[0].lng);
+    } else {
+      const c = regionCentroid(region.regionCode);
+      if (c) onFlyToPin(c[1], c[0]); // centroid is [lng, lat]; onFlyToPin takes (lat, lng)
+    }
     setOpen(false);
   };
 
@@ -71,22 +78,17 @@ export function PlacesPanel({
                     <ul className="flex flex-col gap-1 pl-2">
                       {country.regions.map((region) => (
                         <li key={`${country.countryCode}-${region.regionCode}`} className="flex flex-col gap-1">
-                          {region.name &&
-                            (region.pins.length > 0 ? (
-                              // Has pins → a control that flies the map to one of them.
-                              <button
-                                type="button"
-                                onClick={() => selectRegion(region.pins)}
-                                className="self-start py-1 text-left text-sm text-foreground hover:text-[rgb(var(--terracotta-text))]"
-                              >
-                                {region.name}
-                              </button>
-                            ) : (
-                              // Bare visited region (no coordinate) → a calm label, not a dead button.
-                              <span className="self-start py-1 text-sm text-muted-foreground">
-                                {region.name}
-                              </span>
-                            ))}
+                          {region.name && (
+                            // A control that flies the map to the region (its pin, or its centroid
+                            // for a bare backfill mark) and closes the list.
+                            <button
+                              type="button"
+                              onClick={() => selectRegion(region)}
+                              className="self-start py-1 text-left text-sm text-foreground hover:text-[rgb(var(--terracotta-text))]"
+                            >
+                              {region.name}
+                            </button>
+                          )}
                           {region.pins.length > 0 && (
                             <ul className="flex flex-col gap-0.5 pl-3">
                               {region.pins.map((pin) => (
