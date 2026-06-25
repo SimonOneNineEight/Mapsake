@@ -78,6 +78,20 @@ test("Google sign-in initiates the OAuth redirect to /auth/callback (Story 2.2)"
   expect(decodeURIComponent(authorizeUrl)).toContain("/auth/callback");
 });
 
+test("returning from Google with an already-registered email opens a calm sign-in prompt (Story 2.2)", async ({ page }) => {
+  // The /auth/callback route maps Supabase's error_code=email_exists to ?auth_error=existing.
+  await page.goto("/?auth_error=existing");
+  await expect(page.getByTestId("map-canvas")).toBeVisible();
+  await page.waitForFunction(() => Boolean(window.__mapsakeMap));
+  // The sheet auto-opens with the calm "you already have an account" message…
+  await expect(page.getByText("這個信箱已經有帳號了，用原本的方式登入就能回到你的地圖。")).toBeVisible();
+  // …and both sign-in methods stay available (never a hard wall).
+  await expect(page.getByRole("button", { name: "用 Google 登入" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();
+  // The flag is scrubbed from the URL so a refresh/back won't re-trigger it.
+  await expect.poll(() => new URL(page.url()).search).toBe("");
+});
+
 test("an already-registered email shows the calm 'taken' message (Story 2.1)", async ({ page }) => {
   await page.route("**/auth/v1/user**", async (route) => {
     if (route.request().method() !== "PUT") return route.continue(); // only intercept updateUser

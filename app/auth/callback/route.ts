@@ -19,6 +19,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
-  // Failed/again exchange → land calmly back on the map (no hard error page).
+  // No code → GoTrue redirected here with the failure in the QUERY (PKCE flow; verified the
+  // error_code lands server-side, e.g. ?error=invalid_request&error_code=email_exists). Branch on
+  // the stable error_code into a precise, same-origin flag the landing page surfaces calmly. Reading
+  // it here (not from a hash on `/`) keeps it cross-browser: the query reaches the server on every
+  // browser, unlike a fragment, which Safari/Firefox may drop across the redirect.
+  const errorCode = searchParams.get("error_code");
+  const oauthError = searchParams.get("error");
+  if (errorCode === "email_exists" || errorCode === "identity_already_exists") {
+    // Returning user: this Google email already belongs to an account → steer them to sign in.
+    // The actual returning-user sign-in + map merge is Story 2-3; here we just say so, calmly.
+    return NextResponse.redirect(`${origin}/?auth_error=existing`);
+  }
+  if (oauthError === "access_denied") {
+    // User cancelled the Google consent screen — intentional, so land quietly with no message.
+    return NextResponse.redirect(`${origin}/`);
+  }
+  // Anything else (transient handshake/server error) → calm generic retry.
   return NextResponse.redirect(`${origin}/?auth_error=oauth`);
 }

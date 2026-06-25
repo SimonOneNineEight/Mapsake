@@ -39,7 +39,7 @@ so that I can start fast with an account I already have.
 _Code review 2026-06-25 (3 adversarial layers + triage): 0 decision-needed, 1 patch, 1 defer, ~11 dismissed as noise._
 
 - [x] [Review][Patch] Google button lacks in-flight guard / throw-safety / stale-error reset [features/auth/components/account-sheet.tsx] — FIXED: added a `googleBusy` flag (button `disabled` + 「前往 Google…」 label, stays disabled through the success redirect to prevent double-submit), wrapped `linkIdentity` in `try/catch` → calm error, and reset `googleError` when the account sheet opens. Brings Google to parity with the email `status` machine. (blind+edge)
-- [x] [Review][Defer] OAuth error feedback unconsumed + already-linked copy is generic [app/auth/callback/route.ts; account-sheet.tsx] — deferred, pre-existing. `?auth_error=oauth` is never read/rendered (identical to 2-1's accepted `?auth_error=link`), and all `linkIdentity` errors collapse to one "暫時無法使用，請稍後再試" which misrepresents the *permanent* already-linked case. Per spec the already-linked resolution is explicitly Story 2-3/2-4; surfacing the auth_error message is already on the deferred backlog. (blind+edge+auditor)
+- [x] [Review][Defer→Done] OAuth error feedback unconsumed + already-linked copy is generic [app/auth/callback/route.ts; account-sheet.tsx] — PULLED FORWARD at Simon's request (2026-06-25): the user must be told to sign in, not shown a generic "try later". Empirically confirmed (probe) that Supabase PKCE delivers `error_code` in the **query** at `/auth/callback` (not only the hash, which Safari/Firefox drop across the redirect). So the callback now branches on `error_code`: `email_exists`/`identity_already_exists` → `/?auth_error=existing`; `access_denied` (user cancelled) → `/` silently; else → `/?auth_error=oauth`. `account-sheet.tsx` reads the query flag on load (query-only, cross-browser, no SDK race), opens the sheet with a calm zh-TW notice (existing-account 「這個信箱已經有帳號了，用原本的方式登入就能回到你的地圖。」 / generic Google / failed-link), and scrubs the flag via `history.replaceState`. The actual returning-user SIGN-IN + map merge stays Story 2-3. Adversarial review: real flow verified (AccountSheet is stably mounted post-onboarding, the only state from which Google is reachable); the un-onboarded direct-URL edge is a synthetic no-op, not handled per "no error handling for impossible scenarios". (blind+edge+auditor → resolved)
 
 ## Dev Notes
 
@@ -92,11 +92,13 @@ claude-opus-4-8 (1M context)
 ### File List
 
 - **NEW** `app/auth/callback/route.ts` — OAuth code exchange → cookie session
-- **MOD** `features/auth/components/account-sheet.tsx` — Google button + `linkIdentity` + googleError state
-- **MOD** `e2e/auth.spec.ts` — 2 Google tests (both-methods-offered, OAuth-initiate)
+- **MOD** `features/auth/components/account-sheet.tsx` — Google button + `linkIdentity` + googleError/googleBusy state; auth-error notice (existing/oauth/link) read from the query on load + URL scrub
+- **MOD** `app/auth/callback/route.ts` — branch the no-code fallback on `error_code` (email_exists/identity_already_exists → `?auth_error=existing`; access_denied → silent `/`)
+- **MOD** `e2e/auth.spec.ts` — 3 Google tests (both-methods-offered, OAuth-initiate, already-registered → calm sign-in prompt)
 
 ### Change Log
 
+- 2026-06-25 — Already-registered message (pulled forward from the deferred item at Simon's request). Verified via probe that PKCE delivers `error_code` in the query at `/auth/callback`; the route now branches on it and the account sheet surfaces a calm zh-TW notice (steer returning users to sign in; cancel stays silent), URL scrubbed. Real returning-user sign-in + map merge remains Story 2-3. tsc/lint/build clean; 9/9 auth e2e green (incl. new already-registered test). Investigated + adversarially reviewed via a 4-agent workflow.
 - 2026-06-25 — Code review (3 layers + triage): 1 patch applied (Google button in-flight guard + throw-safety + stale-error reset, parity with the email status machine), 1 defer (auth_error message surfacing + already-linked copy → 2-3/2-4), ~11 dismissed. tsc/lint clean, 8/8 auth e2e green. Status → done. Real Google round-trip still pending Simon's config (manual checklist).
 - 2026-06-25 — Story 2.2 implemented (Google sign-in). 用 Google 登入 on the shared sign-in surface alongside email (no single-OAuth lock-in); `linkIdentity` attaches Google to the current anon user (link-in-place, map preserved); `app/auth/callback` exchanges the OAuth code for the cookie session. Returning/already-linked path deferred to 2-3/2-4. No migration. Real round-trip pending Simon's Google + Supabase Manual-Linking config (manual checklist). Status → review.
 

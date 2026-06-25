@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UserRound } from "lucide-react";
 import { Drawer } from "vaul";
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +37,11 @@ export function AccountSheet() {
   const [status, setStatus] = useState<SendStatus>("idle");
   const [googleError, setGoogleError] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  // Auth error surfaced after a redirect back from /auth/callback or /auth/confirm. "existing" = the
+  // Google/email already belongs to an account (returning user → steer them to sign in; the real
+  // consolidation + map merge is Story 2-3). "oauth"/"link" = a calm generic retry.
+  const [notice, setNotice] = useState<"existing" | "oauth" | "link" | null>(null);
+  const handledUrl = useRef(false);
 
   // Esc closes the desktop modal (vaul handles Esc for the phone sheet itself).
   useEffect(() => {
@@ -45,6 +50,22 @@ export function AccountSheet() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [wide, open]);
+
+  // On load after an auth redirect, open the sheet with a calm notice, then scrub the flag from the
+  // URL so a refresh/back won't re-trigger it. Query-only: the server puts the real error_code in the
+  // query at /auth/callback, so we never read the hash (which Safari/Firefox can drop across redirects).
+  useEffect(() => {
+    if (handledUrl.current) return;
+    handledUrl.current = true;
+    const authError = new URLSearchParams(window.location.search).get("auth_error");
+    if (authError !== "existing" && authError !== "oauth" && authError !== "link") return;
+    const openWithNotice = () => {
+      setNotice(authError);
+      setOpen(true);
+    };
+    openWithNotice();
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
 
   const sendLink = async () => {
     const value = email.trim();
@@ -128,6 +149,21 @@ export function AccountSheet() {
     <div className="flex flex-col gap-3">
       <h2 className="font-serif text-xl font-medium text-foreground">保存你的地圖</h2>
       <p className="text-sm text-muted-foreground">登入後，你的地圖就能在不同裝置上保存。</p>
+      {/* Calm notice after an auth redirect (Story 2.2). "existing" steers a returning user back to
+          their original method; the actual sign-in + map merge is Story 2-3. */}
+      {notice === "existing" && (
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">
+          這個信箱已經有帳號了，用原本的方式登入就能回到你的地圖。
+        </p>
+      )}
+      {notice === "oauth" && (
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">Google 登入沒有完成，請再試一次。</p>
+      )}
+      {notice === "link" && (
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">
+          這個登入連結沒辦法用了，回到帳號重新寄一封就好。
+        </p>
+      )}
       {/* Google (Story 2.2) — alongside email so neither is the only path (no single-OAuth lock-in). */}
       <button
         type="button"
@@ -152,6 +188,7 @@ export function AccountSheet() {
         onChange={(e) => {
           setEmail(e.target.value);
           if (status !== "idle" && status !== "sending") setStatus("idle");
+          if (notice) setNotice(null);
         }}
         placeholder="你的 email"
         aria-label="email"
@@ -181,6 +218,7 @@ export function AccountSheet() {
         aria-label="帳號"
         onClick={() => {
           setGoogleError(false); // don't carry a stale Google error into a fresh open
+          setNotice(null);
           setOpen(true);
         }}
         className="absolute left-4 top-16 z-20 grid h-10 w-10 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
