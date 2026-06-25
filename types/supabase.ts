@@ -152,6 +152,8 @@ export type Database = {
           default_view: string
           focus_country: string | null
           id: string
+          last_notified_at: string | null
+          last_rediscovery_at: string | null
           locale: string
           notif_enabled: boolean
           notif_time: string
@@ -161,6 +163,8 @@ export type Database = {
           default_view?: string
           focus_country?: string | null
           id: string
+          last_notified_at?: string | null
+          last_rediscovery_at?: string | null
           locale?: string
           notif_enabled?: boolean
           notif_time?: string
@@ -170,6 +174,8 @@ export type Database = {
           default_view?: string
           focus_country?: string | null
           id?: string
+          last_notified_at?: string | null
+          last_rediscovery_at?: string | null
           locale?: string
           notif_enabled?: boolean
           notif_time?: string
