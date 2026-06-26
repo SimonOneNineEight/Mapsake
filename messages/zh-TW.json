@@ -14,8 +14,6 @@
     "googleError": "Google 登入暫時無法使用，請稍後再試",
     "or": "或",
     "emailPlaceholder": "你的 email",
-    "emailTaken": "此信箱已有帳號",
-    "signInExisting": "登入你的帳號",
     "sendError": "無法寄送，請確認 email 後再試一次",
     "sending": "寄送中…",
     "sendLink": "寄送登入連結",

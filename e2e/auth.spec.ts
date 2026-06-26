@@ -3,7 +3,7 @@ import { bypassOnboarding } from "./onboarding-bypass";
 
 // Story 2.1 — email magic-link sign-in. We can't click a real magic link in e2e (needs an inbox),
 // so we cover the SURFACE + the send call: intercept Supabase's updateUser (PUT /auth/v1/user) to
-// assert it fires with the email + redirect, and to drive the sent / error / taken states without
+// assert it fires with the email + redirect, and to drive the sent + error states without
 // sending real mail or hitting the rate limit. The confirm route's token exchange is verified
 // manually (documented in the story). Onboarding is bypassed so the account button is mounted.
 test.beforeEach(({ page }) => bypassOnboarding(page));
@@ -67,7 +67,8 @@ test("both Google and email sign-in are offered — no single-OAuth lock-in (Sto
 test("Google sign-in initiates the OAuth redirect to /auth/callback (Story 2.2)", async ({ page }) => {
   // Don't actually go to Google — capture the authorize navigation and abort it.
   let authorizeUrl = "";
-  // linkIdentity navigates to .../auth/v1/user/identities/authorize?provider=google&redirect_to=…
+  // signInWithOAuth navigates to .../auth/v1/authorize?provider=google&redirect_to=… (a true sign-in
+  // + sign-up, not linkIdentity — so a returning Google user lands in their existing account).
   await page.route("**/authorize**", async (route) => {
     authorizeUrl = route.request().url();
     await route.abort();
@@ -92,27 +93,13 @@ test("returning from Google with an already-registered email opens a calm sign-i
   await expect.poll(() => new URL(page.url()).search).toBe("");
 });
 
-test("an already-registered email shows the calm 'taken' message (Story 2.1)", async ({ page }) => {
-  await page.route("**/auth/v1/user**", async (route) => {
-    if (route.request().method() !== "PUT") return route.continue(); // only intercept updateUser
-    await route.fulfill({
-      status: 422,
-      contentType: "application/json",
-      body: JSON.stringify({ msg: "Email address already registered by another user" }),
-    });
-  });
-  await openAccountSheet(page);
-  await page.getByLabel("email").fill("taken@example.com");
-  await page.getByRole("button", { name: "寄送登入連結" }).click();
-  await expect(page.getByText("此信箱已有帳號")).toBeVisible();
-});
-
-test("a taken email offers signing IN to the existing account via signInWithOtp (Story 2.2/2.7)", async ({ page }) => {
-  // updateUser (link) returns taken → the returning-user sign-in action appears; clicking it must
-  // call signInWithOtp (POST /auth/v1/otp), NOT updateUser again — that's the 2-7 returning sign-in.
+test("a taken email AUTOMATICALLY signs IN to the existing account via signInWithOtp (Story 2.7)", async ({ page }) => {
+  // updateUser (link) returns 422 taken → the surface auto-sends the returning-user sign-in magic
+  // link (POST /auth/v1/otp, shouldCreateUser:false), NOT updateUser again, with NO second tap. The
+  // user sees the same "check your inbox" as a new sign-up, so we never leak whether the email exists.
   let sawOtpForEmail = false;
   await page.route("**/auth/v1/user**", async (route) => {
-    if (route.request().method() !== "PUT") return route.continue();
+    if (route.request().method() !== "PUT") return route.continue(); // only intercept updateUser
     await route.fulfill({
       status: 422,
       contentType: "application/json",
@@ -128,10 +115,8 @@ test("a taken email offers signing IN to the existing account via signInWithOtp 
   await openAccountSheet(page);
   await page.getByLabel("email").fill("returning@example.com");
   await page.getByRole("button", { name: "寄送登入連結" }).click();
-  // Taken → the dead-end becomes an action.
-  await expect(page.getByRole("button", { name: "登入你的帳號" })).toBeVisible();
-  await page.getByRole("button", { name: "登入你的帳號" }).click();
-  // It fired signInWithOtp (the sign-in OTP endpoint) and shows the shared "check your inbox" state.
+  // One tap → it auto-fired signInWithOtp and shows the shared "check your inbox" state (no dead-end,
+  // no second button).
   await expect(page.getByText("查收你的信箱")).toBeVisible();
   expect(sawOtpForEmail).toBeTruthy();
 });

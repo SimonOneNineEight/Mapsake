@@ -7,13 +7,18 @@ import { Drawer } from "vaul";
 import { createClient } from "@/lib/supabase/client";
 import { useAccount } from "../hooks/use-account";
 
-// "Keep your map" sign-in (Story 2.1). A calm, local-first surface: an anonymous user enters their
-// email and we LINK it to the current anon user (updateUser → anon→permanent, uid + map preserved),
-// sending a one-time confirm link. A signed-in user sees their email + a quiet sign-out. Never a
-// gate. Responsive like the memory panel: a centered modal on desktop (≥840px), a bottom sheet on
-// phone. Reusable — the Story 2-3 post-payoff prompt opens this same surface.
+// "Keep your map" sign-in (Stories 2.1/2.2/2.7). A calm, local-first surface. EMAIL: a new address
+// LINKs to the current anon user (updateUser → anon→permanent, uid + map kept); an address that
+// already has an account auto-sends a sign-in magic link instead (signInWithOtp), so the same
+// "check your inbox" covers create and sign-in. The UI reveals nothing, though the updateUser
+// 200-vs-422 is still a network-level oracle — close that with Supabase's email-enumeration
+// protection. GOOGLE: a single
+// signInWithOAuth that both signs up and signs in — a returning Google user lands in their existing
+// account (a new one doesn't carry the anon map; email is the map-saving path). A signed-in user sees
+// their email + a quiet link to Settings. Never a gate. Responsive like the memory panel: a centered
+// modal on desktop (≥840px), a bottom sheet on phone. The Story 2-3 post-payoff prompt reuses it.
 
-type SendStatus = "idle" | "sending" | "sent" | "error-taken" | "error";
+type SendStatus = "idle" | "sending" | "sent" | "error";
 
 const looksLikeEmail = (s: string) => /.+@.+\..+/.test(s.trim());
 
@@ -141,48 +146,45 @@ export function AccountSheet({
       code === "email_exists" ||
       code === "user_already_exists" ||
       /already|registered|exists|in use/i.test(error.message);
-    setStatus(taken ? "error-taken" : "error"); // → the returning-user sign-in below (Story 2.7)
-  };
-
-  // Returning-user sign-in (Story 2.7): the entered email already has an account, so sign INTO it
-  // with a magic link — signInWithOtp({shouldCreateUser:false}), NOT updateUser (which links to the
-  // anon user and is exactly what hit email_exists). This is the UNIVERSAL recovery: a magic link to
-  // the email signs into that account whether it was created via email OR Google (both carry the
-  // email). The link lands on /auth/confirm → cookie session for the existing account (a full reload,
-  // so the uid-keyed caches reset). The on-device anon map is left in place — its merge is Story 2-8.
-  // For an unknown email Supabase sends nothing (anti-enumeration); we still show the calm sent state
-  // so we leak nothing.
-  const signInExisting = async () => {
-    if (status === "sending") return; // ignore a double-click while a send is in flight (one OTP)
-    const value = email.trim();
-    if (!looksLikeEmail(value)) {
+    if (!taken) {
       setStatus("error");
       return;
     }
-    setStatus("sending");
-    const { error } = await createClient().auth.signInWithOtp({
+    // Returning user (Story 2.7): the address already has an account, so AUTOMATICALLY sign INTO it
+    // with a magic link — signInWithOtp({shouldCreateUser:false}), NOT updateUser (which links to the
+    // anon user and is exactly what hit email_exists). No second tap: the backend decides create vs
+    // sign-in, the user just sees "check your inbox" either way. Universal recovery — the magic link
+    // signs into the account whether it was created via email OR Google (both carry the email). The
+    // link lands on /auth/confirm → cookie session for the existing account; the on-device anon map is
+    // left in place (its merge is Story 2-8). Enumeration: the UI shows the same calm "sent" state for
+    // new, existing, and unknown addresses, so a user-facing observer learns nothing — but the
+    // updateUser 200-vs-422 (and the extra OTP round-trip) is still a NETWORK-level oracle. Close it
+    // at the platform: enable Supabase Auth's email-enumeration protection.
+    const { error: otpError } = await supabase.auth.signInWithOtp({
       email: value,
       options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/confirm` },
     });
-    setStatus(error ? "error" : "sent");
+    setStatus(otpError ? "error" : "sent");
   };
 
-  // Google sign-in (Story 2.2): link the Google identity to the CURRENT anon user (anon→permanent,
-  // map preserved — parallel to the email link). On success supabase-js redirects the browser to
-  // Google, so no code runs after; only an error (e.g. identity already linked) returns here.
+  // Google sign-in + sign-up (Stories 2.2/2.7): a single signInWithOAuth that the backend resolves —
+  // a returning Google user lands in their EXISTING account; a brand-new one gets a fresh account.
+  // We deliberately do NOT linkIdentity here: linking attaches Google to the current anon user, which
+  // dead-ends a returning user whose Google already owns an account (it can't be linked twice). The
+  // cost is that a brand-new Google user doesn't carry the on-device anon map — the map-saving path
+  // is email (which links); Google map carry-over is the deferred Story 2-8 merge. On success
+  // supabase-js redirects the browser to Google, so no code runs after; only an error returns here.
   const signInGoogle = async () => {
-    if (googleBusy) return; // ignore double-clicks — one in-flight link at a time
+    if (googleBusy) return; // ignore double-clicks — one in-flight sign-in at a time
     setGoogleError(false);
     setGoogleBusy(true);
     try {
-      const { error } = await createClient().auth.linkIdentity({
+      const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
-      // On success supabase-js redirects the browser to Google — no code runs after, and we keep
-      // the button disabled through that navigation. Only an error returns here.
       if (error) {
-        setGoogleError(true); // returning/already-linked path is Story 2-3/2-4
+        setGoogleError(true);
         setGoogleBusy(false);
       }
     } catch {
@@ -262,20 +264,6 @@ export function AccountSheet({
         aria-label={t("emailPlaceholder")}
         className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
       />
-      {status === "error-taken" && (
-        <>
-          <p className="text-sm text-[rgb(var(--terracotta-text))]">{t("emailTaken")}</p>
-          {/* Returning user (Story 2.7): sign INTO the existing account via a magic link (universal —
-              works whether it was made with email or Google). The anon-map merge is Story 2-8. */}
-          <button
-            type="button"
-            onClick={signInExisting}
-            className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline"
-          >
-            {t("signInExisting")}
-          </button>
-        </>
-      )}
       {status === "error" && (
         <p className="text-sm text-[rgb(var(--terracotta-text))]">{t("sendError")}</p>
       )}
