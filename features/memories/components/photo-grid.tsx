@@ -63,6 +63,8 @@ function Thumb({ src, dimmed }: { src: string | null; dimmed: boolean }) {
     <img
       src={src}
       alt=""
+      loading="lazy"
+      decoding="async"
       onLoad={() => setLoaded(true)}
       className={`h-full w-full object-cover transition-opacity duration-300 ${opacity}`}
     />

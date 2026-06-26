@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # Epic 6: 6-1/6-2/6-3 done; 6-4 (perf) + 6-5 (CI) remain
+last_updated: 2026-06-25  # Epic 6: 6-1..6-4 done; only 6-5 (CI/monitoring) remains — deferred to Simon (ops/secrets)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -117,6 +117,6 @@ development_status:
   6-1-i18n-framework-zh-tw-strings: done
   6-2-accessibility-floor-pass: done
   6-3-settings-surface: done
-  6-4-performance-pass: backlog
+  6-4-performance-pass: done
   6-5-ci-cd-hardening-monitoring-project-context: backlog  # PARTIAL done early (2026-06-25): shared-anon-session test harness (storageState + per-test RLS reset, 1 worker, retries) — killed the anon rate-limit blocker. Rest (CI pipeline, monitoring, project-context, re-enable quarantined note test) still backlog.
   epic-6-retrospective: optional

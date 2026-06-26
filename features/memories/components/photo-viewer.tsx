@@ -181,6 +181,8 @@ function Frame({ url }: { url: string | null }) {
     <img
       src={url}
       alt=""
+      loading="lazy"
+      decoding="async"
       onClick={(e) => e.stopPropagation()} // tapping the photo doesn't close; only the backdrop does
       onLoad={() => setLoaded(true)}
       className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
