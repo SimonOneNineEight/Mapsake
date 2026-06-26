@@ -54,4 +54,27 @@
     font-family: var(--font-sans), var(--font-sans-tc), ui-sans-serif, system-ui,
       sans-serif;
   }
+
+  /* A11y (Story 6.2): one visible keyboard-focus ring for every interactive control, using the
+     terracotta --ring token. :where() is zero-specificity so shadcn's own focus-visible:ring (a
+     box-shadow ring) still wins where present; this outline covers the hand-rolled controls. */
+  :where(a, button, input, textarea, select, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
+  /* The MapLibre canvas is the single map focus stop; it carries an inline outline:none (suppresses
+     the drag outline), which an outline ring can't override — so use an inset box-shadow ring. */
+  .maplibregl-canvas:focus-visible {
+    box-shadow: inset 0 0 0 3px rgb(var(--ring));
+  }
+}
+
+/* A11y (Story 6.2): honor prefers-reduced-motion for the vaul sheet slide (vaul ships no RM guard).
+   The sheet snaps into place instead of sliding the full-height panel up; the overlay opacity fade —
+   the desired gentle fade — is untouched. The map fly/glow + region fills are guarded in MapCanvas. */
+@media (prefers-reduced-motion: reduce) {
+  [data-vaul-drawer] {
+    transition: none !important;
+    animation: none !important;
+  }
 }

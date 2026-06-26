@@ -200,7 +200,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         type="button"
         onClick={() => exportData.mutate()}
         disabled={exportData.isPending}
-        className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
+        className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
       >
         {exportData.isPending ? t("exporting") : t("exportData")}
       </button>
@@ -215,7 +215,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
       <button
         type="button"
         onClick={signOut}
-        className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline"
+        className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline"
       >
         {t("signOut")}
       </button>
@@ -251,7 +251,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         type="button"
         onClick={signInGoogle}
         disabled={googleBusy}
-        className="flex items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm text-foreground hover:bg-accent disabled:opacity-60"
+        className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm text-foreground hover:bg-accent disabled:opacity-60"
       >
         <GoogleG className="h-[18px] w-[18px] shrink-0" />
         {googleBusy ? t("googleRedirecting") : t("googleSignIn")}
@@ -274,8 +274,8 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
           if (notice) setNotice(null);
         }}
         placeholder={t("emailPlaceholder")}
-        aria-label="email"
-        className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+        aria-label={t("emailPlaceholder")}
+        className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
       />
       {status === "error-taken" && (
         <>
@@ -285,7 +285,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
           <button
             type="button"
             onClick={signInExisting}
-            className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline"
+            className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline"
           >
             {t("signInExisting")}
           </button>
@@ -298,7 +298,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         type="button"
         onClick={sendLink}
         disabled={status === "sending"}
-        className="self-start rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))] disabled:opacity-60"
+        className="inline-flex min-h-11 items-center self-start rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))] disabled:opacity-60"
       >
         {status === "sending" ? t("sending") : t("sendLink")}
       </button>
@@ -315,7 +315,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
           setNotice(null);
           setOpen(true);
         }}
-        className="absolute left-4 top-16 z-20 grid h-10 w-10 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
+        className="absolute left-4 top-16 z-20 grid h-11 w-11 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
       >
         <UserRound className="h-5 w-5" aria-hidden />
       </button>
@@ -332,13 +332,13 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-sm rounded-md bg-card p-6 shadow-[0_4px_16px_rgba(58,46,34,0.18)]"
+              className="relative max-h-[85dvh] w-full max-w-sm overflow-y-auto rounded-md bg-card p-6 shadow-[0_4px_16px_rgba(58,46,34,0.18)]"
             >
               <button
                 type="button"
                 aria-label={t("close")}
                 onClick={() => setOpen(false)}
-                className="absolute right-3 top-3 text-xl leading-none text-muted-foreground"
+                className="absolute right-1 top-1 grid h-11 w-11 place-items-center text-xl leading-none text-muted-foreground"
               >
                 ×
               </button>
@@ -356,7 +356,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
               >
                 <Drawer.Title className="sr-only">{t("accountLabel")}</Drawer.Title>
                 <div className="mx-auto mb-4 mt-1 h-1.5 w-12 shrink-0 rounded-full bg-border" />
-                {body}
+                <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
               </Drawer.Content>
             </Drawer.Portal>
           </Drawer.Root>

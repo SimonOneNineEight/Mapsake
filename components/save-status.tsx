@@ -15,7 +15,7 @@ export type SaveKind = "save" | "delete" | "remove";
 const PILL =
   "pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-card/95 px-3 py-1 text-sm shadow-[0_2px_10px_rgba(58,46,34,0.18)]";
 const PILL_RETRY =
-  "absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-card/95 px-3 py-1 text-sm text-[rgb(var(--terracotta-text))] shadow-[0_2px_10px_rgba(58,46,34,0.18)]";
+  "absolute bottom-6 left-1/2 inline-flex min-h-11 -translate-x-1/2 items-center rounded-full bg-card/95 px-4 py-1 text-sm text-[rgb(var(--terracotta-text))] shadow-[0_2px_10px_rgba(58,46,34,0.18)]";
 
 export function SaveStatus({
   phase,
@@ -42,7 +42,7 @@ export function SaveStatus({
         <button
           type="button"
           onClick={onRetry}
-          className="self-start text-xs text-[rgb(var(--terracotta-text))]"
+          className="self-start py-1 text-xs text-[rgb(var(--terracotta-text))]"
         >
           {copy.error}
         </button>

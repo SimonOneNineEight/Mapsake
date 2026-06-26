@@ -20,7 +20,7 @@ import { SaveStatus } from "@/components/save-status";
 import { PhotoUploader } from "./photo-uploader";
 
 const linkQuiet =
-  "self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline";
+  "self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline";
 
 /**
  * The memory card (Story 3.4 title + Story 3.5 note/date). The pin's name is always shown.
@@ -94,7 +94,7 @@ export function MemoryCard({
           autoFocus={editingNote && !pin.note}
           rows={3}
           placeholder={t("notePlaceholder")}
-          className="w-full resize-y rounded-md bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          className="w-full resize-y rounded-md bg-transparent text-sm text-foreground placeholder:text-muted-foreground"
           onFocus={onNoteFocus}
           onBlur={(e) => {
             onNoteBlur?.();
@@ -123,7 +123,7 @@ export function MemoryCard({
             type="date"
             defaultValue={pin.memoryDate ?? ""}
             aria-label={t("dateLabel")}
-            className="bg-transparent text-muted-foreground outline-none"
+            className="bg-transparent text-muted-foreground"
             onChange={(e) => updatePin.mutate({ id: pin.id, memoryDate: e.target.value || null })}
           />
           {pin.memoryDate && (

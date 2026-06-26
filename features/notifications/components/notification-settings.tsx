@@ -33,7 +33,7 @@ export function NotificationSettings() {
             type="time"
             value={data.notifTime.slice(0, 5)}
             onChange={(e) => e.target.value && update.mutate({ notifTime: e.target.value })}
-            className="bg-transparent text-foreground outline-none"
+            className="bg-transparent text-foreground"
           />
         </label>
       )}

@@ -79,7 +79,7 @@ export function MemoryContainer({
           type="button"
           onClick={onClose}
           aria-label={t("close")}
-          className="self-end text-xl leading-none text-muted-foreground"
+          className="grid h-11 w-11 place-items-center self-end text-xl leading-none text-muted-foreground"
         >
           ×
         </button>
@@ -117,7 +117,7 @@ export function MemoryContainer({
             <button
               type="button"
               onClick={handleClose}
-              className="self-start text-sm text-muted-foreground"
+              className="self-start py-1.5 text-sm text-muted-foreground"
             >
               {t("backToMap")}
             </button>

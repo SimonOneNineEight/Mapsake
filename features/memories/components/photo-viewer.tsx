@@ -142,7 +142,7 @@ export function PhotoViewer({
           e.stopPropagation();
           onClose();
         }}
-        className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/40 text-2xl leading-none text-white"
+        className="absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/40 text-2xl leading-none text-white"
       >
         ×
       </button>
@@ -160,7 +160,7 @@ export function PhotoViewer({
                   e.stopPropagation(); // don't close the viewer
                   onDelete(p.id);
                 }}
-                className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-black/40 px-4 py-1.5 text-sm text-white"
+                className="absolute bottom-5 left-1/2 inline-flex min-h-11 -translate-x-1/2 items-center rounded-full bg-black/40 px-4 py-1.5 text-sm text-white"
               >
                 {t("deleteThis")}
               </button>

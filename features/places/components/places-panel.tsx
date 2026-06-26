@@ -53,7 +53,7 @@ export function PlacesPanel({
         <button
           type="button"
           aria-label={t("title")}
-          className="absolute left-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
+          className="absolute left-4 top-4 z-20 grid h-11 w-11 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
         >
           <List className="h-5 w-5" aria-hidden />
         </button>
@@ -86,7 +86,7 @@ export function PlacesPanel({
                             <button
                               type="button"
                               onClick={() => selectRegion(region)}
-                              className="self-start py-1 text-left text-sm text-foreground hover:text-[rgb(var(--terracotta-text))]"
+                              className="w-full py-2.5 text-left text-sm text-foreground hover:text-[rgb(var(--terracotta-text))]"
                             >
                               {region.name}
                             </button>
@@ -98,7 +98,7 @@ export function PlacesPanel({
                                   <button
                                     type="button"
                                     onClick={() => openPin(pin)}
-                                    className="self-start py-1 text-left text-sm text-[rgb(var(--terracotta-text))] hover:underline"
+                                    className="w-full py-2.5 text-left text-sm text-[rgb(var(--terracotta-text))] hover:underline"
                                   >
                                     {pin.name}
                                   </button>

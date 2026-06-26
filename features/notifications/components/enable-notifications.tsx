@@ -46,7 +46,7 @@ export function EnableNotifications() {
         type="button"
         onClick={enable}
         disabled={isPending}
-        className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
+        className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
       >
         {isPending ? t("pending") : t("enable")}
       </button>

@@ -8,7 +8,7 @@ import { PhotoViewer } from "./photo-viewer";
 
 const MAX_PER_PIN = 30; // soft cap (architecture envelope); the 2GB/user quota is monitor-only
 
-const linkQuiet = "self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline";
+const linkQuiet = "self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline";
 
 interface PendingItem {
   tempId: string;

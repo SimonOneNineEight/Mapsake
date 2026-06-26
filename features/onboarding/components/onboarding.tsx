@@ -44,7 +44,7 @@ export function Onboarding({
             <button
               type="button"
               onClick={onInstall}
-              className="rounded-full border border-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--terracotta-text))]"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--terracotta-text))]"
             >
               {t("installToHome")}
             </button>
@@ -58,7 +58,7 @@ export function Onboarding({
             type="button"
             autoFocus
             onClick={onDismiss}
-            className="rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))]"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))]"
           >
             {t("startExploring")}
           </button>
@@ -78,7 +78,7 @@ export function Onboarding({
         <button
           type="button"
           onClick={onDone}
-          className="pointer-events-auto rounded-full bg-[rgb(var(--terracotta-text))] px-4 py-1.5 text-sm text-[rgb(var(--surface))]"
+          className="pointer-events-auto inline-flex min-h-11 items-center justify-center rounded-full bg-[rgb(var(--terracotta-text))] px-4 py-1.5 text-sm text-[rgb(var(--surface))]"
         >
           {t("done")}
         </button>
@@ -97,7 +97,7 @@ export function Onboarding({
         <button
           type="button"
           onClick={onBack}
-          className="pointer-events-auto text-sm text-[rgb(var(--terracotta-text))] hover:underline"
+          className="pointer-events-auto py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline"
         >
           {t("back")}
         </button>
