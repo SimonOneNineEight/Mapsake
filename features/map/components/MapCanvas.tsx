@@ -216,7 +216,17 @@ export function MapCanvas({
           protocolRegistered = true;
         }
 
-        const pmtilesUrl = `${window.location.origin}/tiles/boundaries.pmtiles`;
+        // Version the tile URL by the file's CONTENT hash (NEXT_PUBLIC_TILES_VERSION, computed at
+        // build in next.config). The service worker caches tiles CacheFirst in a runtime cache that
+        // survives deploys; without a version, a deploy that shifts the file's served etag makes a
+        // returning user serve a MIX of old-cached + new-network byte ranges → pmtiles EtagMismatch →
+        // blank map. A content-hash query gives each tiles version its own cache key: unchanged tiles
+        // keep the cache (no re-download), changed tiles get a clean new set, and anyone stuck on a
+        // stale cache self-heals on next load (the new URL misses the old entries).
+        const tilesVersion = process.env.NEXT_PUBLIC_TILES_VERSION;
+        const pmtilesUrl = `${window.location.origin}/tiles/boundaries.pmtiles${
+          tilesVersion ? `?v=${tilesVersion}` : ""
+        }`;
         // Open on the saved view (Story 4.2): a focus view with a stored center frames that
         // country (zoom 4); otherwise the world default. A focus value without a center (a
         // pre-4.2 stored value) falls back to world framing.
