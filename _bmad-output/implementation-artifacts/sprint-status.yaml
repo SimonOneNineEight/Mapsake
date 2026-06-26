@@ -110,7 +110,7 @@ development_status:
   5-4-deep-link-re-live-landing: done
   5-5-free-wandering-from-the-landing: done
   5-6-notification-controls: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: done  # 2026-06-25 — epic-level cross-story audit; 14 findings logged to deferred-work
 
   # Epic 6 — Launch-ready (localization, accessibility, settings, ops)
   epic-6: backlog
