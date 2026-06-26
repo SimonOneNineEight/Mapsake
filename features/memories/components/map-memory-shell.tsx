@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MapCanvas } from "@/features/map/components/MapCanvas";
+import { SettingsSheet } from "@/features/settings/components/settings-sheet";
 import { Onboarding } from "@/features/onboarding/components/onboarding";
 import {
   readAccountPromptSeen,
@@ -27,7 +29,11 @@ import { MemoryContainer } from "./memory-container";
  * step + the localStorage write (the focus `countryCode` arrives here from the map tap).
  */
 export function MapMemoryShell() {
+  const t = useTranslations("settings");
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
+  // Settings sheet (Story 6.3) + a Settings-initiated default-view focus pick (vs the onboarding pick).
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pickingFocus, setPickingFocus] = useState(false);
   // Onboarding step: null = not onboarding (returning user or finished). Set after mount so
   // there's no SSR/hydration flash (localStorage is client-only).
   const [onboarding, setOnboarding] = useState<"question" | "pick" | "backfill" | "handoff" | null>(null);
@@ -158,11 +164,36 @@ export function MapMemoryShell() {
           onOpenPin={openPin}
           selectedPinId={selectedPinId}
           initialView={initialView}
-          pickCountry={onboarding === "pick"}
-          onCountryPick={({ countryCode, lngLat }) => finishFocus(countryCode, [lngLat.lng, lngLat.lat])}
+          pickCountry={onboarding === "pick" || pickingFocus}
+          onCountryPick={({ countryCode, lngLat }) => {
+            if (pickingFocus) {
+              // Settings-initiated default-view change (Story 6.3): just persist the focus view (takes
+              // effect on the next open, Story 4.2) — never re-enter onboarding backfill/hand-off.
+              writeDefaultView({ kind: "focus", countryCode, center: [lngLat.lng, lngLat.lat] });
+              setPickingFocus(false);
+            } else {
+              finishFocus(countryCode, [lngLat.lng, lngLat.lat]);
+            }
+          }}
           cameraRef={cameraRef}
           flyToMemoryTarget={flyTarget}
         />
+        {/* Settings-initiated focus pick (Story 6.3): a calm non-blocking hint so the map tap that
+            sets the default-view country isn't a mystery; tapping a country resolves it (above). */}
+        {pickingFocus && (
+          <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex flex-col items-center gap-2">
+            <p className="rounded-full bg-card/95 px-4 py-1.5 text-sm text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]">
+              {t("pickFocusHint")}
+            </p>
+            <button
+              type="button"
+              onClick={() => setPickingFocus(false)}
+              className="pointer-events-auto py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline"
+            >
+              {t("cancel")}
+            </button>
+          </div>
+        )}
         {/* "Places visited" list (Story 4.7) — the accessible browse path. Hidden during the
             first-run onboarding so the payoff stays clean; available once the map is the user's. */}
         {!onboarding && (
@@ -173,7 +204,19 @@ export function MapMemoryShell() {
         )}
         {/* "Keep your map" sign-in (Story 2.1) — a quiet account affordance, never a gate;
             hidden during onboarding so the first-run payoff stays clean. */}
-        {!onboarding && <AccountSheet autoOpen={promptAccount} />}
+        {!onboarding && (
+          <AccountSheet autoOpen={promptAccount} onOpenSettings={() => setSettingsOpen(true)} />
+        )}
+        {!onboarding && (
+          <SettingsSheet
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            onPickFocus={() => {
+              setSettingsOpen(false);
+              setPickingFocus(true);
+            }}
+          />
+        )}
         {onboarding && (
           <Onboarding
             step={onboarding}

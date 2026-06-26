@@ -2,10 +2,6 @@
   "account": {
     "mapSaved": "你的地圖已保存",
     "loggedInAs": "已登入：{email}",
-    "exporting": "正在為你整理回憶…",
-    "exportData": "匯出我的回憶",
-    "exportError": "這次沒能整理好，稍後再試一次",
-    "signOut": "登出",
     "checkInbox": "查收你的信箱",
     "checkInboxBody": "我們寄了登入連結到 {email}，點開就完成登入。",
     "saveMap": "保存你的地圖",
@@ -24,7 +20,8 @@
     "sending": "寄送中…",
     "sendLink": "寄送登入連結",
     "accountLabel": "帳號",
-    "close": "關閉"
+    "close": "關閉",
+    "settings": "設定"
   },
   "memory": {
     "offlineReadOnly": "僅供瀏覽 — 重新連線後可編輯",
@@ -120,5 +117,30 @@
   "map": {
     "defaultRegionName": "這個地區",
     "offlineBanner": "僅供瀏覽 — 重新連線後可標記"
+  },
+  "settings": {
+    "title": "設定",
+    "close": "關閉",
+    "sectionAccount": "帳號",
+    "loggedInAs": "已登入：{email}",
+    "signOut": "登出",
+    "anonHint": "登入以在不同裝置保存你的地圖。",
+    "sectionNotifications": "通知",
+    "sectionDefaultView": "預設視圖",
+    "viewCurrentWorld": "目前：整個世界",
+    "viewCurrentFocus": "目前：專注一個國家",
+    "viewWorld": "看整個世界",
+    "viewFocus": "改選一個國家",
+    "sectionMuted": "靜音的地方",
+    "mutedEmpty": "沒有靜音的地方。",
+    "unmute": "恢復通知",
+    "sectionExport": "匯出資料",
+    "exporting": "正在為你整理回憶…",
+    "exportData": "匯出我的回憶",
+    "exportError": "這次沒能整理好，稍後再試一次",
+    "sectionLanguage": "語言",
+    "languageValue": "繁體中文",
+    "pickFocusHint": "輕觸地圖上的一個國家，設為預設視圖",
+    "cancel": "取消"
   }
 }

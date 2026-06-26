@@ -5,9 +5,6 @@ import { useTranslations } from "next-intl";
 import { UserRound } from "lucide-react";
 import { Drawer } from "vaul";
 import { createClient } from "@/lib/supabase/client";
-import { useExport } from "@/features/settings/hooks/use-export";
-import { EnableNotifications } from "@/features/notifications/components/enable-notifications";
-import { NotificationSettings } from "@/features/notifications/components/notification-settings";
 import { useAccount } from "../hooks/use-account";
 
 // "Keep your map" sign-in (Story 2.1). A calm, local-first surface: an anonymous user enters their
@@ -57,7 +54,13 @@ function GoogleG({ className }: { className?: string }) {
   );
 }
 
-export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) {
+export function AccountSheet({
+  autoOpen = false,
+  onOpenSettings,
+}: {
+  autoOpen?: boolean;
+  onOpenSettings?: () => void; // open the Settings sheet (Story 6.3) — closes this sheet first
+} = {}) {
   const t = useTranslations("account");
   const account = useAccount();
   // signed in = a permanent (non-anon) session with an email; used by the body + the autoOpen guard.
@@ -74,7 +77,11 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
   const [notice, setNotice] = useState<"existing" | "oauth" | "link" | null>(null);
   const handledUrl = useRef(false);
   const autoOpened = useRef(false);
-  const exportData = useExport(); // "export my data" (Story 2.6) — signed-in only
+  // Open Settings (Story 6.3) from this sheet — close this sheet first so they don't stack.
+  const openSettings = () => {
+    setOpen(false);
+    onOpenSettings?.();
+  };
 
   // Esc closes the desktop modal (vaul handles Esc for the phone sheet itself).
   useEffect(() => {
@@ -184,40 +191,18 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
     }
   };
 
-  const signOut = async () => {
-    await createClient().auth.signOut();
-    window.location.assign("/"); // middleware re-mints a fresh anonymous session
-  };
-
   // Shared content for both the modal and the sheet.
   const body = signedIn ? (
     <div className="flex flex-col gap-3">
       <h2 className="font-serif text-xl font-medium text-foreground">{t("mapSaved")}</h2>
       <p className="text-sm text-muted-foreground">{t("loggedInAs", { email: account.email ?? "" })}</p>
-      {/* Export my data (Story 2.6) — the keepsake trust guarantee: your memories are yours to take.
-          A client-side, RLS-scoped JSON of marks/pins/notes/dates/photo refs. */}
+      {/* Notifications, data export + sign-out moved to the Settings sheet (Story 6.3). */}
       <button
         type="button"
-        onClick={() => exportData.mutate()}
-        disabled={exportData.isPending}
-        className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
-      >
-        {exportData.isPending ? t("exporting") : t("exportData")}
-      </button>
-      {exportData.isError && (
-        <p className="text-xs text-[rgb(var(--terracotta-text))]">{t("exportError")}</p>
-      )}
-      {/* Enable memory notifications (Story 5.1) — a quiet rider, capability-gated; self-contained
-          so Settings (6-3) re-mounts it. Signed-in only (a subscription needs a durable account). */}
-      <EnableNotifications />
-      {/* Notification controls (Story 5.6): global on/off + delivery time. */}
-      <NotificationSettings />
-      <button
-        type="button"
-        onClick={signOut}
+        onClick={openSettings}
         className="self-start py-1.5 text-sm text-[rgb(var(--terracotta-text))] hover:underline"
       >
-        {t("signOut")}
+        {t("settings")}
       </button>
     </div>
   ) : status === "sent" ? (
@@ -301,6 +286,14 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         className="inline-flex min-h-11 items-center self-start rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))] disabled:opacity-60"
       >
         {status === "sending" ? t("sending") : t("sendLink")}
+      </button>
+      {/* A quiet entry to Settings (Story 6.3) — preferences are managed there. */}
+      <button
+        type="button"
+        onClick={openSettings}
+        className="self-start py-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        {t("settings")}
       </button>
     </div>
   );
