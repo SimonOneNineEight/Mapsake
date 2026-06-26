@@ -4,6 +4,10 @@ import { defineConfig, devices } from "@playwright/test";
 //      pnpm test:e2e
 export default defineConfig({
   testDir: "./e2e",
+  // On CI write the HTML report (uploaded as a debugging artifact for the flaky SwiftShader maps);
+  // locally keep the plain console output. Without this, no `playwright-report/` dir is produced,
+  // so the CI upload-artifact step would capture nothing.
+  reporter: process.env.CI ? [["html", { open: "never" }], ["list"]] : "list",
   // Each browser test renders a MapLibre map via software WebGL (SwiftShader), which is
   // CPU-heavy; >2 concurrent maps starve each other and the shared dev server, causing
   // timeouts. Cap workers (CI already serializes). Pure tests are unaffected.

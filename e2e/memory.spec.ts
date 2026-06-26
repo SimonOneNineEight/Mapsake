@@ -96,13 +96,12 @@ test("in drop mode, tapping a pin places a new pin instead of opening", async ({
 });
 
 // Story 3.5 — note + optional date.
-// QUARANTINED (test-infra 2026-06-25): passes in isolation but is flaky in a full-suite run — the
-// post-reload coordinate click on the pin gets eaten by Next's dev-overlay portal under load. Only
-// surfaced now that the shared-session harness lets the full suite run at all (it was always run
-// isolated before, behind the rate limit). The same reload-persistence behavior is covered by the
-// date-persist test below, which is stable. Re-enable after hardening clickPin against the dev
-// overlay (logged in deferred-work). Not a product regression.
-test.fixme("write a note → it saves and persists across reload", async ({ page }) => {
+// Re-enabled 6-5: the old full-suite flake was misdiagnosed as a dev-overlay click problem. The card
+// opens fine; the real cause is that the shared "已儲存" indicator is addPin.isSuccess (the create),
+// which stays visible after dropPin — so asserting it after the note blur is a FALSE POSITIVE that
+// doesn't wait for the note's own write. Under load the reload then raced (and beat) the note PATCH,
+// losing it. Fix: wait for the note's actual PATCH to commit before reloading.
+test("write a note → it saves and persists across reload", async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 800 });
   await page.goto("/");
   await expect(page.getByTestId("map-canvas")).toBeVisible();
@@ -114,8 +113,12 @@ test.fixme("write a note → it saves and persists across reload", async ({ page
   await page.getByRole("button", { name: "＋ 寫筆記" }).click();
   const note = page.getByPlaceholder("寫下這個地方的回憶…");
   await note.fill("金箔閃閃發光");
+  // Wait for the note's OWN durable write (PATCH /rest/v1/pins) — not the ambiguous shared "已儲存".
+  const noteSaved = page.waitForResponse(
+    (r) => r.url().includes("/rest/v1/pins") && r.request().method() === "PATCH" && r.ok(),
+  );
   await note.blur();
-  await expect(page.getByText("已儲存")).toBeVisible({ timeout: 15_000 });
+  await noteSaved;
 
   await page.reload();
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));

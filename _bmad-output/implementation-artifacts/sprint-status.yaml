@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-06-20
-last_updated: 2026-06-25  # Epic 6: 6-1..6-4 done; only 6-5 (CI/monitoring) remains — deferred to Simon (ops/secrets)
+last_updated: 2026-06-26  # Epic 6: 6-1..6-5 code-side done; Sentry DSN + CI secrets + deploy remain (ops, Simon)
 project: travel-map
 project_key: NOKEY
 tracking_system: file-system
@@ -113,10 +113,10 @@ development_status:
   epic-5-retrospective: done  # 2026-06-25 — epic-level cross-story audit; 14 findings logged to deferred-work
 
   # Epic 6 — Launch-ready (localization, accessibility, settings, ops)
-  epic-6: in-progress  # started 2026-06-25 (after Epic 5 complete)
+  epic-6: in-progress  # 6-1..6-5 code-side DONE (2026-06-26). Stays in-progress until Simon's ops land: Sentry project+DSN/auth-token in Vercel, the two Supabase Actions secrets + E2E_ENABLED repo var, and the production deploy.
   6-1-i18n-framework-zh-tw-strings: done
   6-2-accessibility-floor-pass: done
   6-3-settings-surface: done
   6-4-performance-pass: done
-  6-5-ci-cd-hardening-monitoring-project-context: backlog  # PARTIAL done early (2026-06-25): shared-anon-session test harness (storageState + per-test RLS reset, 1 worker, retries) — killed the anon rate-limit blocker. Rest (CI pipeline, monitoring, project-context, re-enable quarantined note test) still backlog.
+  6-5-ci-cd-hardening-monitoring-project-context: done  # 2026-06-26 — code-side done: Sentry wired (no-secret-safe, >=10.57.0 for cacheComponents), e2e job added to CI (gated on E2E_ENABLED), project-context.md, quarantined note test re-enabled (fixed the real cause: note-write-vs-reload race, not the click). pnpm pinned so CI can run. Ops (DSN/auth-token, Actions secrets, deploy) remain Simon's.
   epic-6-retrospective: optional

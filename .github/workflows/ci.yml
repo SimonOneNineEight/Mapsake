@@ -25,3 +25,33 @@ jobs:
         # Builds in pre-Supabase mode (no env) like local; catches RSC/font/route
         # errors that typecheck + lint miss. Add NEXT_PUBLIC_SUPABASE_* as Actions
         # secrets if a future build step needs a live connection.
+
+  # End-to-end (Story 6.5). GATED so the check stays green until Simon enables it: set the repo
+  # VARIABLE E2E_ENABLED=true (variables — not secrets — are readable in a job-level `if`) plus the
+  # two Supabase Actions secrets below. Until then this job is skipped (a green check, not a failure).
+  # The suite signs in anonymously against the test Supabase project, so it needs the public URL+key;
+  # CI=true (set by Actions) makes Playwright start its own `pnpm dev` server.
+  e2e:
+    if: ${{ vars.E2E_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright (chromium)
+        run: pnpm exec playwright install --with-deps chromium
+      - name: e2e
+        run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

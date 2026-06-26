@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // next-intl (Story 6.1): the request config lives at the non-default lib/i18n path, so pass it
 // explicitly (the no-arg default only finds ./i18n or ./src/i18n).
@@ -27,4 +28,17 @@ const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withSerwist(withNextIntl(nextConfig));
+// Sentry (Story 6.5) wraps OUTERMOST so its source-map step sees Serwist's + next-intl's output.
+// Source-map upload + log noise are gated on SENTRY_AUTH_TOKEN: with the token unset (local dev, CI,
+// any pre-DSN build) nothing uploads and the build stays green; Vercel's prod build sets the token
+// and uploads. NEXT_PUBLIC_SENTRY_DSN being unset makes the runtime SDK a no-op (see the init files).
+const hasSentryAuth = Boolean(process.env.SENTRY_AUTH_TOKEN);
+
+export default withSentryConfig(withSerwist(withNextIntl(nextConfig)), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !hasSentryAuth,
+  sourcemaps: { disable: !hasSentryAuth },
+  widenClientFileUpload: true,
+});
