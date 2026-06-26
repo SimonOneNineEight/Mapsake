@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -17,6 +18,7 @@ export function PinNameInput({
   onSave: (name: string) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations("pins");
   const [name, setName] = useState("");
   const trimmed = name.trim();
 
@@ -25,7 +27,7 @@ export function PinNameInput({
       className="absolute inset-0 z-10 grid place-items-center bg-foreground/10 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="為這個回憶命名"
+      aria-label={t("dialogLabel")}
       onKeyDown={(e) => {
         if (e.key === "Escape") onCancel();
       }}
@@ -38,22 +40,22 @@ export function PinNameInput({
         }}
       >
         <label htmlFor="pin-name" className="mb-2 block text-sm text-muted-foreground">
-          為這個地方命名
+          {t("nameLabel")}
         </label>
         <Input
           id="pin-name"
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="例如：京都"
+          placeholder={t("namePlaceholder")}
           maxLength={120}
         />
         <div className="mt-3 flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onCancel}>
-            取消
+            {t("cancel")}
           </Button>
           <Button type="submit" disabled={!trimmed}>
-            儲存
+            {t("save")}
           </Button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,18 +30,19 @@ export function RegionRemoveDialog({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("regions");
   return (
     <AlertDialog open={open} onOpenChange={(o) => !o && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>移除「{name}」？</AlertDialogTitle>
+          <AlertDialogTitle>{t("title", { name })}</AlertDialogTitle>
           <AlertDialogDescription>
-            這會一併刪除這個地區的 {pinCount} 個地點與其照片。此動作無法復原。
+            {t("description", { pinCount })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>移除</AlertDialogAction>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>{t("remove")}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -17,6 +18,7 @@ export function AddPinButton({
   disabled?: boolean;
   onToggle: () => void;
 }) {
+  const t = useTranslations("pins");
   return (
     <Button
       type="button"
@@ -26,7 +28,7 @@ export function AddPinButton({
       aria-pressed={active}
       className="shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
     >
-      {active ? "輕觸地圖放置 · 取消" : "＋ 新增回憶"}
+      {active ? t("dropModeActive") : t("addMemory")}
     </Button>
   );
 }

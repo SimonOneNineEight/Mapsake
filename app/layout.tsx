@@ -5,6 +5,7 @@ import {
   Noto_Serif_TC,
   Noto_Sans_TC,
 } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -60,14 +61,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // zh-TW is the primary language (full i18n wiring lands in Story 6.1).
+    // zh-TW is the primary language (Story 6.1: next-intl single-locale, hard-fixed to zh-TW).
     // Light-only v1: no theme provider, no dark toggle.
     <html
       lang="zh-Hant"
       className={`${newsreader.variable} ${nunitoSans.variable} ${notoSerifTC.variable} ${notoSansTC.variable}`}
     >
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        {/* next-intl provider (Story 6.1) — auto-inherits locale + messages from getRequestConfig;
+            wraps the whole tree so every client component can read translations. */}
+        <NextIntlClientProvider>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

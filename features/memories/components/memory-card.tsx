@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Pin } from "@/data/pins";
 import { useDeletePin, useUpdatePin } from "@/features/pins/queries/pins-queries";
 import { usePhotos } from "@/features/memories/queries/photos-queries";
@@ -17,12 +18,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SaveStatus } from "@/components/save-status";
 import { PhotoUploader } from "./photo-uploader";
-
-// zh-TW date display for a YYYY-MM-DD `memory_date` (no "Date: —" when absent).
-function formatZhDate(d: string): string {
-  const [y, m, day] = d.split("-");
-  return `${+y} 年 ${+m} 月 ${+day} 日`;
-}
 
 const linkQuiet =
   "self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline";
@@ -51,6 +46,12 @@ export function MemoryCard({
   reliveMore?: number;
   onReliveNext?: () => void;
 }) {
+  const t = useTranslations("memory");
+  // zh-TW date display for a YYYY-MM-DD `memory_date` (no "Date: —" when absent).
+  const formatZhDate = (d: string) => {
+    const [y, m, day] = d.split("-");
+    return t("dateFormat", { y: +y, m: +m, day: +day });
+  };
   const updatePin = useUpdatePin();
   const deletePin = useDeletePin();
   const { data: photos } = usePhotos(pin.id);
@@ -78,7 +79,7 @@ export function MemoryCard({
       <h2 className="font-serif text-2xl font-medium text-foreground">{pin.name}</h2>
 
       {offline && (
-        <p className="text-xs text-muted-foreground">僅供瀏覽 — 重新連線後可編輯</p>
+        <p className="text-xs text-muted-foreground">{t("offlineReadOnly")}</p>
       )}
 
       {/* Note */}
@@ -92,7 +93,7 @@ export function MemoryCard({
           defaultValue={pin.note ?? ""}
           autoFocus={editingNote && !pin.note}
           rows={3}
-          placeholder="寫下這個地方的回憶…"
+          placeholder={t("notePlaceholder")}
           className="w-full resize-y rounded-md bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           onFocus={onNoteFocus}
           onBlur={(e) => {
@@ -105,7 +106,7 @@ export function MemoryCard({
         />
       ) : (
         <button type="button" className={linkQuiet} onClick={() => setEditingNote(true)}>
-          ＋ 寫筆記
+          {t("addNote")}
         </button>
       )}
 
@@ -121,7 +122,7 @@ export function MemoryCard({
             key={`date-${pin.id}`}
             type="date"
             defaultValue={pin.memoryDate ?? ""}
-            aria-label="日期"
+            aria-label={t("dateLabel")}
             className="bg-transparent text-muted-foreground outline-none"
             onChange={(e) => updatePin.mutate({ id: pin.id, memoryDate: e.target.value || null })}
           />
@@ -134,13 +135,13 @@ export function MemoryCard({
                 setShowDate(false);
               }}
             >
-              清除
+              {t("clearDate")}
             </button>
           )}
         </div>
       ) : (
         <button type="button" className={linkQuiet} onClick={() => setShowDate(true)}>
-          ＋ 加日期
+          {t("addDate")}
         </button>
       )}
 
@@ -167,7 +168,7 @@ export function MemoryCard({
           Tapping cycles to the next same-day memory (fly + glow + open). zh-TW draft (6-1 pass). */}
       {reliveMore > 0 && (
         <button type="button" className={linkQuiet} onClick={onReliveNext}>
-          這天還有 {reliveMore} 個回憶 →
+          {t("moreFromDay", { count: reliveMore })}
         </button>
       )}
 
@@ -179,7 +180,7 @@ export function MemoryCard({
           className="self-start text-sm text-muted-foreground hover:text-foreground"
           onClick={() => updatePin.mutate({ id: pin.id, muted: !pin.muted })}
         >
-          {pin.muted ? "已靜音 · 點選恢復通知" : "讓這個地方少出現在通知"}
+          {pin.muted ? t("muted") : t("mute")}
         </button>
       )}
 
@@ -192,7 +193,7 @@ export function MemoryCard({
             className="self-start text-sm text-muted-foreground hover:text-foreground"
             onClick={() => (hasContent ? setConfirmOpen(true) : runDelete())}
           >
-            刪除回憶
+            {t("delete")}
           </button>
           {/* Delete status — no "saved" success (the card closes on a successful delete). */}
           <SaveStatus
@@ -207,14 +208,14 @@ export function MemoryCard({
       <AlertDialog open={confirmOpen && !offline} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>刪除「{pin.name}」這個回憶？</AlertDialogTitle>
+            <AlertDialogTitle>{t("confirmTitle", { name: pin.name })}</AlertDialogTitle>
             <AlertDialogDescription>
-              這個地方的筆記、日期和照片都會一起移除。此動作無法復原。
+              {t("confirmBody")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={runDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={runDelete}>{t("confirmDelete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

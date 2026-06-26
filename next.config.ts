@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// next-intl (Story 6.1): the request config lives at the non-default lib/i18n path, so pass it
+// explicitly (the no-arg default only finds ./i18n or ./src/i18n).
+const withNextIntl = createNextIntlPlugin("./lib/i18n/request.ts");
 
 // PWA (Story 4.5): Serwist compiles the service worker via webpack, so the production build runs
 // `next build --webpack` (see package.json). Disabled in development so `next dev` (Turbopack) and
@@ -22,4 +27,4 @@ const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withSerwist(nextConfig);
+export default withSerwist(withNextIntl(nextConfig));

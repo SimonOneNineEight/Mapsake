@@ -1,3 +1,124 @@
 {
-  "app": { "name": "Mapsake" }
+  "account": {
+    "mapSaved": "你的地圖已保存",
+    "loggedInAs": "已登入：{email}",
+    "exporting": "正在為你整理回憶…",
+    "exportData": "匯出我的回憶",
+    "exportError": "這次沒能整理好，稍後再試一次",
+    "signOut": "登出",
+    "checkInbox": "查收你的信箱",
+    "checkInboxBody": "我們寄了登入連結到 {email}，點開就完成登入。",
+    "saveMap": "保存你的地圖",
+    "saveMapDescription": "登入後，你的地圖就能在不同裝置上保存。",
+    "noticeExisting": "已用此信箱註冊，使用信箱登入回到你的地圖。",
+    "noticeOauth": "Google 登入沒有完成，請再試一次。",
+    "noticeLink": "這個登入連結沒辦法用了，回到帳號重新寄一封就好。",
+    "googleRedirecting": "前往 Google…",
+    "googleSignIn": "用 Google 登入",
+    "googleError": "Google 登入暫時無法使用，請稍後再試",
+    "or": "或",
+    "emailPlaceholder": "你的 email",
+    "emailTaken": "此信箱已有帳號",
+    "signInExisting": "登入你的帳號",
+    "sendError": "無法寄送，請確認 email 後再試一次",
+    "sending": "寄送中…",
+    "sendLink": "寄送登入連結",
+    "accountLabel": "帳號",
+    "close": "關閉"
+  },
+  "memory": {
+    "offlineReadOnly": "僅供瀏覽 — 重新連線後可編輯",
+    "notePlaceholder": "寫下這個地方的回憶…",
+    "addNote": "＋ 寫筆記",
+    "dateLabel": "日期",
+    "clearDate": "清除",
+    "addDate": "＋ 加日期",
+    "dateFormat": "{y} 年 {m} 月 {day} 日",
+    "moreFromDay": "這天還有 {count} 個回憶 →",
+    "muted": "已靜音 · 點選恢復通知",
+    "mute": "讓這個地方少出現在通知",
+    "delete": "刪除回憶",
+    "confirmTitle": "刪除「{name}」這個回憶？",
+    "confirmBody": "這個地方的筆記、日期和照片都會一起移除。此動作無法復原。",
+    "cancel": "取消",
+    "confirmDelete": "刪除",
+    "title": "回憶",
+    "close": "關閉",
+    "backToMap": "▾ 回到地圖"
+  },
+  "onboarding": {
+    "handoffInvite": "用 ＋ 新增回憶 加入圖釘、照片和回憶",
+    "installToHome": "安裝到主畫面",
+    "iosInstall": "安裝到主畫面：點一下分享，選「加入主畫面」",
+    "startExploring": "開始探索",
+    "backfillHint": "輕觸你去過的地方來上色",
+    "done": "完成",
+    "pickHint": "輕觸地圖上的一個國家",
+    "back": "← 返回",
+    "questionTitle": "先從哪裡開始看？",
+    "questionSubtitle": "你隨時可以在設定裡更改。",
+    "chooseWorld": "看整個世界",
+    "chooseFocus": "先看一個國家"
+  },
+  "notifications": {
+    "iosNeedsInstall": "在 iPhone 上，先用「分享 → 加入主畫面」把 Mapsake 裝起來，通知才能送達。",
+    "granted": "已開啟 — 你去過的地方會在某個傍晚悄悄回來。",
+    "denied": "通知目前是關著的，可到瀏覽器設定裡允許 Mapsake。",
+    "pending": "請允許通知…",
+    "enable": "開啟回憶通知",
+    "error": "這次沒能開啟，稍後再試一次。",
+    "receiveLabel": "接收回憶通知",
+    "deliveryTimeLabel": "傍晚送達時間",
+    "updateError": "沒能更新設定，稍後再試一次。"
+  },
+  "saveStatus": {
+    "save": {
+      "pending": "儲存中…",
+      "success": "已儲存",
+      "error": "無法儲存，重試"
+    },
+    "delete": {
+      "pending": "刪除中…",
+      "success": "已刪除",
+      "error": "無法刪除，重試"
+    },
+    "remove": {
+      "pending": "移除中…",
+      "success": "已移除",
+      "error": "無法移除，重試"
+    }
+  },
+  "photos": {
+    "addPhotoLabel": "加照片",
+    "addPhoto": "＋ 加照片",
+    "atCap": "已達每個地點 {max} 張上限",
+    "viewerLabel": "照片",
+    "close": "關閉",
+    "deleteThis": "刪除這張",
+    "viewPhoto": "檢視照片",
+    "retry": "重試"
+  },
+  "regions": {
+    "title": "移除「{name}」？",
+    "description": "這會一併刪除這個地區的 {pinCount} 個地點與其照片。此動作無法復原。",
+    "cancel": "取消",
+    "remove": "移除"
+  },
+  "pins": {
+    "dialogLabel": "為這個回憶命名",
+    "nameLabel": "為這個地方命名",
+    "namePlaceholder": "例如：京都",
+    "cancel": "取消",
+    "save": "儲存",
+    "dropModeActive": "輕觸地圖放置 · 取消",
+    "addMemory": "＋ 新增回憶"
+  },
+  "places": {
+    "title": "去過的地方",
+    "empty": "輕觸地圖上你去過的地方，就會出現在這裡。"
+  },
+  "map": {
+    "defaultRegionName": "這個地區",
+    "offlineBanner": "僅供瀏覽 — 重新連線後可標記"
+  }
 }

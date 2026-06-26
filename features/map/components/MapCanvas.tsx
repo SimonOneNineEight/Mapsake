@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { buildStyle } from "../style";
 import { applyVisitedState, createVisitedHatch, pinsToVisitedMarks, regionFromPoint } from "../lib/visited";
@@ -52,6 +53,7 @@ export function MapCanvas({
   // ready (so there's no race with the cameraRef being assigned at load), then once only.
   flyToMemoryTarget?: { lat: number; lng: number } | null;
 } = {}) {
+  const t = useTranslations("map");
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
   // The opening camera is a mount-time value — capture it in a ref so the build-once effect
@@ -154,7 +156,7 @@ export function MapCanvas({
         layers: ["regions-fill", "countries-fill-base", "countries-fill-world"],
       });
       const f = feats.find((ff) => ff.properties?.iso === region.regionCode);
-      const name = (f?.properties?.name_zh ?? f?.properties?.name ?? "這個地區") as string;
+      const name = (f?.properties?.name_zh ?? f?.properties?.name ?? t("defaultRegionName")) as string;
       setPendingUnmark({ regionCode: region.regionCode, level: region.level, name, pins: inRegion });
     };
     onTapRef.current = (point, lngLat) => {
@@ -484,7 +486,7 @@ export function MapCanvas({
       />
       {offline && (
         <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-card/95 px-3 py-1 text-sm text-muted-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]">
-          僅供瀏覽 — 重新連線後可標記
+          {t("offlineBanner")}
         </div>
       )}
       <SaveStatus phase={savePhase} kind={saveKind} onRetry={onRetry} />

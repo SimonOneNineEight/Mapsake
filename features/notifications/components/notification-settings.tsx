@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useProfileSettings, useUpdateProfileSettings } from "../queries/profile-queries";
 
 // Notification controls (Story 5.6): the global on/off + delivery time. Signed-in only (mounted in
@@ -8,6 +10,7 @@ import { useProfileSettings, useUpdateProfileSettings } from "../queries/profile
 // stored now; the cron honoring a per-user time is a documented fast-follow (5-3 uses a fixed
 // evening hour). zh-TW drafts — native pass in 6-1.
 export function NotificationSettings() {
+  const t = useTranslations("notifications");
   const { data, isLoading } = useProfileSettings();
   const update = useUpdateProfileSettings();
 
@@ -21,11 +24,11 @@ export function NotificationSettings() {
           checked={data.notifEnabled}
           onChange={(e) => update.mutate({ notifEnabled: e.target.checked })}
         />
-        接收回憶通知
+        {t("receiveLabel")}
       </label>
       {data.notifEnabled && (
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          傍晚送達時間
+          {t("deliveryTimeLabel")}
           <input
             type="time"
             value={data.notifTime.slice(0, 5)}
@@ -35,7 +38,7 @@ export function NotificationSettings() {
         </label>
       )}
       {update.isError && (
-        <p className="text-xs text-[rgb(var(--terracotta-text))]">沒能更新設定，稍後再試一次。</p>
+        <p className="text-xs text-[rgb(var(--terracotta-text))]">{t("updateError")}</p>
       )}
     </div>
   );

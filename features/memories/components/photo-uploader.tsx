@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useDeletePhoto, usePhotos, useUploadPhoto } from "@/features/memories/queries/photos-queries";
 import { PhotoGrid, type PhotoTile } from "./photo-grid";
 import { PhotoViewer } from "./photo-viewer";
@@ -25,6 +26,7 @@ interface PendingItem {
  * "＋ 加照片" invitation (no "0 photos"). The full-screen viewer is Story 3.7.
  */
 export function PhotoUploader({ pinId, readOnly = false }: { pinId: string; readOnly?: boolean }) {
+  const t = useTranslations("photos");
   const { data: photos } = usePhotos(pinId);
   const uploadOne = useUploadPhoto(pinId);
   const deletePhoto = useDeletePhoto(pinId);
@@ -114,14 +116,14 @@ export function PhotoUploader({ pinId, readOnly = false }: { pinId: string; read
             accept="image/*"
             multiple
             className="hidden"
-            aria-label="加照片"
+            aria-label={t("addPhotoLabel")}
             onChange={onSelect}
           />
           {atCap ? (
-            <p className="self-start text-sm text-muted-foreground">已達每個地點 {MAX_PER_PIN} 張上限</p>
+            <p className="self-start text-sm text-muted-foreground">{t("atCap", { max: MAX_PER_PIN })}</p>
           ) : (
             <button type="button" className={linkQuiet} onClick={() => inputRef.current?.click()}>
-              ＋ 加照片
+              {t("addPhoto")}
             </button>
           )}
         </>

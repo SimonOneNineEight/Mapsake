@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 
 export interface ViewerPhoto {
   id: string;
@@ -30,6 +31,7 @@ export function PhotoViewer({
   onClose: () => void;
   onDelete?: (photoId: string) => void; // Story 3.8: remove this photo (parent shrinks the list)
 }) {
+  const t = useTranslations("photos");
   const trackRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -118,7 +120,7 @@ export function PhotoViewer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="照片"
+      aria-label={t("viewerLabel")}
       style={style}
       className="fixed inset-0 z-[60] bg-black/90"
       // Tap on the letterbox backdrop closes (image stops propagation); a drag/swipe that
@@ -135,7 +137,7 @@ export function PhotoViewer({
       <button
         ref={closeBtnRef}
         type="button"
-        aria-label="關閉"
+        aria-label={t("close")}
         onClick={(e) => {
           e.stopPropagation();
           onClose();
@@ -160,7 +162,7 @@ export function PhotoViewer({
                 }}
                 className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-black/40 px-4 py-1.5 text-sm text-white"
               >
-                刪除這張
+                {t("deleteThis")}
               </button>
             )}
           </div>

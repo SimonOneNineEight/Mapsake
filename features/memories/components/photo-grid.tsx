@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export interface PhotoTile {
   key: string;
@@ -19,6 +20,7 @@ export interface PhotoTile {
  * nothing when there are no tiles (absence is normal — no "0 photos", no empty frame).
  */
 export function PhotoGrid({ tiles }: { tiles: PhotoTile[] }) {
+  const t = useTranslations("photos");
   if (tiles.length === 0) return null;
 
   return (
@@ -26,7 +28,7 @@ export function PhotoGrid({ tiles }: { tiles: PhotoTile[] }) {
       {tiles.map((tile) => (
         <li key={tile.key} className="relative aspect-square overflow-hidden rounded-md bg-muted">
           {tile.state === "ready" && tile.onOpen ? (
-            <button type="button" onClick={tile.onOpen} aria-label="檢視照片" className="block h-full w-full">
+            <button type="button" onClick={tile.onOpen} aria-label={t("viewPhoto")} className="block h-full w-full">
               <Thumb src={tile.src} dimmed={false} />
             </button>
           ) : (
@@ -43,7 +45,7 @@ export function PhotoGrid({ tiles }: { tiles: PhotoTile[] }) {
               onClick={tile.onRetry}
               className="absolute inset-0 grid place-items-center bg-black/30 text-xs text-white"
             >
-              重試
+              {t("retry")}
             </button>
           )}
         </li>

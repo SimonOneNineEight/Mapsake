@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Drawer } from "vaul";
 import { usePin } from "@/features/pins/queries/pins-queries";
 import { MemoryCard } from "./memory-card";
@@ -40,6 +41,7 @@ export function MemoryContainer({
   reliveMore?: number;
   onReliveNext?: () => void;
 }) {
+  const t = useTranslations("memory");
   const pin = usePin(pinId);
   const wide = useIsWide();
   const [snap, setSnap] = useState<number | string | null>(0.5);
@@ -70,13 +72,13 @@ export function MemoryContainer({
       <aside
         ref={panelRef}
         tabIndex={-1}
-        aria-label="回憶"
+        aria-label={t("title")}
         className="relative z-10 flex h-full w-[38%] max-w-md shrink-0 flex-col gap-4 overflow-y-auto bg-card p-5 shadow-[-4px_0_16px_rgba(58,46,34,0.18)] outline-none"
       >
         <button
           type="button"
           onClick={onClose}
-          aria-label="關閉"
+          aria-label={t("close")}
           className="self-end text-xl leading-none text-muted-foreground"
         >
           ×
@@ -107,7 +109,7 @@ export function MemoryContainer({
     >
       <Drawer.Portal>
         <Drawer.Content
-          aria-label="回憶"
+          aria-label={t("title")}
           className="fixed inset-x-0 bottom-0 z-20 flex h-[97dvh] flex-col rounded-t-[18px] bg-card shadow-[0_-4px_16px_rgba(58,46,34,0.18)] outline-none"
         >
           <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-border" />
@@ -117,9 +119,9 @@ export function MemoryContainer({
               onClick={handleClose}
               className="self-start text-sm text-muted-foreground"
             >
-              ▾ 回到地圖
+              {t("backToMap")}
             </button>
-            <Drawer.Title className="sr-only">回憶</Drawer.Title>
+            <Drawer.Title className="sr-only">{t("title")}</Drawer.Title>
             <MemoryCard
               key={pin.id}
               pin={pin}

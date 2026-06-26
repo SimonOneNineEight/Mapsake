@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import type { InstallMode } from "@/features/onboarding/lib/use-install-prompt";
 
 /**
@@ -27,6 +29,8 @@ export function Onboarding({
   installMode?: InstallMode; // PWA install affordance folded into the hand-off (Story 4.5)
   onInstall?: () => void; // Chromium install prompt trigger (Story 4.5)
 }) {
+  const t = useTranslations("onboarding");
+
   if (step === "handoff") {
     // The end-of-backfill payoff hand-off (Story 4.4): ONE gentle, skippable line inviting
     // depth later, then drop into the freshly colored map. No dimming backdrop — the filled
@@ -35,19 +39,19 @@ export function Onboarding({
     return (
       <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center p-6">
         <div className="pointer-events-auto flex flex-col items-center gap-4 rounded-md bg-card/95 px-6 py-5 text-center shadow-[0_4px_16px_rgba(58,46,34,0.18)]">
-          <p className="max-w-xs text-sm text-foreground">用 ＋ 新增回憶 加入圖釘、照片和回憶</p>
+          <p className="max-w-xs text-sm text-foreground">{t("handoffInvite")}</p>
           {installMode === "prompt" && (
             <button
               type="button"
               onClick={onInstall}
               className="rounded-full border border-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--terracotta-text))]"
             >
-              安裝到主畫面
+              {t("installToHome")}
             </button>
           )}
           {installMode === "ios" && (
             <p className="max-w-xs text-xs text-muted-foreground">
-              安裝到主畫面：點一下分享，選「加入主畫面」
+              {t("iosInstall")}
             </p>
           )}
           <button
@@ -56,7 +60,7 @@ export function Onboarding({
             onClick={onDismiss}
             className="rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))]"
           >
-            開始探索
+            {t("startExploring")}
           </button>
         </div>
       </div>
@@ -69,14 +73,14 @@ export function Onboarding({
     return (
       <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex flex-col items-center gap-2">
         <p className="rounded-full bg-card/95 px-4 py-1.5 text-sm text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]">
-          輕觸你去過的地方來上色
+          {t("backfillHint")}
         </p>
         <button
           type="button"
           onClick={onDone}
           className="pointer-events-auto rounded-full bg-[rgb(var(--terracotta-text))] px-4 py-1.5 text-sm text-[rgb(var(--surface))]"
         >
-          完成
+          {t("done")}
         </button>
       </div>
     );
@@ -88,14 +92,14 @@ export function Onboarding({
     return (
       <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex flex-col items-center gap-2">
         <p className="rounded-full bg-card/95 px-4 py-1.5 text-sm text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]">
-          輕觸地圖上的一個國家
+          {t("pickHint")}
         </p>
         <button
           type="button"
           onClick={onBack}
           className="pointer-events-auto text-sm text-[rgb(var(--terracotta-text))] hover:underline"
         >
-          ← 返回
+          {t("back")}
         </button>
       </div>
     );
@@ -111,9 +115,9 @@ export function Onboarding({
       <div className="flex w-full max-w-sm flex-col gap-5 rounded-md bg-card p-6 shadow-[0_4px_16px_rgba(58,46,34,0.18)]">
         <div className="flex flex-col gap-1">
           <h2 id="onboarding-title" className="font-serif text-xl font-medium text-foreground">
-            先從哪裡開始看？
+            {t("questionTitle")}
           </h2>
-          <p className="text-sm text-muted-foreground">你隨時可以在設定裡更改。</p>
+          <p className="text-sm text-muted-foreground">{t("questionSubtitle")}</p>
         </div>
         <div className="flex flex-col gap-2">
           <button
@@ -122,14 +126,14 @@ export function Onboarding({
             onClick={onChooseWorld}
             className="rounded-md border border-border bg-background px-4 py-3 text-left text-sm text-foreground hover:bg-accent"
           >
-            看整個世界
+            {t("chooseWorld")}
           </button>
           <button
             type="button"
             onClick={onChooseFocus}
             className="rounded-md border border-border bg-background px-4 py-3 text-left text-sm text-foreground hover:bg-accent"
           >
-            先看一個國家
+            {t("chooseFocus")}
           </button>
         </div>
       </div>

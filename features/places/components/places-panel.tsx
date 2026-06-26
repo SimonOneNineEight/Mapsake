@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { List } from "lucide-react";
 import { Drawer } from "vaul";
 import type { Pin } from "@/data/pins";
@@ -23,6 +24,7 @@ export function PlacesPanel({
   onOpenPin: (pinId: string) => void;
   onFlyToPin: (lat: number, lng: number) => void;
 }) {
+  const t = useTranslations("places");
   const [open, setOpen] = useState(false);
   const { data: pins } = usePins();
   const { data: marks } = useRegionMarks();
@@ -50,7 +52,7 @@ export function PlacesPanel({
       <Drawer.Trigger asChild>
         <button
           type="button"
-          aria-label="去過的地方"
+          aria-label={t("title")}
           className="absolute left-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-card/95 text-foreground shadow-[0_2px_10px_rgba(58,46,34,0.18)]"
         >
           <List className="h-5 w-5" aria-hidden />
@@ -65,11 +67,11 @@ export function PlacesPanel({
           <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-border" />
           <div className="flex flex-col gap-4 overflow-y-auto p-5">
             <Drawer.Title className="font-serif text-xl font-medium text-foreground">
-              去過的地方
+              {t("title")}
             </Drawer.Title>
 
             {countries.length === 0 ? (
-              <p className="text-sm text-muted-foreground">輕觸地圖上你去過的地方，就會出現在這裡。</p>
+              <p className="text-sm text-muted-foreground">{t("empty")}</p>
             ) : (
               <ul className="flex flex-col gap-5">
                 {countries.map((country) => (

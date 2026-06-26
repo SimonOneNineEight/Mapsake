@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { UserRound } from "lucide-react";
 import { Drawer } from "vaul";
 import { createClient } from "@/lib/supabase/client";
@@ -57,6 +58,7 @@ function GoogleG({ className }: { className?: string }) {
 }
 
 export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) {
+  const t = useTranslations("account");
   const account = useAccount();
   // signed in = a permanent (non-anon) session with an email; used by the body + the autoOpen guard.
   const signedIn = !account.isAnonymous && Boolean(account.email);
@@ -190,8 +192,8 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
   // Shared content for both the modal and the sheet.
   const body = signedIn ? (
     <div className="flex flex-col gap-3">
-      <h2 className="font-serif text-xl font-medium text-foreground">你的地圖已保存</h2>
-      <p className="text-sm text-muted-foreground">已登入：{account.email}</p>
+      <h2 className="font-serif text-xl font-medium text-foreground">{t("mapSaved")}</h2>
+      <p className="text-sm text-muted-foreground">{t("loggedInAs", { email: account.email ?? "" })}</p>
       {/* Export my data (Story 2.6) — the keepsake trust guarantee: your memories are yours to take.
           A client-side, RLS-scoped JSON of marks/pins/notes/dates/photo refs. */}
       <button
@@ -200,10 +202,10 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         disabled={exportData.isPending}
         className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline disabled:opacity-60"
       >
-        {exportData.isPending ? "正在為你整理回憶…" : "匯出我的回憶"}
+        {exportData.isPending ? t("exporting") : t("exportData")}
       </button>
       {exportData.isError && (
-        <p className="text-xs text-[rgb(var(--terracotta-text))]">這次沒能整理好，稍後再試一次</p>
+        <p className="text-xs text-[rgb(var(--terracotta-text))]">{t("exportError")}</p>
       )}
       {/* Enable memory notifications (Story 5.1) — a quiet rider, capability-gated; self-contained
           so Settings (6-3) re-mounts it. Signed-in only (a subscription needs a durable account). */}
@@ -215,33 +217,33 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         onClick={signOut}
         className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline"
       >
-        登出
+        {t("signOut")}
       </button>
     </div>
   ) : status === "sent" ? (
     <div className="flex flex-col gap-2">
-      <h2 className="font-serif text-xl font-medium text-foreground">查收你的信箱</h2>
+      <h2 className="font-serif text-xl font-medium text-foreground">{t("checkInbox")}</h2>
       <p className="text-sm text-muted-foreground">
-        我們寄了登入連結到 {email.trim()}，點開就完成登入。
+        {t("checkInboxBody", { email: email.trim() })}
       </p>
     </div>
   ) : (
     <div className="flex flex-col gap-3">
-      <h2 className="font-serif text-xl font-medium text-foreground">保存你的地圖</h2>
-      <p className="text-sm text-muted-foreground">登入後，你的地圖就能在不同裝置上保存。</p>
+      <h2 className="font-serif text-xl font-medium text-foreground">{t("saveMap")}</h2>
+      <p className="text-sm text-muted-foreground">{t("saveMapDescription")}</p>
       {/* Calm notice after an auth redirect (Story 2.2). "existing" steers a returning user back to
           their original method; the actual sign-in + map merge is Story 2-3. */}
       {notice === "existing" && (
         <p className="text-sm text-[rgb(var(--terracotta-text))]">
-          已用此信箱註冊，使用信箱登入回到你的地圖。
+          {t("noticeExisting")}
         </p>
       )}
       {notice === "oauth" && (
-        <p className="text-sm text-[rgb(var(--terracotta-text))]">Google 登入沒有完成，請再試一次。</p>
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">{t("noticeOauth")}</p>
       )}
       {notice === "link" && (
         <p className="text-sm text-[rgb(var(--terracotta-text))]">
-          這個登入連結沒辦法用了，回到帳號重新寄一封就好。
+          {t("noticeLink")}
         </p>
       )}
       {/* Google (Story 2.2) — alongside email so neither is the only path (no single-OAuth lock-in). */}
@@ -252,13 +254,13 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         className="flex items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm text-foreground hover:bg-accent disabled:opacity-60"
       >
         <GoogleG className="h-[18px] w-[18px] shrink-0" />
-        {googleBusy ? "前往 Google…" : "用 Google 登入"}
+        {googleBusy ? t("googleRedirecting") : t("googleSignIn")}
       </button>
       {googleError && (
-        <p className="text-sm text-[rgb(var(--terracotta-text))]">Google 登入暫時無法使用，請稍後再試</p>
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">{t("googleError")}</p>
       )}
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />或<span className="h-px flex-1 bg-border" />
+        <span className="h-px flex-1 bg-border" />{t("or")}<span className="h-px flex-1 bg-border" />
       </div>
       <input
         type="email"
@@ -271,13 +273,13 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
           if (status !== "idle" && status !== "sending") setStatus("idle");
           if (notice) setNotice(null);
         }}
-        placeholder="你的 email"
+        placeholder={t("emailPlaceholder")}
         aria-label="email"
         className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
       />
       {status === "error-taken" && (
         <>
-          <p className="text-sm text-[rgb(var(--terracotta-text))]">此信箱已有帳號</p>
+          <p className="text-sm text-[rgb(var(--terracotta-text))]">{t("emailTaken")}</p>
           {/* Returning user (Story 2.7): sign INTO the existing account via a magic link (universal —
               works whether it was made with email or Google). The anon-map merge is Story 2-8. */}
           <button
@@ -285,12 +287,12 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
             onClick={signInExisting}
             className="self-start text-sm text-[rgb(var(--terracotta-text))] hover:underline"
           >
-            登入你的帳號
+            {t("signInExisting")}
           </button>
         </>
       )}
       {status === "error" && (
-        <p className="text-sm text-[rgb(var(--terracotta-text))]">無法寄送，請確認 email 後再試一次</p>
+        <p className="text-sm text-[rgb(var(--terracotta-text))]">{t("sendError")}</p>
       )}
       <button
         type="button"
@@ -298,7 +300,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
         disabled={status === "sending"}
         className="self-start rounded-full bg-[rgb(var(--terracotta-text))] px-5 py-1.5 text-sm text-[rgb(var(--surface))] disabled:opacity-60"
       >
-        {status === "sending" ? "寄送中…" : "寄送登入連結"}
+        {status === "sending" ? t("sending") : t("sendLink")}
       </button>
     </div>
   );
@@ -307,7 +309,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
     <>
       <button
         type="button"
-        aria-label="帳號"
+        aria-label={t("accountLabel")}
         onClick={() => {
           setGoogleError(false); // don't carry a stale Google error into a fresh open
           setNotice(null);
@@ -324,7 +326,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="帳號"
+            aria-label={t("accountLabel")}
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-30 grid place-items-center bg-[rgb(var(--map-frame))]/70 p-6"
           >
@@ -334,7 +336,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
             >
               <button
                 type="button"
-                aria-label="關閉"
+                aria-label={t("close")}
                 onClick={() => setOpen(false)}
                 className="absolute right-3 top-3 text-xl leading-none text-muted-foreground"
               >
@@ -352,7 +354,7 @@ export function AccountSheet({ autoOpen = false }: { autoOpen?: boolean } = {}) 
                 aria-describedby={undefined}
                 className="fixed inset-x-0 bottom-0 z-30 flex max-h-[85dvh] flex-col rounded-t-[18px] bg-card p-5 pb-8 shadow-[0_-4px_16px_rgba(58,46,34,0.18)] outline-none"
               >
-                <Drawer.Title className="sr-only">帳號</Drawer.Title>
+                <Drawer.Title className="sr-only">{t("accountLabel")}</Drawer.Title>
                 <div className="mx-auto mb-4 mt-1 h-1.5 w-12 shrink-0 rounded-full bg-border" />
                 {body}
               </Drawer.Content>
