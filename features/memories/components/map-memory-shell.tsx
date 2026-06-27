@@ -71,13 +71,16 @@ export function MapMemoryShell() {
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    // Client-only read: deciding from localStorage on mount (not during SSR) is what avoids a
-    // hydration mismatch / overlay flash for returning users — the legitimate effect-setState.
-    // A deep-link arrival (?pin=) skips the first-run question: the tap is intentful and the pin
-    // is the user's own, so don't interrupt with onboarding (Story 5.4).
+    // Onboarding is the first-run experience for an ANONYMOUS user. A signed-in (permanent) user has
+    // already been through it, so they never see it again — even on a new device or after clearing
+    // local data, where the localStorage default-view is gone (that's what made returning users
+    // re-onboard). Wait for the session to resolve (userId set) before deciding, so a signed-in user
+    // doesn't flash the question. Deciding from localStorage on mount (not SSR) avoids a hydration
+    // flash; a deep-link arrival (?pin=) is intentful + the pin is the user's own, so it skips too.
+    if (account.userId === null) return; // session not resolved yet
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (readDefaultView() === null && !deepLinkPinId) setOnboarding("question");
-  }, [deepLinkPinId]);
+    if (account.isAnonymous && readDefaultView() === null && !deepLinkPinId) setOnboarding("question");
+  }, [account.userId, account.isAnonymous, deepLinkPinId]);
 
   // Scrub ?pin= from the URL once handled so a refresh/back won't re-trigger the landing.
   useEffect(() => {
