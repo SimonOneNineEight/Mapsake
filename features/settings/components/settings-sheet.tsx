@@ -112,7 +112,7 @@ export function SettingsSheet({
               </Section>
             )}
 
-            {/* 預設視圖 (Story 4.2 AC2) */}
+            {/* 預設畫面 (Story 4.2 AC2) */}
             <Section title={t("sectionDefaultView")}>
               <p className="text-sm text-muted-foreground">
                 {view?.kind === "focus" ? t("viewCurrentFocus") : t("viewCurrentWorld")}

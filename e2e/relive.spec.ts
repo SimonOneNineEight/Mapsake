@@ -99,7 +99,7 @@ test.describe("notification controls (Story 5.6)", () => {
     await page.goto(`/?pin=${id}`);
     await expect(page.getByRole("heading", { name: "靜音測試標記" })).toBeVisible({ timeout: 15_000 });
     // Mute → the toggle flips; the pin stays on the map (mute only affects notifications).
-    await page.getByRole("button", { name: /讓這個地方少出現/ }).click();
+    await page.getByRole("button", { name: /減少這個地方的通知/ }).click();
     await expect(page.getByRole("button", { name: /已靜音/ })).toBeVisible({ timeout: 15_000 });
     const stillThere = await page.evaluate(
       (pid) => (window.__mapsakeMap!.querySourceFeatures("pins") ?? []).some((f) => f.properties?.id === pid),

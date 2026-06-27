@@ -2,11 +2,11 @@
   "account": {
     "mapSaved": "你的地圖已保存",
     "loggedInAs": "已登入：{email}",
-    "checkInbox": "查收你的信箱",
+    "checkInbox": "看看你的信箱",
     "checkInboxBody": "我們寄了登入連結到 {email}，點開就完成登入。",
     "saveMap": "保存你的地圖",
-    "saveMapDescription": "登入後，你的地圖就能在不同裝置上保存。",
-    "noticeExisting": "已用此信箱註冊，使用信箱登入回到你的地圖。",
+    "saveMapDescription": "登入後，你的地圖就能跨裝置保存。",
+    "noticeExisting": "這個信箱已經有帳號了，用信箱登入就能回到你的地圖。",
     "noticeOauth": "Google 登入沒有完成，請再試一次。",
     "noticeLink": "這個登入連結沒辦法用了，回到帳號重新寄一封就好。",
     "googleRedirecting": "前往 Google…",
@@ -31,7 +31,7 @@
     "dateFormat": "{y} 年 {m} 月 {day} 日",
     "moreFromDay": "這天還有 {count} 個回憶 →",
     "muted": "已靜音 · 點選恢復通知",
-    "mute": "讓這個地方少出現在通知",
+    "mute": "減少這個地方的通知",
     "delete": "刪除回憶",
     "confirmTitle": "刪除「{name}」這個回憶？",
     "confirmBody": "這個地方的筆記、日期和照片都會一起移除。此動作無法復原。",
@@ -42,11 +42,11 @@
     "backToMap": "▾ 回到地圖"
   },
   "onboarding": {
-    "handoffInvite": "用 ＋ 新增回憶 加入圖釘、照片和回憶",
+    "handoffInvite": "點 ＋ 新增回憶，加入地點、照片和回憶",
     "installToHome": "安裝到主畫面",
     "iosInstall": "安裝到主畫面：點一下分享，選「加入主畫面」",
     "startExploring": "開始探索",
-    "backfillHint": "輕觸你去過的地方來上色",
+    "backfillHint": "輕觸你去過的地方，就會上色",
     "done": "完成",
     "pickHint": "輕觸地圖上的一個國家",
     "back": "← 返回",
@@ -63,7 +63,7 @@
     "enable": "開啟回憶通知",
     "error": "這次沒能開啟，稍後再試一次。",
     "receiveLabel": "接收回憶通知",
-    "deliveryTimeLabel": "傍晚送達時間",
+    "deliveryTimeLabel": "傍晚通知時間",
     "updateError": "沒能更新設定，稍後再試一次。"
   },
   "saveStatus": {
@@ -86,7 +86,7 @@
   "photos": {
     "addPhotoLabel": "加照片",
     "addPhoto": "＋ 加照片",
-    "atCap": "已達每個地點 {max} 張上限",
+    "atCap": "每個地點最多 {max} 張",
     "viewerLabel": "照片",
     "close": "關閉",
     "deleteThis": "刪除這張",
@@ -95,7 +95,7 @@
   },
   "regions": {
     "title": "移除「{name}」？",
-    "description": "這會一併刪除這個地區的 {pinCount} 個地點與其照片。此動作無法復原。",
+    "description": "這會一併刪除這個地區的 {pinCount} 個地點和裡面的照片。此動作無法復原。",
     "cancel": "取消",
     "remove": "移除"
   },
@@ -105,7 +105,7 @@
     "namePlaceholder": "例如：京都",
     "cancel": "取消",
     "save": "儲存",
-    "dropModeActive": "輕觸地圖放置 · 取消",
+    "dropModeActive": "輕觸地圖放上圖釘 · 取消",
     "addMemory": "＋ 新增回憶"
   },
   "places": {
@@ -122,11 +122,11 @@
     "sectionAccount": "帳號",
     "loggedInAs": "已登入：{email}",
     "signOut": "登出",
-    "anonHint": "登入以在不同裝置保存你的地圖。",
+    "anonHint": "登入後，你的地圖就能跨裝置保存。",
     "sectionNotifications": "通知",
-    "sectionDefaultView": "預設視圖",
+    "sectionDefaultView": "預設畫面",
     "viewCurrentWorld": "目前：整個世界",
-    "viewCurrentFocus": "目前：專注一個國家",
+    "viewCurrentFocus": "目前：先看一個國家",
     "viewWorld": "看整個世界",
     "viewFocus": "改選一個國家",
     "sectionMuted": "靜音的地方",
@@ -138,7 +138,7 @@
     "exportError": "這次沒能整理好，稍後再試一次",
     "sectionLanguage": "語言",
     "languageValue": "繁體中文",
-    "pickFocusHint": "輕觸地圖上的一個國家，設為預設視圖",
+    "pickFocusHint": "輕觸地圖上的一個國家，設為預設畫面",
     "cancel": "取消"
   }
 }

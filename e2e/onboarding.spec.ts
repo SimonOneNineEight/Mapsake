@@ -104,7 +104,7 @@ test("a returning 'focus' user opens framed on their country (Story 4.2)", async
 
 // Story 4.3 — rapid backfill marking rhythm. After the view question, onboarding drops into a
 // backfill step: a non-blocking prompt while the user tap-marks; "完成" drops into the map.
-const BACKFILL_PROMPT = "輕觸你去過的地方來上色";
+const BACKFILL_PROMPT = "輕觸你去過的地方，就會上色";
 
 // In-browser: is a boundary feature rendered under the point (tiles ready) / visited?
 const featuresUnder = (c: { lng: number; lat: number }) =>
@@ -157,7 +157,7 @@ test("a returning user sees no backfill prompt (Story 4.3)", async ({ page }) =>
 
 // Story 4.4 — onboarding payoff hand-off. After 完成 ends backfill, one gentle skippable line
 // invites adding depth later; dismissing it drops into the freshly colored map (the payoff).
-const HANDOFF_LINE = "用 ＋ 新增回憶 加入圖釘、照片和回憶";
+const HANDOFF_LINE = "點 ＋ 新增回憶，加入地點、照片和回憶";
 
 test("hand-off: 完成 shows the gentle line; 開始探索 drops into the filled map (Story 4.4)", async ({ page }) => {
   await page.goto("/");

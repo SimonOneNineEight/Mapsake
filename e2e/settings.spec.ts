@@ -42,7 +42,7 @@ test.describe("Settings surface (Story 6.3)", () => {
     await expect(page.getByTestId("map-canvas")).toBeVisible();
     await openSettings(page);
     // Key sections present.
-    await expect(page.getByText("預設視圖", { exact: true })).toBeVisible();
+    await expect(page.getByText("預設畫面", { exact: true })).toBeVisible();
     await expect(page.getByText("靜音的地方", { exact: true })).toBeVisible();
     // 看整個世界 persists the default view to localStorage.
     await page.getByRole("button", { name: "看整個世界" }).click();
@@ -61,7 +61,7 @@ test.describe("Settings surface (Story 6.3)", () => {
 
     // Mute it via its memory (deep-link open).
     await page.goto(`/?pin=${id}`);
-    await page.getByRole("button", { name: /讓這個地方少出現/ }).click();
+    await page.getByRole("button", { name: /減少這個地方的通知/ }).click();
     await expect(page.getByRole("button", { name: /已靜音/ })).toBeVisible({ timeout: 15_000 });
 
     // Reload to close the open memory (so the name appears only in the Settings list), then it

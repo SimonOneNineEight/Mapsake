@@ -52,7 +52,7 @@ test("a valid email links the account and shows the sent state (Story 2.1)", asy
   await page.getByLabel("email").fill("kyoto@example.com");
   await page.getByRole("button", { name: "寄送登入連結" }).click();
 
-  await expect(page.getByText("查收你的信箱")).toBeVisible();
+  await expect(page.getByText("看看你的信箱")).toBeVisible();
   await expect(page.getByText(/kyoto@example\.com/)).toBeVisible();
   expect(sawEmail).toBeTruthy();
   expect(sawRedirect).toBeTruthy();
@@ -85,7 +85,7 @@ test("returning from Google with an already-registered email opens a calm sign-i
   await expect(page.getByTestId("map-canvas")).toBeVisible();
   await page.waitForFunction(() => Boolean(window.__mapsakeMap));
   // The sheet auto-opens with the calm "you already have an account" message…
-  await expect(page.getByText("已用此信箱註冊，使用信箱登入回到你的地圖。")).toBeVisible();
+  await expect(page.getByText("這個信箱已經有帳號了，用信箱登入就能回到你的地圖。")).toBeVisible();
   // …and both sign-in methods stay available (never a hard wall).
   await expect(page.getByRole("button", { name: "用 Google 登入" })).toBeVisible();
   await expect(page.getByRole("button", { name: "寄送登入連結" })).toBeVisible();
@@ -117,6 +117,6 @@ test("a taken email AUTOMATICALLY signs IN to the existing account via signInWit
   await page.getByRole("button", { name: "寄送登入連結" }).click();
   // One tap → it auto-fired signInWithOtp and shows the shared "check your inbox" state (no dead-end,
   // no second button).
-  await expect(page.getByText("查收你的信箱")).toBeVisible();
+  await expect(page.getByText("看看你的信箱")).toBeVisible();
   expect(sawOtpForEmail).toBeTruthy();
 });
