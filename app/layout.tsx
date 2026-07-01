@@ -20,7 +20,10 @@ export const metadata: Metadata = {
   // PWA (Story 4.5): the manifest <link> is auto-injected by the app/manifest.ts file
   // convention. iOS home-screen install (no beforeinstallprompt on iOS) needs apple meta + icon.
   appleWebApp: { capable: true, title: "Mapsake", statusBarStyle: "default" },
-  icons: { apple: "/apple-touch-icon.png" },
+  // Declaring `icons` explicitly suppresses the auto <link rel="icon"> that app/icon.png would emit,
+  // so list BOTH: the browser-tab favicon + the iOS touch icon. Without `icon` here the tab falls
+  // back to /favicon.ico (404) → blank favicon.
+  icons: { icon: "/icon.png", apple: "/apple-touch-icon.png" },
 };
 
 // theme-color drives the PWA status-bar/toolbar tint — the parchment surface (light-only v1).
