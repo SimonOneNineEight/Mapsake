@@ -176,7 +176,7 @@ Single sweep-point for downstream phases; inline tags remain at their sections.
 | # | Where | Assumption | Status |
 |---|---|---|---|
 | 1 | §1 | Web client is maintenance-only during v2 | Open — revisit if v2 slips |
-| 2 | FR12 | Session end inferred, no explicit button | UX phase decides |
+| 2 | FR12 | Session end inferred, no explicit button | **Resolved in UX (2026-07-08): explicit 完成這次記錄 button** |
 | 3 | FR18 | Widget in scope as stretch | Epic planning decides |
 | 4 | FR28 | English ships post-v2 | Accepted |
 | 5 | NFR5 | iOS 17+ floor | Architecture ratifies |
