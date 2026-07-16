@@ -1,0 +1,51 @@
+name: Migration CI
+
+# The migration-safety gates for the shared Supabase (Story 1.4 / AR10). Runs on any change to the
+# schema, contracts, tests, or gate scripts. "Regression-safe" — the X1 dual-writer convergence proof
+# is a separate surface that becomes runnable with the first real iOS writer (Story 2.1).
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/contracts/**'
+      - 'supabase/tests/**'
+      - 'scripts/migration-*.sh'
+  push:
+    branches: [main, 'feat/**']
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/contracts/**'
+      - 'supabase/tests/**'
+      - 'scripts/migration-*.sh'
+
+jobs:
+  gates:
+    name: Migration gates (G1–G4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No DB needed — static checks first (fast fail).
+      - name: G4 — expand/contract lint
+        run: ./scripts/migration-expand-contract-lint.sh
+
+      - name: G3 — anti-staleness (armed)
+        run: ./scripts/migration-anti-staleness-check.sh
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Applies every migration to a fresh local Supabase (has the auth schema + roles our RLS needs).
+      - name: Start local Supabase + apply migrations
+        run: supabase start -x vector,studio,imgproxy,edge-runtime,realtime,inbucket
+
+      - name: G2 — pgTAP (RLS + promote RPC + per-visit exif)
+        run: supabase test db
+
+      - name: G1 — consumer contracts (web + ios)
+        run: ./scripts/migration-run-consumer-contracts.sh
+
+      - name: Regression-safe
+        run: echo "✅ Migration regression-safe (X1 dual-writer proof pending Story 2.1)."

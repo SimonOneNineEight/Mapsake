@@ -1,0 +1,10 @@
+{
+  "_comment": "iOS field-support edges driving the G3 anti-staleness gate. A destructive migration may only retire schema once the ios-consumer contract covers BOTH the min-supported AND the latest-released field version. No iOS build has shipped yet, so both edges are null and G3 is armed-but-satisfied. Populate from App Store Connect / analytics once Mapsake v2 ships (Epic 6).",
+  "ios": {
+    "min_supported": null,
+    "latest_released": null
+  },
+  "web": {
+    "note": "The web client is a single always-latest deploy (git ref), not a field distribution; its edge is HEAD."
+  }
+}
