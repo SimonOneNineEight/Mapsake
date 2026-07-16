@@ -38,9 +38,10 @@ begin
 end;
 $$;
 
--- Fires on any change to a photo's visit assignment or taken_at that can move a visit's MIN.
+-- Fires only on the columns that can move a visit's MIN — not on every photo UPDATE (e.g. a web
+-- sort_order reorder), which would churn locks on the shared visits row for no reason.
 create trigger photos_sync_visit_exif
-  after insert or update or delete on public.photos
+  after insert or delete or update of visit_id, taken_at on public.photos
   for each row execute function public.sync_visit_exif_taken_at();
 
 -- ── Down (manual revert) ──────────────────────────────────────────────────────
