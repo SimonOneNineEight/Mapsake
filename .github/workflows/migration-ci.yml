@@ -47,5 +47,23 @@ jobs:
       - name: G1 — consumer contracts (web + ios)
         run: ./scripts/migration-run-consumer-contracts.sh
 
-      - name: Regression-safe
-        run: echo "✅ Migration regression-safe (X1 dual-writer proof pending Story 2.1)."
+      - name: Gates green
+        run: echo "✅ Migration gates G1–G4 green (regression-safe). Dual-writer convergence is gated by the mapsake-contract-e2e (X1) surface in mapsake-ios, triggered below."
+
+      # Cross-repo trigger: a migration change here must re-run X1 (the only place the semantic dual-writer
+      # break is observable). Needs a Simon-added `MAPSAKE_IOS_DISPATCH_TOKEN` secret (a PAT that can POST
+      # dispatches to mapsake-ios). Fail-open + loud if absent, so the migration lane isn't blocked on setup.
+      - name: Trigger X1 in mapsake-ios (dual-writer convergence)
+        if: github.event_name == 'push'
+        env:
+          TOKEN: ${{ secrets.MAPSAKE_IOS_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "⚠️  MAPSAKE_IOS_DISPATCH_TOKEN not set — X1 NOT triggered. Add the secret to close the gate (Story 2.1 follow-up)."
+            exit 0
+          fi
+          curl -sf -X POST \
+            -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/SimonOneNineEight/mapsake-ios/dispatches \
+            -d '{"event_type":"travel-map-migration"}' \
+            && echo "✅ X1 (mapsake-contract-e2e) triggered in mapsake-ios."

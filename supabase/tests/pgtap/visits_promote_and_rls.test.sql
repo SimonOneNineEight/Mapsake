@@ -2,7 +2,7 @@
 -- Single-caller correctness (X1 proves the concurrent-race behavior later, Story 2.1).
 
 begin;
-select plan(17);
+select plan(18);
 
 -- ── Setup: two users (profiles auto-provision via on_auth_user_created) ────────
 insert into auth.users (id, email) values
@@ -119,6 +119,16 @@ select throws_ok(
   $$insert into public.photos (pin_id, user_id, storage_path, visit_id)
     values ('c0000000-0000-0000-0000-000000000020', 'a0000000-0000-0000-0000-000000000001', 'x.jpg', 'd0000000-0000-0000-0000-000000000029')$$,
   null, null, 'composite FK blocks a photo referencing a visit on another pin');
+
+-- [AC3 / Story 2.1] A cannot INSERT a visit onto B's pin — visits_owner_insert's pin-ownership check
+-- (the negative of the iOS visit-write; the positive path is proven by the mapsake-contract-e2e gate).
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"a0000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.visits (pin_id, user_id, visit_date)
+    values ('c0000000-0000-0000-0000-0000000000b0','a0000000-0000-0000-0000-000000000001','2024-01-01')$$,
+  null, null, 'visits_owner_insert blocks inserting a visit onto a pin the caller does not own');
+reset role;
 
 select * from finish();
 rollback;

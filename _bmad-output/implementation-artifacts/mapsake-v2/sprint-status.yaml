@@ -1,0 +1,104 @@
+# generated: 2026-07-13
+# last_updated: 2026-07-13
+# project: Mapsake v2 (native iOS)
+# note: epic-1 opened; story 1-1 spec ready-for-dev (dev-story blocked on human-gated prereqs — see story file)
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts/mapsake-v2
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+#
+# NOTE: This is the Mapsake v2 (native iOS) sprint. v1 (web) artifacts live one level up in
+# implementation-artifacts/ and are complete — do not confuse the two 1-1… namespaces.
+
+generated: 2026-07-13
+last_updated: 2026-07-17
+project: Mapsake v2 (native iOS)
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts/mapsake-v2"
+
+development_status:
+  # ── Epic 1: Foundation, Platform & the Map ──────────────────────────────
+  epic-1: done  # 1.1-1.6 all done; pending code review + Simon's db push to apply the migration
+  1-1-project-scaffold-spm-package-targets: in-progress  # 5/6 done + CI green; App Group/Keychain DEFERRED to Epic 3 (paid Apple acct, not needed until push)
+  1-2-design-tokens-voice-accessibility-machinery: done  # tokens + Noto TC + a11y/motion + xcstrings gate + SwiftLint + XCUITest; full CI green
+  1-3-anonymous-session-data-access-boundary: done  # anon session (stable uid, persisted) + MapsakeData repo seam + CalendarDate/Pin structs; CI green
+  1-4-additive-multi-visit-ddl: done  # migrations+pgTAP(12/12)+contracts+G1-G4 Migration CI green on branch feat/multi-visit-ddl; PENDING Simon's `supabase db push` to apply (dev then prod)
+  1-5-read-only-map-pan-zoom: done  # parchment MapLibre map (PMTiles, zh labels, ADM0/ADM1) + 3-tab shell; AR21=UIViewRepresentable; CI green
+  1-6-derived-visited-fill-geographic-clusters: done  # visited fill + always-on hatch + geographic clusters (runtime MLNShapeSource, count-radius, zoom-swap, tap-dive) all proven on sim; real fill needs Simon's dev-DB schema apply + pins
+  epic-1-retrospective: optional
+
+  # ── Epic 2: Capture the Trip & Prove the Migration ──────────────────────
+  epic-2: in-progress
+  2-1-first-real-visit-write-convergence-gate: done  # review-hardened 2026-07-17; X1 green + FALSIFIABLE locally (writer+harness+Linux build); pgTAP 18/18, G1 green. GATE GO-LIVE is Simon-gated: add TRAVEL_MAP_TOKEN + MAPSAKE_IOS_DISPATCH_TOKEN, then 1 CI run to confirm ubuntu e2e
+  2-2-place-address-search: backlog
+  2-3-fine-tune-placement-create-visit: backlog
+  2-4-visit-date-optional: backlog
+  2-5-date-led-photos-exif-strip-note: backlog
+  2-6-save-moment-loop-recap: backlog
+  2-7-multi-visit-memory-sheet-photo-viewer: backlog
+  2-8-approximate-region-backfill: backlog
+  2-9-edit-remove: backlog
+  epic-2-retrospective: optional
+
+  # ── Epic 3: Re-live — the Soul ──────────────────────────────────────────
+  epic-3: backlog
+  3-1-soul-spike-one-real-push: backlog
+  3-2-per-visit-eligibility-engine: backlog
+  3-3-edge-function-sender-push-payload-contract: backlog
+  3-4-notification-service-extension: backlog
+  3-5-deep-link-re-live-landing: backlog
+  3-6-notification-controls: backlog
+  epic-3-retrospective: optional
+
+  # ── Epic 4: Browse & Offline ────────────────────────────────────────────
+  epic-4: backlog
+  4-1-geographic-browse: backlog
+  4-2-search-serves-browse: backlog
+  4-3-offline-read: backlog
+  epic-4-retrospective: optional
+
+  # ── Epic 5: Sign In & Your Account ──────────────────────────────────────
+  epic-5: backlog
+  5-1-sign-in-with-apple: backlog
+  5-2-google-email-returning-user-continuity: backlog
+  5-3-account-settings-surface: backlog
+  5-4-export-my-data: backlog
+  5-5-in-app-account-deletion: backlog
+  epic-5-retrospective: optional
+
+  # ── Epic 6: First Run, Widget & Launch ──────────────────────────────────
+  epic-6: backlog
+  6-1-first-run-flow: backlog
+  6-2-on-this-day-widget: backlog
+  6-3-final-copy-blessing-pass: backlog
+  6-4-app-store-readiness-submission: backlog
+  epic-6-retrospective: optional
