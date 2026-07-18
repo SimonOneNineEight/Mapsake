@@ -59,7 +59,7 @@ development_status:
   # ── Epic 2: Capture the Trip & Prove the Migration ──────────────────────
   epic-2: in-progress
   2-1-first-real-visit-write-convergence-gate: done  # review-hardened 2026-07-17; X1 green + FALSIFIABLE locally (writer+harness+Linux build); pgTAP 18/18, G1 green. GATE GO-LIVE is Simon-gated: add TRAVEL_MAP_TOKEN + MAPSAKE_IOS_DISPATCH_TOKEN, then 1 CI run to confirm ubuntu e2e
-  2-2-place-address-search: ready-for-dev  # spec 2026-07-17; AR20 RESOLVED = Apple MKLocalSearch (Simon); search front-door only, no writes
+  2-2-place-address-search: done  # review-hardened 2026-07-18; core loop green, 31 MapsakeKit tests; search candidate copy needs Simon bless (FR28 gate red until then)
   2-3-fine-tune-placement-create-visit: backlog
   2-4-visit-date-optional: backlog
   2-5-date-led-photos-exif-strip-note: backlog

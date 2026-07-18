@@ -1,6 +1,6 @@
 # Story 2.2: Place & address search
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -128,8 +128,27 @@ mapsake-ios/
 
 ### Agent Model Used
 
+Opus 4.8 (1M context) — dev; bmad-code-review (Fable 5, 3 agents) — review.
+
 ### Debug Log References
+
+- Pill + map integration confirmed via simulator screenshot (parchment map + the card pill 搜尋地點，記錄回憶). SwiftLint clean; 31 MapsakeKit tests green (incl. 5 SearchViewModel state-machine tests + 4 VisitedMatcher).
+- **Task 1 (AR20 quality check):** provider decided by Simon (Apple MKLocalSearch). The pill renders and the integration builds; the live type→results→fly-to flow + TW/JP geocoding quality want an **on-device eyeball** (couldn't drive the search field via headless simctl). **ToS-on-MapLibre accepted + logged** (per AR20 — Apple geocoding results shown on a MapLibre map is a gray area, taken as a pragmatic call).
 
 ### Completion Notes List
 
+- Core loop built + green: search pill → search screen → MKLocalSearch → results (name + region sub-line, 「你去過 N 次」) → fly-to → 取消. Scope stops at fly-to (no reverse-geocode / no visit write / no fine-tune — those are 2.3). N = 1 primary + additional visits (`VisitedMatcher`, tested).
+- **Code-review hardening (3 Fable-5 agents):**
+  - `MKLocalSearch` signals "no results" as `MKError.placemarkNotFound`, not an empty array → `LivePlaceSearch` now catches it and returns `[]`, so the 「找不到？」 invitation shows instead of the failure screen.
+  - `SearchViewModel` state machine rewritten: debounce runs FIRST (a superseding keystroke bails keeping prior results — no per-keystroke blanking, no stuck spinner); the error path guards `Task.isCancelled` so a cancelled search (surfaced by MapKit as MKError/URLError, not `CancellationError`) can't stamp `.failed` over the newer one. `searchNow()` for Return, `reset()` on dismiss.
+  - VM moved to MapsakeModels so it's unit-testable (the fake was previously unused); 5 new tests. (Bumped the package's macOS host-test floor 13→14 for `@Observable`.)
+  - Region bias is no longer dead code — `LivePlaceSearch` defaults to a TW/JP box so local names rank first. (True viewport-following deferred to 2.3.)
+  - a11y: pill gets VO sort priority over the map; field auto-focus made reliable (task-delay, not onAppear); Return=search wired (`.onSubmit`); decorative row glyph hidden from VO; a dedicated candidate `search.failed` line replaces the reused map-load copy.
+  - Pill now renders as soon as the session is ready (not after the full load); `.task` guarded against tab-return refetch; index-qualified `PlaceResult.id` (no ForEach collisions).
+- **Simon-gated:** the search candidate copy needs blessing (FR28 gate reds CI until then) — `search.pillPlaceholder`, `search.fieldLabel`, `search.helper`, `search.noResults`, `search.visitedCount`, `search.failed`. `action.cancel` (取消) added as blessed (DESIGN pattern word) — confirm.
+- **Deferred (flagged, not this story):** the ~150m visited-match radius has POI-centroid + dense-block failure modes → tune per result-type in 2.3; viewport-following region bias → 2.3; the no-results copy invites a long-press that Story 2.3 wires; `allVisits()` 1000-row cap → a count aggregate later.
+
 ### File List
+
+**mapsake-ios (new):** `MapsakeModels/{PlaceSearch,VisitedMatcher,SearchViewModel}.swift`, `MapsakeTestSupport/FakePlaceSearchService.swift`, `Tests/MapsakeModelsTests/{VisitedMatcherTests,SearchViewModelTests}.swift`, `Mapsake/Features/Capture/Search/{PlaceSearch,SearchPill,SearchScreen}.swift`
+**mapsake-ios (update):** `MapsakeData/VisitRepository.swift` (+allVisits), `MapsakeTestSupport/FakeVisitRepository.swift`, `MapsakeDesign/{Localization/L.swift, Resources/Localizable.xcstrings}`, `Package.swift` (macOS 14), `Mapsake/Features/Map/{ViewModels/MapViewModel, Views/MapScreen, Views/MapLibreMapView}.swift`
