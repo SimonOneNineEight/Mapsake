@@ -39,7 +39,7 @@
 # implementation-artifacts/ and are complete — do not confuse the two 1-1… namespaces.
 
 generated: 2026-07-13
-last_updated: 2026-07-19  # 2.3 done (dev+review); 2.4 next
+last_updated: 2026-07-19  # 2.3 + 2.4 done (dev+review); 2.5 next
 project: Mapsake v2 (native iOS)
 project_key: NOKEY
 tracking_system: file-system
@@ -61,7 +61,7 @@ development_status:
   2-1-first-real-visit-write-convergence-gate: done  # review-hardened 2026-07-17; X1 green + FALSIFIABLE locally (writer+harness+Linux build); pgTAP 18/18, G1 green. GATE GO-LIVE is Simon-gated: add TRAVEL_MAP_TOKEN + MAPSAKE_IOS_DISPATCH_TOKEN, then 1 CI run to confirm ubuntu e2e
   2-2-place-address-search: done  # review-hardened 2026-07-18; core loop green, 31 MapsakeKit tests; search candidate copy needs Simon bless (FR28 gate red until then)
   2-3-fine-tune-placement-create-visit: done  # dev+review 2026-07-19 (Opus dev, Fable review, 11 patches): fine-tune + proximity-merge create-visit; 45 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless 9 FR28 candidates + 1.4 db push + on-device eyeball
-  2-4-visit-date-optional: backlog
+  2-4-visit-date-optional: done  # dev+review 2026-07-19 (Opus dev, Fable review, 5 patches): date step + write-moves-here carries CalendarDate; 52 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless FR28 candidates + 1.4 db push
   2-5-date-led-photos-exif-strip-note: backlog
   2-6-save-moment-loop-recap: backlog
   2-7-multi-visit-memory-sheet-photo-viewer: backlog
