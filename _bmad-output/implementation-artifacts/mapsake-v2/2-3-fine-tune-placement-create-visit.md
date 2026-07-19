@@ -1,6 +1,10 @@
+---
+baseline_commit: 913253c1b933626f9a1d568b3801c0c5372c23d5  # mapsake-ios HEAD before 2.3
+---
+
 # Story 2.3: Fine-tune placement & create the visit
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -42,29 +46,29 @@ Given the implementation, Then reverse-geocoding uses the AR20 winner (Apple `CL
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Reverse-geocode seam + live CLGeocoder** (AC: 1, 7, 8)
-  - [ ] `Mapsake/Features/Capture/FineTune/ReverseGeocoder.swift`: `PlacePreview` (Sendable value: `name: String?`, `addressLine: String`, `countryCode: String?`, `regionCode: String?` where derivable) + `protocol ReverseGeocoder: Sendable { func lookup(lat: Double, lng: Double) async throws -> PlacePreview }`. Put the value type + protocol in MapsakeModels (testable), the live impl app-side.
-  - [ ] `LiveReverseGeocoder` (CoreLocation): `CLGeocoder().reverseGeocodeLocation` → build a **plain-text** address line from the localized placemark fields (zh-TW on a zh-TW device); `countryCode` = `placemark.isoCountryCode`. Never surface the mechanism name.
-  - [ ] `FakeReverseGeocoder` in MapsakeTestSupport (no CoreLocation).
-- [ ] **Task 2 — Region/country derivation at write time** (AC: 5)
-  - [ ] `country_code` from the reverse-geocode's `isoCountryCode` (alpha-2, matches the tiles' country iso).
-  - [ ] `region_code` (ISO-3166-2) by querying the map's `regions` boundary source at the final coordinate — `MLNMapView.visibleFeatures(at:styleLayerIdentifiers:["regions-fill"])` reads the same `iso` attribute the visited fill uses (reuse the PMTiles data rather than a name→code table). Both NULL-tolerant.
-- [ ] **Task 3 — The create-visit write (MapsakeData)** (AC: 3, 4)
-  - [ ] A capture write coordinator: given the final coordinate + resolved existing-pin (per §Decision) + name/codes, call `PinRepository.insert(PinInsert)` (new pin) OR `VisitRepository.insert(VisitInsert)` (existing pin) — both from Story 2.1. Confirmed write; map its result to `saving / saved / saveFailed(retryable:)`.
-  - [ ] After a `saved`, refresh the map's pins so the new pin/visit appears (reuse `MapViewModel.load()` or an incremental add).
-- [ ] **Task 4 — Long-press entry on the map** (AC: 2, 6)
-  - [ ] Add a `UILongPressGestureRecognizer` to `MapLibreMapView` (alongside the existing tap-dive); on long-press, convert the point → coordinate and surface it to `MapScreen` (a callback/state) to open fine-tune. Read-only pan/zoom otherwise preserved.
-- [ ] **Task 5 — Fine-tune screen + draggable/tap-to-move pin** (AC: 1, 6, 7)
-  - [ ] `Mapsake/Features/Capture/FineTune/FineTuneScreen.swift`: a map centered on the placement with a 44pt terracotta pin overlay; **drag** to nudge + **tap-anywhere-to-move**; the `按住拖曳微調` hint; a `FineTuneViewModel` (@Observable, in MapsakeModels for testability) holding the coordinate + debounced reverse-geocode + the write state.
-  - [ ] The sheet: place name (`.mapsakeType(.sheetHeading)` serif) + the plain-text address (`.note`/`.screenSubtitle`), `MapsakePrimaryButton(L.choosePlace /* 選擇地點, blessed */)`, and a quiet `重新搜尋` secondary.
-  - [ ] a11y: VO nudge actions on the pin (`.accessibilityAdjustableAction`/custom actions up/down/left/right), `.mapsakeAccessible` on the confirm/secondary, the pin ≥44pt.
-- [ ] **Task 6 — Wire the entries into MapScreen** (AC: 2)
-  - [ ] From Story 2.2's search selection: instead of only flying to the coordinate, open fine-tune (carry the `VisitedMatch` if present). From long-press: open fine-tune at the pressed coordinate. Present fine-tune (sheet/cover); on 選擇地點, run the write; on `saved`, dismiss + refresh; on `重新搜尋`, return to search.
-- [ ] **Task 7 — Candidate strings** (AC: 7, 8)
-  - [ ] `選擇地點` is BLESSED (key `vocab.choosePlace` already exists as `L.choosePlace`). Add candidates: `finetune.dragHint` (`按住拖曳微調`), `finetune.research` (`重新搜尋`), `map.longPressCapture` (`在這裡記錄回憶`), and a calm `capture.saveFailed` line — all `needs_review` (FR28). Confirm the gate + no-literal SwiftLint rule stay honest (they redden CI until Simon blesses — expected).
-- [ ] **Task 8 — Tests + review**
-  - [ ] Unit (MapsakeModels/MapsakeTestSupport): the write-branch decision (new pin vs existing visit) against fakes; the `FineTuneViewModel` state machine (reverse-geocode debounce, `saving/saved/saveFailed`); the region/country derivation logic where pure. Live CLGeocoder + the map region-query are on-device (manual eyeball).
-  - [ ] App builds for the simulator; SwiftLint clean; `bmad-code-review` (Fable 5) after.
+- [x] **Task 1 — Reverse-geocode seam + live CLGeocoder** (AC: 1, 7, 8)
+  - [x] `PlacePreview` + `protocol ReverseGeocoder` in **MapsakeModels** (`ReverseGeocoder.swift`). Deviation: `regionCode` is NOT carried on `PlacePreview` — it isn't derivable from a `CLPlacemark`, so it's resolved from the map at confirm (Task 2). `PlacePreview` = `name/addressLine/countryCode` (the geocoder's honest output). Live impl app-side.
+  - [x] `LiveReverseGeocoder` (CoreLocation, app-side): `CLGeocoder().reverseGeocodeLocation` → plain-text deduped address line from the localized placemark; `countryCode = placemark.isoCountryCode`. Mechanism name never surfaces.
+  - [x] `FakeReverseGeocoder` in MapsakeTestSupport (no CoreLocation).
+- [x] **Task 2 — Region/country derivation at write time** (AC: 5)
+  - [x] `country_code` from the reverse-geocode's `isoCountryCode` (flows through `PlacePreview.countryCode` into `PinInsert`).
+  - [x] `region_code` (ISO-3166-2) via `MLNMapView.visibleFeatures(at:styleLayerIdentifiers:["regions-fill"])` reading the promoted `iso` (see `FineTuneMapController.regionCodeAt`), resolved at confirm and passed into `FineTuneViewModel.confirm(regionCode:)`. Both NULL-tolerant.
+- [x] **Task 3 — The create-visit write (MapsakeData)** (AC: 3, 4)
+  - [x] Pure decision `CaptureWritePlanner.plan(...)` (MapsakeModels) → `CaptureWrite.newPin(PinInsert)` | `.additionalVisit(VisitInsert)`; executed via the `CaptureWriter` seam (live `LiveCaptureWriter` wraps `PinRepository`/`VisitRepository` from 2.1). Confirmed write mapped to `saving/saved/saveFailed(retryable:)` in `FineTuneViewModel`.
+  - [x] After `saved`, `MapScreen` calls `MapViewModel.load()` so the new pin/visit appears.
+- [x] **Task 4 — Long-press entry on the map** (AC: 2, 6)
+  - [x] `UILongPressGestureRecognizer` on `MapLibreMapView` (fires on `.began`), converts point → coordinate, surfaces via `onLongPress` callback → `MapScreen` opens fine-tune. Read-only pan/zoom + cluster tap-dive preserved.
+- [x] **Task 5 — Fine-tune screen + draggable/tap-to-move pin** (AC: 1, 6, 7)
+  - [x] `FineTuneScreen.swift` + `FineTuneMapView.swift`: parchment map centered on the placement; 44pt terracotta `FineTunePinView` (`MLNAnnotationView`, `isDraggable`) + **tap-anywhere-to-move**; `按住拖曳微調` hint; `FineTuneViewModel` (@Observable, MapsakeModels) holding coordinate + debounced reverse-geocode + write state.
+  - [x] Sheet: place name (`.sheetHeading` serif) + plain-text address (`.note`), `MapsakePrimaryButton(L.choosePlace)`, quiet `MapsakeQuietButton(L.research /* 重新搜尋 */)`.
+  - [x] a11y: VO nudge custom actions (up/down/left/right) on the pin → `FineTuneViewModel.nudge`; buttons carry `mapsakeAccessible` via the design components; pin = 44pt. Search pill remains the guaranteed accessible path.
+- [x] **Task 6 — Wire the entries into MapScreen** (AC: 2)
+  - [x] Search selection now opens fine-tune at the result's coordinate (single `CaptureRoute` cover, content swaps search↔fine-tune). Long-press opens fine-tune at the pressed coordinate. On 選擇地點 → write; on `saved` → dismiss + `load()`; on 重新搜尋 → back to search. Note: 2.2's fly-to-on-select (incl. the visited FR21 browse-jump) is REPLACED by fine-tune per story scope; browse-jump returns in Epic 4.
+- [x] **Task 7 — Candidate strings** (AC: 7, 8)
+  - [x] `選擇地點` BLESSED (`L.choosePlace`). Added candidates (`needs_review` + `CANDIDATE:`): `finetune.dragHint` (按住拖曳微調), `finetune.research` (重新搜尋), `map.longPressCapture` (在這裡記錄回憶), `capture.saveFailed` (還沒存好，先留著，再試一次), `finetune.untitledPlace` (未命名的地點 — fallback pin name). Candidate gate REDs CI + no-literal SwiftLint rule honest — expected until Simon blesses.
+- [x] **Task 8 — Tests + review**
+  - [x] Unit (MapsakeModelsTests): `CaptureWriteTests` (write-branch decision + proximity overload) + `FineTuneViewModelTests` (debounce preview, proximity re-check at final coord, `saving/saved/saveFailed`, retry, inert-once-saved, nudge-clears-failure) — 12 new, 43 total green via `swift test`. Live CLGeocoder + map region-query are on-device (manual eyeball, Simon-gated).
+  - [x] App builds for the simulator (`xcodebuild build`/`test` SUCCEEDED); SwiftLint exit 0; `bmad-code-review` (Fable 5) next.
 
 ## Dev Notes
 
@@ -115,12 +119,85 @@ mapsake-ios/
 - [Source: EXPERIENCE.md (fine-tune 67, interaction primitives 108–109, a11y 126, save-failure 91/94), DESIGN.md (pin-marker 359, sizes 192), voice-guide.md (jargon ban 48, 選擇地點 32), mockups/capture-flow-prototype.html frame 3, .working/ds-cards/screens/finetune.html]
 - [Source: mapsake-ios existing — Features/Map/Views/{MapScreen,MapLibreMapView}.swift; MapsakeData/{PinRepository,VisitRepository}.swift (insert paths from 2.1); MapsakeModels/{VisitedMatcher,PlaceSearch}.swift; MapsakeDesign L.choosePlace (選擇地點, blessed)]
 
+## Review Findings (bmad-code-review, Fable 5, 2026-07-19)
+
+3 adversarial layers (Blind Hunter, Edge Case Hunter, Acceptance Auditor). Boundary discipline, jargon ban, write-path, and calm-failure posture confirmed solid + well-tested. 11 patches applied, 5 deferred, 3 dismissed.
+
+Patches (applied — see Change Log):
+- [x] [Review][Patch] VoiceOver nudge non-functional — `.adjustable` w/o inc/dec + raw `▲▼◀▶` literal action names + no label (AC6/AC8) → 4 localized L-key custom actions + accessibilityLabel [FineTuneMapView.swift]
+- [x] [Review][Patch] Stale/nil preview at confirm → NULL/wrong country_code+name; `confirm` now awaits the in-flight geocode for the final coord before deriving codes/name [FineTuneViewModel.swift]
+- [x] [Review][Patch] Region query nil when pin panned off-viewport — recenter to the coordinate before `visibleFeatures` [FineTuneMapView.swift]
+- [x] [Review][Patch] Double-tap-to-zoom teleported the pin — tap now `require(toFail:)` the map's double-tap [FineTuneMapView.swift]
+- [x] [Review][Patch] `重新搜尋` not disabled while saving (cover yank + dup capture) — disabled during `.saving` [FineTuneScreen.swift]
+- [x] [Review][Patch] `.canceling` drag committed as a move — now a no-op (only `.ending`) [FineTuneMapView.swift]
+- [x] [Review][Patch] `isPreviewing` cleared by a superseded task's `defer` — generation-guarded [FineTuneViewModel.swift]
+- [x] [Review][Patch] move/nudge during `.saving` mutated the coord under the write — guarded [FineTuneViewModel.swift]
+- [x] [Review][Patch] Unclamped nudge at poles/antimeridian → invalid coord — clamp lat/wrap lng [FineTuneViewModel.swift]
+- [x] [Review][Patch] `Coordinator.parent` never refreshed (stale-closure landmine) — refreshed in `updateUIView` [FineTuneMapView.swift]
+- [x] [Review][Patch] Dead `map.longPressCapture` string (never surfaced; blessed no-results copy already guides long-press) — removed [L.swift, Localizable.xcstrings]
+
+Deferred (noted, not blocking):
+- [x] [Review][Defer] CLGeocoder per-call, no `cancelGeocode` (throttling) — on-device geocoder tuning; `confirm`-await mitigates the confirm-time impact.
+- [x] [Review][Defer] Fine-tune cover has no direct cancel — AC7 lists only 選擇地點 + 重新搜尋; a close/cancel affordance is a Simon UX call.
+- [x] [Review][Defer] `fullScreenCover(item:)` search⇄fine-tune identity swap is iOS-version-dependent — Simon on-device check on min iOS.
+- [x] [Review][Defer] FR21 search-as-browse (visited result → jump-to-pin) removed per AC2 — returns in Epic 4 browse; `MapLibreMapView.flyTo` capability kept for it.
+- [x] [Review][Defer] Empty-geocode (open ocean) → blank sheet (cosmetic) — writes correctly as 未命名的地點; polish on-device.
+
+Dismissed: long-press not restricted to empty spot (proximity merge handles it coherently); MapsakeTestSupport fakes "unused" (story deliverables for previews/XCUITest; unit tests use local stubs per the SearchViewModelTests Supabase-isolation precedent); no explicit 已儲存 (the felt save-moment + recap is Story 2.6's scope).
+
 ## Dev Agent Record
 
 ### Agent Model Used
 
+Opus 4.8 (claude-opus-4-8, dev-story). Code review to run on Fable 5 (bmad-code-review pin).
+
 ### Debug Log References
+
+- `swift build` (MapsakeKit) — clean.
+- `swift test` (MapsakeKit) — 45 tests pass (14 new: `CaptureWriteTests` ×3, `FineTuneViewModelTests` ×11 incl. 2 review-patch tests).
+- `xcodebuild build -scheme Mapsake -destination 'generic/platform=iOS Simulator'` — **BUILD SUCCEEDED** (re-run post-patch).
+- `xcodebuild test -scheme Mapsake -destination 'platform=iOS Simulator,name=iPhone 17'` — **TEST SUCCEEDED** (one transient xctrunner launch hiccup auto-retried).
+- `swiftlint lint` — exit 0 (no-literal + Supabase-boundary rules clean, post-patch).
+- `scripts/check-candidate-strings.sh` — RED (9 candidate strings await Simon's FR28 blessing — expected).
 
 ### Completion Notes List
 
+- **Architecture (seams in MapsakeModels, live impls app-side, mirrors SearchViewModel):** `ReverseGeocoder`+`PlacePreview`, `CaptureWriter`+`CaptureWrite`+`CaptureWritePlanner`, and `FineTuneViewModel` (@Observable @MainActor) live in the extension-safe, dependency-free MapsakeModels — so the debounce + write state machine + the proximity-merge decision are unit-tested off the network. Live `CLGeocoder` and the `PinRepository`/`VisitRepository` wrappers are app-side (CoreLocation/Supabase never enter MapsakeModels).
+- **Proximity merge (Simon's decision):** `VisitedMatcher` gained a coordinate overload; `FineTuneViewModel.confirm` re-runs the ~150m match against the FINAL nudged coordinate → a match writes a `VisitInsert` on that pin, no match writes a `PinInsert`. Exactly one write. Verified by `nudgingIntoAnExistingPinFlipsTheDecisionToAVisit`.
+- **Codes:** `country_code` from `CLPlacemark.isoCountryCode` (via `PlacePreview`); `region_code` from the fine-tune map's `regions-fill` layer (`visibleFeatures(at:)` → promoted `iso`), resolved at confirm and passed into `confirm(regionCode:)`. Both NULL-tolerant (a bare pin is valid).
+- **Calm write (NFR4/AC4):** confirmed write (await → then success); failure → `saveFailed(retryable:)`, retains the entry, primary re-tap retries, a nudge clears the failure; no loss message, no 錯誤/失敗 noun, no red fill. Confirm is inert once `.saving`/`.saved` (no double-write).
+- **Deviations / judgment calls (flag for review):**
+  1. `PlacePreview` omits `regionCode` (not derivable from a placemark) — region is sourced from the map instead. Cleaner single-responsibility seam than a perpetually-nil field.
+  2. Search selection now ALWAYS opens fine-tune (both visited + unvisited), replacing 2.2's fly-to; the FR21 visited browse-jump moves to Epic 4. Matches the story's "instead of only flying… open fine-tune."
+  3. Added a 5th candidate `finetune.untitledPlace` (fallback pin name) not in Task 7's list — a `pins.name` is structurally required, so a long-press whose geocode fully fails still needs a name. Injected into the VM as a String (MapsakeModels can't reach the catalog).
+- **On-device eyeball (Simon-gated):** live zh-TW reverse-geocode text quality, the drag/tap/VO-nudge feel, and the region-query hitting the right admin1 — all need a booted sim/device (the package tests stub these seams).
+- **Simon-gated to go green:** bless the 9 FR28 candidates (`finetune.dragHint/research/untitledPlace/pinLabel/nudgeUp/nudgeDown/nudgeLeft/nudgeRight`, `capture.saveFailed` — flip `needs_review`→`translated`, strip `CANDIDATE:`); apply the 1.4 multi-visit migration (`supabase db push`) so a real write lands against the deployed schema.
+
 ### File List
+
+**mapsake-ios repo (`/Users/simon/projects/Mapsake`), branch `main`:**
+
+New:
+- `Packages/MapsakeKit/Sources/MapsakeModels/ReverseGeocoder.swift`
+- `Packages/MapsakeKit/Sources/MapsakeModels/CaptureWrite.swift`
+- `Packages/MapsakeKit/Sources/MapsakeModels/FineTuneViewModel.swift`
+- `Packages/MapsakeKit/Sources/MapsakeTestSupport/FakeReverseGeocoder.swift`
+- `Packages/MapsakeKit/Sources/MapsakeTestSupport/FakeCaptureWriter.swift`
+- `Packages/MapsakeKit/Tests/MapsakeModelsTests/CaptureWriteTests.swift`
+- `Packages/MapsakeKit/Tests/MapsakeModelsTests/FineTuneViewModelTests.swift`
+- `Mapsake/Features/Capture/FineTune/LiveReverseGeocoder.swift`
+- `Mapsake/Features/Capture/FineTune/LiveCaptureWriter.swift`
+- `Mapsake/Features/Capture/FineTune/FineTuneMapView.swift`
+- `Mapsake/Features/Capture/FineTune/FineTuneScreen.swift`
+
+Modified:
+- `Packages/MapsakeKit/Sources/MapsakeModels/VisitedMatcher.swift` (coordinate overload)
+- `Packages/MapsakeKit/Sources/MapsakeDesign/Localization/L.swift` (5 candidate keys)
+- `Packages/MapsakeKit/Sources/MapsakeDesign/Resources/Localizable.xcstrings` (5 candidate strings)
+- `Mapsake/Features/Map/Views/MapLibreMapView.swift` (long-press recognizer + callback)
+- `Mapsake/Features/Map/Views/MapScreen.swift` (two entries → fine-tune via CaptureRoute cover)
+
+## Change Log
+
+- 2026-07-19 — 2.3 implemented (dev-story, Opus 4.8): reverse-geocode seam + live CLGeocoder, proximity-merge create-visit write (new pin vs added visit, re-checked at final coord), fine-tune screen (draggable/tap/VO-nudge pin + plain-text address + 選擇地點/重新搜尋), long-press + search entries. 43 MapsakeKit tests green, app build + SwiftLint green, 5 FR28 candidates pending blessing. Status → review.
+- 2026-07-19 — code-review (Fable 5, 3 adversarial layers): 11 patches applied — VoiceOver nudge rebuilt (4 localized L-key custom actions + label, dropped the broken `.adjustable`), confirm now awaits the in-flight geocode so codes match the final coord, region query recenters before `visibleFeatures`, double-tap no longer teleports the pin, `重新搜尋` disabled while saving, `.canceling` drag is a no-op, `isPreviewing` generation-guarded, move/nudge guarded during save, coordinates clamped, coordinator `parent` refreshed, dead `map.longPressCapture` removed. 5 deferred (geocoder throttling, cover cancel, cover identity-swap, FR21 browse, empty-geocode sheet), 3 dismissed. 45 MapsakeKit tests green (2 new), app build + SwiftLint green, 9 FR28 candidates pending blessing (added 5 a11y strings, removed 1). Status → done.
