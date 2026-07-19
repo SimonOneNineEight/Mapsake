@@ -62,7 +62,7 @@ development_status:
   2-2-place-address-search: done  # review-hardened 2026-07-18; core loop green, 31 MapsakeKit tests; search candidate copy needs Simon bless (FR28 gate red until then)
   2-3-fine-tune-placement-create-visit: done  # dev+review 2026-07-19 (Opus dev, Fable review, 11 patches): fine-tune + proximity-merge create-visit; 45 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless 9 FR28 candidates + 1.4 db push + on-device eyeball
   2-4-visit-date-optional: done  # dev+review 2026-07-19 (Opus dev, Fable review, 5 patches): date step + write-moves-here carries CalendarDate; 52 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless FR28 candidates + 1.4 db push
-  2-5-date-led-photos-exif-strip-note: backlog
+  2-5-date-led-photos-exif-strip-note: ready-for-dev  # spec 2026-07-19 (Opus): full photo subsystem; open Qs (photo-date normalization, Storage RLS, HEIC) flagged for Simon
   2-6-save-moment-loop-recap: backlog
   2-7-multi-visit-memory-sheet-photo-viewer: backlog
   2-8-approximate-region-backfill: backlog
