@@ -39,7 +39,7 @@
 # implementation-artifacts/ and are complete — do not confuse the two 1-1… namespaces.
 
 generated: 2026-07-13
-last_updated: 2026-07-19  # 2.3–2.6 done (dev+review); 2.7 next
+last_updated: 2026-07-19  # 2.3–2.7 done (dev+review); 2.8 next
 project: Mapsake v2 (native iOS)
 project_key: NOKEY
 tracking_system: file-system
@@ -64,7 +64,7 @@ development_status:
   2-4-visit-date-optional: done  # dev+review 2026-07-19 (Opus dev, Fable review, 5 patches): date step + write-moves-here carries CalendarDate; 52 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless FR28 candidates + 1.4 db push
   2-5-date-led-photos-exif-strip-note: done  # dev+review 2026-07-19 (Opus dev, Fable review, 11 patches incl. CRITICAL lowercase-path RLS fix); 62 MapsakeKit tests + app build + SwiftLint green; Simon-gated = 1.4 db push + Storage RLS confirm + bless FR28 candidates. Deferred: PHPicker-under-limited redesign
   2-6-save-moment-loop-recap: done  # dev+review 2026-07-19 (Opus dev, Fable review, 7 patches): save moment + loop + recap + session-date chip; 66 MapsakeKit tests + app build + SwiftLint green
-  2-7-multi-visit-memory-sheet-photo-viewer: backlog
+  2-7-multi-visit-memory-sheet-photo-viewer: done  # dev+review 2026-07-19 (Opus dev, Fable review, 8 patches incl. viewer-cover-over-sheet fix); 69 MapsakeKit tests + app build + SwiftLint green; deferred: per-pin GL VoiceOver (→ browse Epic 4)
   2-8-approximate-region-backfill: backlog
   2-9-edit-remove: backlog
   epic-2-retrospective: optional
