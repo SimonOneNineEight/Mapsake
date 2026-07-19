@@ -68,9 +68,9 @@ Given the implementation, Then reverse-geocoding uses the AR20 winner (Apple `CL
 
 ## Dev Notes
 
-### ⚠️ Decision needed — when does a capture become a "2nd visit" vs a new pin?
+### Decision — 2nd-visit vs new pin = PROXIMITY MERGE (Simon, 2026-07-18)
 
-The artifacts define the two write shapes (new pin = primary; existing pin = additional visit) but NOT the rule that chooses between them. Recommended rule (confirm with Simon): **proximity at the FINAL coordinate.** On 選擇地點, run the existing `VisitedMatcher` (~150m, from Story 2.2) against the nudged coordinate — a match → `VisitInsert` (another visit on that pin); no match → `PinInsert` (new primary). This unifies both entries (search + long-press), re-checks after the user drags, and reuses tested logic. Alternative: attach ONLY when the search row explicitly showed 「你去過 N 次」 (entry-intent), always-new otherwise — more predictable, no drop-near surprise, but long-press can never add a 2nd visit. **Do not build the write branch until this is settled** (it's AC3's core). [architecture.md line 122; the ~150m radius caveat carried from 2.2 applies]
+On 選擇地點, run the existing `VisitedMatcher` (~150m, from Story 2.2) against the FINAL (nudged) coordinate — a match → `VisitInsert` (another visit on that pin); no match → `PinInsert` (new primary). Same rule for both entries (search + long-press); re-checked after the user drags. Matches the multi-visit-per-place model. **Known caveat (carried from 2.2):** the ~150m radius is coarse in dense blocks — a drop ~100m from an unrelated pin silently merges. Accepted for this cut; radius tuning tracked with 2.2's follow-up. [architecture.md line 122]
 
 ### The write path (reuses Story 2.1)
 
