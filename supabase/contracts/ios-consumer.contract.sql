@@ -23,8 +23,8 @@ select id, user_id, name, lat, lng, country_code, region_code, note,
 
 -- Pin (INSERT write-shape) — PinInsert sends exactly these columns (exif_taken_at is trigger-owned, NOT
 -- sent). Catches a pins column iOS writes becoming generated / non-insertable / a default iOS relies on.
-insert into public.pins (user_id, name, lat, lng, country_code, region_code, note, memory_date, muted)
-  select user_id, name, lat, lng, country_code, region_code, note, memory_date, muted
+insert into public.pins (user_id, name, lat, lng, country_code, region_code, note, memory_date, muted, is_approximate)
+  select user_id, name, lat, lng, country_code, region_code, note, memory_date, muted, is_approximate
   from public.pins where false;
 
 -- RegionMark (read) — LiveRegionMarkRepository selects these four; lossy-decoded into MapsakeModels.RegionMark.
