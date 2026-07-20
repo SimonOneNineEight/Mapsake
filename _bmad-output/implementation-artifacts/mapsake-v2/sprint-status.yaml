@@ -67,7 +67,7 @@ development_status:
   2-7-multi-visit-memory-sheet-photo-viewer: done  # dev+review 2026-07-19 (Opus dev, Fable review, 8 patches incl. viewer-cover-over-sheet fix); 69 MapsakeKit tests + app build + SwiftLint green; deferred: per-pin GL VoiceOver (→ browse Epic 4)
   2-8-approximate-region-backfill: done  # dev+review 2026-07-19 (Opus dev, Fable review, 5 patches): approximate region pin + additive is_approximate migration + type bridge; 74 MapsakeKit tests + app build + SwiftLint green; Simon-gated = push the migration (after 1.4) + bless 記錄這個地區
   2-9-edit-remove: done  # dev+review 2026-07-19 (Opus dev, Fable review, 7 patches incl. CRITICAL stale-pin refetch + dateless-stamping + wrong-visit-write fixes); 79 MapsakeKit tests + app build + SwiftLint + full sim suite green; deferred (documented): promote-RPC blind-retry hardening (Simon-gated migration), note null-clear
-  epic-2-retrospective: optional
+  epic-2-retrospective: done  # 2026-07-19 — focused retro: (1) whole epic unverified against real DB — push 1.4+2.8 & on-device pass before Epic 3; (2) Fable review earns its keep on integration bugs, gap is live verification not more unit tests
 
   # ── Epic 3: Re-live — the Soul ──────────────────────────────────────────
   epic-3: backlog
