@@ -39,7 +39,7 @@
 # implementation-artifacts/ and are complete — do not confuse the two 1-1… namespaces.
 
 generated: 2026-07-13
-last_updated: 2026-07-19  # Epic 2 COMPLETE — 2.1–2.9 all done (dev+review); Simon-gates pending (see epic-2)
+last_updated: 2026-07-20  # Epic 2 REOPENED after Simon's sim verification: migrations pushed + on-device pass surfaced flow/model gaps → stories 2.10–2.12 added
 project: Mapsake v2 (native iOS)
 project_key: NOKEY
 tracking_system: file-system
@@ -57,7 +57,7 @@ development_status:
   epic-1-retrospective: optional
 
   # ── Epic 2: Capture the Trip & Prove the Migration ──────────────────────
-  epic-2: done  # 2.1–2.9 all dev+review complete. Simon-gates before end-to-end/prod: push 1.4 (visits+promote RPC) then 2.8 is_approximate migration (dev→prod, gen types); confirm pin-photos Storage RLS for the anon principal; bless the 39 FR28 candidates; on-device eyeball of capture-loop + edit/delete
+  epic-2: in-progress  # 2.1–2.9 done; REOPENED 2026-07-20 after Simon's sim pass (migrations applied on sulnxslznkwktukvwotq). Verification surfaced capture-flow + data-model gaps → 2.10–2.12. Design decisions (Simon): draft-first commit-at-recap; same place+same day merges; undated memories collapse to one collection per pin
   2-1-first-real-visit-write-convergence-gate: done  # review-hardened 2026-07-17; X1 green + FALSIFIABLE locally (writer+harness+Linux build); pgTAP 18/18, G1 green. GATE GO-LIVE is Simon-gated: add TRAVEL_MAP_TOKEN + MAPSAKE_IOS_DISPATCH_TOKEN, then 1 CI run to confirm ubuntu e2e
   2-2-place-address-search: done  # review-hardened 2026-07-18; core loop green, 31 MapsakeKit tests; search candidate copy needs Simon bless (FR28 gate red until then)
   2-3-fine-tune-placement-create-visit: done  # dev+review 2026-07-19 (Opus dev, Fable review, 11 patches): fine-tune + proximity-merge create-visit; 45 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless 9 FR28 candidates + 1.4 db push + on-device eyeball
@@ -67,7 +67,11 @@ development_status:
   2-7-multi-visit-memory-sheet-photo-viewer: done  # dev+review 2026-07-19 (Opus dev, Fable review, 8 patches incl. viewer-cover-over-sheet fix); 69 MapsakeKit tests + app build + SwiftLint green; deferred: per-pin GL VoiceOver (→ browse Epic 4)
   2-8-approximate-region-backfill: done  # dev+review 2026-07-19 (Opus dev, Fable review, 5 patches): approximate region pin + additive is_approximate migration + type bridge; 74 MapsakeKit tests + app build + SwiftLint green; Simon-gated = push the migration (after 1.4) + bless 記錄這個地區
   2-9-edit-remove: done  # dev+review 2026-07-19 (Opus dev, Fable review, 7 patches incl. CRITICAL stale-pin refetch + dateless-stamping + wrong-visit-write fixes); 79 MapsakeKit tests + app build + SwiftLint + full sim suite green; deferred (documented): promote-RPC blind-retry hardening (Simon-gated migration), note null-clear
-  epic-2-retrospective: done  # 2026-07-19 — focused retro: (1) whole epic unverified against real DB — push 1.4+2.8 & on-device pass before Epic 3; (2) Fable review earns its keep on integration bugs, gap is live verification not more unit tests
+  # ── Post-verification corrections (Simon's 2026-07-20 sim pass) ──
+  2-10-draft-first-capture-editable-recap: done  # dev+review 2026-07-20 (Opus dev, Fable review, 6 patches incl. CRITICAL edit-after-partial-failure lock); CaptureCommitter batch-aware merge + resumable retry; editable recap; loop-cancel→recap; 已加入這趟 copy; photo-preview + note fixes. 84 MapsakeKit tests + app build + SwiftLint + full sim suite green. Deferred (documented): rename-on-merge → 2.11, AC8 render-half on-device verify, whole-trip loss (accepted)
+  2-11-visit-semantics-timeline: backlog  # same place+same day merges into one visit; undated memories → one collection per pin (no 第N次 ordinal, kills false 第一次); history rows show full date not just 年月; delete-button discoverability in edit mode
+  2-12-capture-surface-bugs: backlog  # search region bias (台北101 → Taiwan not Fukuoka); search screen parchment/white-space styling; fine-tune shows the real map zoomed to the spot; cluster count label off-center at some zoom levels
+  epic-2-retrospective: done  # (2.1–2.9 scope; 2.10–2.12 are post-sim corrections)  # 2026-07-19 — focused retro: (1) whole epic unverified against real DB — push 1.4+2.8 & on-device pass before Epic 3; (2) Fable review earns its keep on integration bugs, gap is live verification not more unit tests
 
   # ── Epic 3: Re-live — the Soul ──────────────────────────────────────────
   epic-3: backlog
