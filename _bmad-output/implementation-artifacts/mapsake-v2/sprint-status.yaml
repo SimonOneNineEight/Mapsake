@@ -39,7 +39,7 @@
 # implementation-artifacts/ and are complete — do not confuse the two 1-1… namespaces.
 
 generated: 2026-07-13
-last_updated: 2026-07-19  # 2.3–2.8 done (dev+review); 2.9 next
+last_updated: 2026-07-19  # Epic 2 COMPLETE — 2.1–2.9 all done (dev+review); Simon-gates pending (see epic-2)
 project: Mapsake v2 (native iOS)
 project_key: NOKEY
 tracking_system: file-system
@@ -57,7 +57,7 @@ development_status:
   epic-1-retrospective: optional
 
   # ── Epic 2: Capture the Trip & Prove the Migration ──────────────────────
-  epic-2: in-progress
+  epic-2: done  # 2.1–2.9 all dev+review complete. Simon-gates before end-to-end/prod: push 1.4 (visits+promote RPC) then 2.8 is_approximate migration (dev→prod, gen types); confirm pin-photos Storage RLS for the anon principal; bless the 39 FR28 candidates; on-device eyeball of capture-loop + edit/delete
   2-1-first-real-visit-write-convergence-gate: done  # review-hardened 2026-07-17; X1 green + FALSIFIABLE locally (writer+harness+Linux build); pgTAP 18/18, G1 green. GATE GO-LIVE is Simon-gated: add TRAVEL_MAP_TOKEN + MAPSAKE_IOS_DISPATCH_TOKEN, then 1 CI run to confirm ubuntu e2e
   2-2-place-address-search: done  # review-hardened 2026-07-18; core loop green, 31 MapsakeKit tests; search candidate copy needs Simon bless (FR28 gate red until then)
   2-3-fine-tune-placement-create-visit: done  # dev+review 2026-07-19 (Opus dev, Fable review, 11 patches): fine-tune + proximity-merge create-visit; 45 MapsakeKit tests + app build + SwiftLint green; Simon-gated = bless 9 FR28 candidates + 1.4 db push + on-device eyeball
@@ -66,7 +66,7 @@ development_status:
   2-6-save-moment-loop-recap: done  # dev+review 2026-07-19 (Opus dev, Fable review, 7 patches): save moment + loop + recap + session-date chip; 66 MapsakeKit tests + app build + SwiftLint green
   2-7-multi-visit-memory-sheet-photo-viewer: done  # dev+review 2026-07-19 (Opus dev, Fable review, 8 patches incl. viewer-cover-over-sheet fix); 69 MapsakeKit tests + app build + SwiftLint green; deferred: per-pin GL VoiceOver (→ browse Epic 4)
   2-8-approximate-region-backfill: done  # dev+review 2026-07-19 (Opus dev, Fable review, 5 patches): approximate region pin + additive is_approximate migration + type bridge; 74 MapsakeKit tests + app build + SwiftLint green; Simon-gated = push the migration (after 1.4) + bless 記錄這個地區
-  2-9-edit-remove: backlog
+  2-9-edit-remove: done  # dev+review 2026-07-19 (Opus dev, Fable review, 7 patches incl. CRITICAL stale-pin refetch + dateless-stamping + wrong-visit-write fixes); 79 MapsakeKit tests + app build + SwiftLint + full sim suite green; deferred (documented): promote-RPC blind-retry hardening (Simon-gated migration), note null-clear
   epic-2-retrospective: optional
 
   # ── Epic 3: Re-live — the Soul ──────────────────────────────────────────
